@@ -6,6 +6,10 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_motion.dart';
+import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/napak_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../render/presentation/video_sheet.dart';
 import '../data/trip_models.dart';
@@ -19,6 +23,12 @@ final _tripPointsProvider = FutureProvider.family<List<TripPoint>, String>(
   (ref, tripId) => ref.watch(tripRepositoryProvider).points(tripId),
 );
 
+/// Halaman satu perjalanan.
+///
+/// Petanya mengisi seluruh bagian atas dan menyusut jadi bilah judul saat
+/// digulir, jadi yang pertama dilihat memang jejaknya — bukan judul di atas
+/// kotak kecil. Angka dan catatan datang setelahnya, sebagai keterangan atas
+/// gambar itu.
 class TripDetailPage extends ConsumerStatefulWidget {
   const TripDetailPage({required this.tripId, super.key});
 
@@ -40,8 +50,8 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     final trip = ref.watch(_tripDetailProvider(widget.tripId));
     final titik = ref.watch(_tripPointsProvider(widget.tripId));
 
-    // Saat perjalanan ini yang sedang direkam, titik baru ditambahkan ke peta
-    // satu per satu — bukan dengan memuat ulang seluruh rute dari server.
+    // Kalau perjalanan ini yang sedang direkam, titik baru ditempelkan ke
+    // garis yang sudah ada — bukan dengan memuat ulang seluruh rute.
     ref.listen(
       recordingControllerProvider.select((s) => s.latest),
       (sebelum, sekarang) {
@@ -55,66 +65,38 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     );
 
     return Scaffold(
+      backgroundColor: NapakColors.base,
       body: trip.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const _MemuatDetail(),
         error: (error, _) => _Galat(pesan: error.toString()),
         data: (data) => CustomScrollView(
           slivers: [
-            SliverAppBar(
-              expandedHeight: 320,
-              pinned: true,
-              backgroundColor: NapakColors.base,
-              surfaceTintColor: Colors.transparent,
-              leading: const BackButton(color: NapakColors.deepAccent),
-              actions: [
-                IconButton(
-                  tooltip: 'Siapa yang boleh melihat',
-                  icon: Icon(_ikonVisibility(data.visibility)),
-                  color: NapakColors.deepAccent,
-                  onPressed: data.isOwner
-                      ? () => _aturVisibility(context, data)
-                      : null,
-                ),
-                if (data.isOwner)
-                  IconButton(
-                    tooltip: 'Hapus permanen',
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    color: NapakColors.attention,
-                    onPressed: () => _hapus(context, data),
-                  ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: titik.when(
-                  loading: () => const PetaKosong(),
-                  error: (_, _) => const PetaKosong(),
-                  data: (daftar) => daftar.isEmpty
-                      ? const PetaKosong()
-                      : PetaRute(
-                          controller: _petaController,
-                          jalur: [
-                            JalurRute(
-                              id: _jalurUtama,
-                              titik: [
-                                for (final t in daftar) LatLng(t.lat, t.lng),
-                              ],
-                            ),
-                          ],
-                        ),
-                ),
-              ),
+            _KepalaPeta(
+              trip: data,
+              titik: titik,
+              peta: _petaController,
+              jalurId: _jalurUtama,
+              onVisibility: () => _aturVisibility(context, data),
+              onHapus: () => _hapus(context, data),
             ),
             SliverToBoxAdapter(child: _Ringkasan(trip: data)),
             SliverToBoxAdapter(child: _BarisAksi(trip: data)),
             titik.when(
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(child: CircularProgressIndicator()),
+                  padding: EdgeInsets.fromLTRB(24, 32, 24, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      NapakSkeleton.teks(lebar: 120),
+                      SizedBox(height: 16),
+                      NapakSkeleton(tinggi: 76, radius: 16),
+                    ],
+                  ),
                 ),
               ),
-              error: (error, _) => SliverToBoxAdapter(
-                child: _Galat(pesan: error.toString()),
-              ),
+              error: (error, _) =>
+                  SliverToBoxAdapter(child: _Galat(pesan: error.toString())),
               data: (daftar) => _DaftarSinggahan(titik: daftar),
             ),
           ],
@@ -149,18 +131,12 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               child: Text(
                 'Orang di luar perjalanan ini hanya melihat bentuk rutenya '
                 'secara kasar — bukan titik persisnya, dan tanpa catatanmu.',
-                style: TextStyle(
-                  color: NapakColors.textSecondary,
-                  height: 1.5,
-                ),
+                style: TextStyle(color: NapakColors.textSecondary, height: 1.5),
               ),
             ),
             for (final v in TripVisibility.values)
               ListTile(
-                leading: Icon(
-                  _ikonVisibility(v),
-                  color: NapakColors.deepAccent,
-                ),
+                leading: Icon(_ikonVisibility(v), color: NapakColors.deepAccent),
                 title: Text(v.label),
                 trailing: trip.visibility == v
                     ? const Icon(
@@ -178,9 +154,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
 
     if (pilihan == null || pilihan == trip.visibility) return;
 
-    await ref
-        .read(tripRepositoryProvider)
-        .setVisibility(trip.id, pilihan);
+    await ref.read(tripRepositoryProvider).setVisibility(trip.id, pilihan);
     ref.invalidate(_tripDetailProvider(trip.id));
     ref.invalidate(tripListProvider);
   }
@@ -198,9 +172,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Seluruh jejak, catatan, dan fotonya dihapus sepenuhnya dari '
-              'Napak. Tidak disembunyikan — benar-benar hilang, dan tidak bisa '
-              'dikembalikan.',
+              'Seluruh jejak, catatan, foto, dan video yang sudah dibuat '
+              'dihapus sepenuhnya. Tidak disembunyikan — benar-benar hilang, '
+              'dan tidak bisa dikembalikan.',
               style: TextStyle(height: 1.5),
             ),
             const SizedBox(height: 18),
@@ -240,10 +214,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
           .deletePermanently(trip.id, controller.text);
       await ref.read(localDatabaseProvider).dropTrip(trip.id);
       ref.invalidate(tripListProvider);
+
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(pesan)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
       context.go('/');
     } catch (error) {
       if (!context.mounted) return;
@@ -254,42 +227,110 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
   }
 }
 
-/// Dua hal yang bisa dilakukan dengan sebuah perjalanan yang sudah terekam:
-/// dijadikan video untuk dibagikan, dan — kalau ini Trip Bareng — dibuka
-/// peta rombongannya.
-class _BarisAksi extends StatelessWidget {
-  const _BarisAksi({required this.trip});
+/// Peta besar yang menyusut jadi bilah judul saat digulir.
+class _KepalaPeta extends StatelessWidget {
+  const _KepalaPeta({
+    required this.trip,
+    required this.titik,
+    required this.peta,
+    required this.jalurId,
+    required this.onVisibility,
+    required this.onHapus,
+  });
 
   final Trip trip;
+  final AsyncValue<List<TripPoint>> titik;
+  final PetaRuteController peta;
+  final String jalurId;
+  final VoidCallback onVisibility;
+  final VoidCallback onHapus;
 
   @override
   Widget build(BuildContext context) {
-    final bisaDirender = trip.pointCount >= 2;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Row(
-        children: [
-          Expanded(
-            child: FilledButton.icon(
-              onPressed: bisaDirender
-                  ? () => VideoSheet.tampilkan(context, trip)
-                  : null,
-              icon: const Icon(Icons.movie_creation_outlined, size: 20),
-              label: const Text('Jadikan video'),
-            ),
+    return SliverAppBar(
+      expandedHeight: 340,
+      pinned: true,
+      backgroundColor: NapakColors.base,
+      surfaceTintColor: Colors.transparent,
+      leadingWidth: 56,
+      leading: const _TombolBulat(ikon: Icons.arrow_back_rounded),
+      actions: [
+        if (trip.isOwner)
+          _TombolBulat(
+            ikon: switch (trip.visibility) {
+              TripVisibility.private => Icons.lock_outline_rounded,
+              TripVisibility.link => Icons.link_rounded,
+              TripVisibility.public => Icons.public_rounded,
+            },
+            onTap: onVisibility,
           ),
-          if (trip.mode == TripMode.group) ...[
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () => context.push('/trip/${trip.id}/bareng'),
-                icon: const Icon(Icons.group_outlined, size: 20),
-                label: const Text('Rombongan'),
-              ),
-            ),
-          ],
-        ],
+        if (trip.isOwner)
+          _TombolBulat(
+            ikon: Icons.delete_outline_rounded,
+            warna: NapakColors.attention,
+            onTap: onHapus,
+          ),
+        const SizedBox(width: 8),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: titik.when(
+          loading: () => const PetaKosong(),
+          error: (_, _) => const PetaKosong(),
+          data: (daftar) => daftar.isEmpty
+              ? const PetaKosong()
+              // Peta muncul memudar, bukan berkedip masuk — tile-nya butuh
+              // waktu, dan kedipan itu yang paling terasa murah.
+              : TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: NapakMotion.lambat,
+                  curve: NapakMotion.mengalir,
+                  builder: (context, t, anak) =>
+                      Opacity(opacity: t, child: anak),
+                  child: PetaRute(
+                    controller: peta,
+                    jalur: [
+                      JalurRute(
+                        id: jalurId,
+                        titik: [for (final t in daftar) LatLng(t.lat, t.lng)],
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tombol bundar bertumpuk di atas peta, supaya ikonnya tetap terbaca
+/// di atas warna apa pun.
+class _TombolBulat extends StatelessWidget {
+  const _TombolBulat({
+    required this.ikon,
+    this.onTap,
+    this.warna = NapakColors.deepAccent,
+  });
+
+  final IconData ikon;
+  final VoidCallback? onTap;
+  final Color warna;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: NapakPressable(
+        skala: 0.88,
+        onTap: onTap ?? () => context.pop(),
+        child: Container(
+          height: 36,
+          width: 36,
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: NapakColors.base.withValues(alpha: 0.9),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(ikon, size: 19, color: warna),
+        ),
       ),
     );
   }
@@ -309,35 +350,41 @@ class _Ringkasan extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(trip.title, style: text.headlineSmall),
+          MunculBertahap(
+            indeks: 0,
+            child: Text(trip.title, style: text.headlineMedium),
+          ),
           if (trip.startedAt != null) ...[
             const SizedBox(height: 6),
-            Text(
-              DateFormat("EEEE, d MMMM yyyy", 'id_ID').format(trip.startedAt!),
-              style: text.bodySmall,
+            MunculBertahap(
+              indeks: 1,
+              child: Text(
+                DateFormat("EEEE, d MMMM yyyy", 'id_ID').format(trip.startedAt!),
+                style: text.bodySmall,
+              ),
             ),
           ],
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              _Angka(
-                nilai: trip.distanceKm.toStringAsFixed(1),
-                satuan: 'km',
-                label: 'Ditempuh',
-              ),
-              const SizedBox(width: 14),
-              _Angka(
-                nilai: '${trip.pointCount}',
-                satuan: '',
-                label: 'Jejak',
-              ),
-              const SizedBox(width: 14),
-              _Angka(
-                nilai: _durasi(trip),
-                satuan: '',
-                label: 'Lama',
-              ),
-            ],
+          const SizedBox(height: 22),
+          MunculBertahap(
+            indeks: 2,
+            child: Row(
+              children: [
+                _Angka(
+                  nilai: trip.distanceKm,
+                  desimal: 1,
+                  satuan: 'km',
+                  label: 'Ditempuh',
+                ),
+                const SizedBox(width: 12),
+                _Angka(
+                  nilai: trip.pointCount.toDouble(),
+                  satuan: '',
+                  label: 'Jejak',
+                ),
+                const SizedBox(width: 12),
+                _Teks(nilai: _durasi(trip), label: 'Lama'),
+              ],
+            ),
           ),
         ],
       ),
@@ -360,11 +407,13 @@ class _Angka extends StatelessWidget {
     required this.nilai,
     required this.satuan,
     required this.label,
+    this.desimal = 0,
   });
 
-  final String nilai;
+  final double nilai;
   final String satuan;
   final String label;
+  final int desimal;
 
   @override
   Widget build(BuildContext context) {
@@ -372,20 +421,24 @@ class _Angka extends StatelessWidget {
 
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         decoration: BoxDecoration(
           color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           children: [
-            Text.rich(
-              TextSpan(
-                text: nilai,
-                style: text.titleLarge,
+            FittedBox(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
                 children: [
-                  if (satuan.isNotEmpty)
-                    TextSpan(text: ' $satuan', style: text.bodySmall),
+                  AngkaBerjalan(
+                    nilai: nilai,
+                    desimal: desimal,
+                    gaya: text.titleLarge,
+                  ),
+                  if (satuan.isNotEmpty) Text(' $satuan', style: text.bodySmall),
                 ],
               ),
             ),
@@ -398,8 +451,81 @@ class _Angka extends StatelessWidget {
   }
 }
 
-/// Titik-titik yang punya catatan. Sisanya tidak perlu ditampilkan satu-satu —
-/// perjalanan adalah cerita, bukan daftar koordinat.
+class _Teks extends StatelessWidget {
+  const _Teks({required this.nilai, required this.label});
+
+  final String nilai;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+        decoration: BoxDecoration(
+          color: NapakColors.softSky,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          children: [
+            FittedBox(child: Text(nilai, style: text.titleLarge)),
+            const SizedBox(height: 4),
+            Text(label, style: text.bodySmall),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Dua hal yang bisa dilakukan dengan perjalanan yang sudah terekam.
+class _BarisAksi extends StatelessWidget {
+  const _BarisAksi({required this.trip});
+
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final bisaDirender = trip.pointCount >= 2;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+      child: MunculBertahap(
+        indeks: 3,
+        child: Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: bisaDirender
+                    ? () => VideoSheet.tampilkan(context, trip)
+                    : null,
+                icon: const Icon(Icons.movie_creation_outlined, size: 20),
+                label: const Text('Jadikan video'),
+              ),
+            ),
+            if (trip.mode == TripMode.group) ...[
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => context.push('/trip/${trip.id}/bareng'),
+                  icon: const Icon(Icons.group_outlined, size: 20),
+                  label: const Text('Rombongan'),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Titik-titik yang punya catatan, disusun seperti garis waktu.
+///
+/// Sisanya tidak ditampilkan satu per satu — perjalanan itu cerita, bukan
+/// daftar koordinat.
 class _DaftarSinggahan extends StatelessWidget {
   const _DaftarSinggahan({required this.titik});
 
@@ -408,80 +534,141 @@ class _DaftarSinggahan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bercatatan = titik.where((t) => t.note != null).toList();
+    final text = Theme.of(context).textTheme;
 
     if (bercatatan.isEmpty) {
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 28, 24, 48),
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 60),
           child: Text(
             titik.any((t) => t.coarse)
                 ? 'Kamu melihat perjalanan ini sebagai tamu, jadi catatan dan '
                       'titik persisnya tidak ikut dibagikan.'
                 : 'Belum ada catatan di perjalanan ini. Lain kali, singgah '
                       'sebentar dan tuliskan apa yang kamu temui.',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: text.bodySmall,
           ),
         ),
       );
     }
 
-    return SliverList.separated(
+    return SliverList.builder(
       itemCount: bercatatan.length + 1,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         if (index == 0) {
           return Padding(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 4),
-            child: Text(
-              'Singgahan',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            padding: const EdgeInsets.fromLTRB(24, 34, 24, 16),
+            child: Text('Singgahan', style: text.titleLarge),
           );
         }
 
         final t = bercatatan[index - 1];
+        final terakhir = index == bercatatan.length;
+
         return Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            0,
-            24,
-            index == bercatatan.length ? 48 : 0,
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: NapakColors.warmNeutral,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.place_outlined,
-                      size: 16,
-                      color: NapakColors.deepAccent,
+          padding: EdgeInsets.fromLTRB(24, 0, 24, terakhir ? 60 : 0),
+          child: MunculBertahap(
+            indeks: index,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Garis waktu di kiri: titik dan garis penghubung, supaya
+                  // singgahan terbaca berurutan sepanjang perjalanan.
+                  Column(
+                    children: [
+                      Container(
+                        height: 11,
+                        width: 11,
+                        margin: const EdgeInsets.only(top: 6),
+                        decoration: BoxDecoration(
+                          color: NapakColors.base,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: NapakColors.deepAccent,
+                            width: 2.5,
+                          ),
+                        ),
+                      ),
+                      if (!terakhir)
+                        Expanded(
+                          child: Container(
+                            width: 2,
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            color: NapakColors.divider,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: terakhir ? 0 : 18),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: NapakColors.warmNeutral,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  DateFormat('HH:mm').format(t.recordedAt),
+                                  style: text.labelMedium?.copyWith(
+                                    color: NapakColors.deepAccent,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  t.transportMode.label,
+                                  style: text.bodySmall,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(t.note!, style: text.bodyMedium),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      DateFormat('HH:mm').format(t.recordedAt),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      t.transportMode.label,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(t.note!, style: Theme.of(context).textTheme.bodyMedium),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _MemuatDetail extends StatelessWidget {
+  const _MemuatDetail();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        NapakSkeleton(tinggi: 340, radius: 0),
+        Padding(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NapakSkeleton.teks(lebar: 200),
+              SizedBox(height: 12),
+              NapakSkeleton.teks(lebar: 140),
+              SizedBox(height: 24),
+              NapakSkeleton(tinggi: 86, radius: 18),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

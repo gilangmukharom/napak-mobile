@@ -3,6 +3,7 @@ import 'package:napak/features/trips/data/trip_models.dart';
 
 void main() {
   _modelBaru();
+  _pratinjauRute();
 
   group('TripVisibility', () {
     test('nilai tak dikenal jatuh ke private, bukan ke publik', () {
@@ -187,6 +188,71 @@ void _modelBaru() {
       });
 
       expect(titik.recordedBy, '');
+    });
+  });
+}
+
+/// Pratinjau rute yang dipakai kartu di beranda.
+///
+/// Urutannya `[lng, lat]` mengikuti GeoJSON, bukan `[lat, lng]` seperti yang
+/// biasa diucapkan orang. Tertukar sedikit saja, seluruh rute di Indonesia
+/// akan tergambar di tengah Samudra Hindia — dan tidak ada yang error, cuma
+/// gambarnya salah.
+void _pratinjauRute() {
+  group('Trip.previewPath', () {
+    test('membaca urutan GeoJSON [lng, lat], bukan sebaliknya', () {
+      final trip = Trip.fromJson({
+        'id': 't1',
+        'title': 'Mudik ke Tangerang',
+        'visibility': 'private',
+        'mode': 'solo',
+        'distanceKm': 255.3,
+        'pointCount': 396,
+        'isOwner': true,
+        'previewPath': [
+          [108.4617, -6.7128],
+          [106.5623, -6.1276],
+        ],
+      });
+
+      expect(trip.previewPath, hasLength(2));
+
+      // Jamblang, Cirebon: bujur ~108 (timur), lintang ~-6,7 (selatan).
+      expect(trip.previewPath.first.lng, closeTo(108.4617, 0.0001));
+      expect(trip.previewPath.first.lat, closeTo(-6.7128, 0.0001));
+
+      // Kalau tertukar, lintang akan terbaca 108 — di luar rentang yang mungkin.
+      expect(trip.previewPath.first.lat.abs(), lessThan(90));
+    });
+
+    test('backend versi lama yang belum mengirimnya tidak bikin rusak', () {
+      final trip = Trip.fromJson({
+        'id': 't2',
+        'title': 'Perjalanan lama',
+        'visibility': 'private',
+        'mode': 'solo',
+        'distanceKm': 12.0,
+        'pointCount': 40,
+        'isOwner': true,
+      });
+
+      // Kartunya tampil tanpa gambar, bukan meledak.
+      expect(trip.previewPath, isEmpty);
+    });
+
+    test('perjalanan tanpa jejak mengirim daftar kosong', () {
+      final trip = Trip.fromJson({
+        'id': 't3',
+        'title': 'Baru dibuat',
+        'visibility': 'private',
+        'mode': 'solo',
+        'distanceKm': 0,
+        'pointCount': 0,
+        'isOwner': true,
+        'previewPath': <dynamic>[],
+      });
+
+      expect(trip.previewPath, isEmpty);
     });
   });
 }

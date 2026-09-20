@@ -1,0 +1,442 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
+
+import '../../../core/providers.dart';
+import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_motion.dart';
+import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/widgets/napak_pressable.dart';
+import '../../trips/presentation/peta_rute.dart';
+import '../application/recording_controller.dart';
+
+/// Layar perjalanan yang sedang berjalan.
+///
+/// Dirancang untuk dilihat sekilas — di atas motor, sambil berhenti di lampu
+/// merah, dengan sarung tangan. Karena itu angkanya besar, tombolnya sedikit,
+/// dan tidak ada satu pun hal yang perlu dibaca teliti.
+///
+/// Petanya dibuat sekali lalu diberi titik baru lewat controller, bukan
+/// dibangun ulang tiap posisi masuk. Membangun ulang MapLibre tiap 30 detik
+/// selama enam jam akan menghabiskan baterai persis di saat perjalanan sedang
+/// berlangsung.
+class RekamPage extends ConsumerStatefulWidget {
+  const RekamPage({super.key});
+
+  @override
+  ConsumerState<RekamPage> createState() => _RekamPageState();
+}
+
+class _RekamPageState extends ConsumerState<RekamPage> {
+  static const _jalurSesi = 'sesi';
+
+  final _peta = PetaRuteController();
+  Timer? _detak;
+  Duration _berjalan = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _mulaiDetak();
+  }
+
+  @override
+  void dispose() {
+    _detak?.cancel();
+    super.dispose();
+  }
+
+  /// Penghitung waktu jalan sendiri tiap detik. Tidak menunggu titik GPS baru —
+  /// berhenti lama di rest area tetap terhitung sebagai bagian perjalanan.
+  void _mulaiDetak() {
+    _detak = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _berjalan += const Duration(seconds: 1));
+    });
+  }
+
+  Future<void> _selesai() async {
+    final yakin = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: NapakColors.base,
+        title: const Text('Tutup perjalanan?'),
+        content: const Text(
+          'Jejak yang belum terkirim akan disusulkan dulu. Setelah ditutup, '
+          'perjalanan ini tidak bisa dilanjutkan lagi.',
+          style: TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Lanjut jalan'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+
+    if (yakin != true) return;
+
+    await ref.read(recordingControllerProvider.notifier).stop();
+    if (!mounted) return;
+    context.go('/');
+  }
+
+  Future<void> _catat() async {
+    final controller = TextEditingController();
+    final simpan = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: NapakColors.base,
+        title: const Text('Ada apa di sini?'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 3,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            hintText: 'Berhenti makan soto di pinggir jalan',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+
+    if (simpan == true) {
+      await ref
+          .read(recordingControllerProvider.notifier)
+          .addNote(controller.text);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rekaman = ref.watch(recordingControllerProvider);
+    final belumTerkirim = ref.watch(pendingPointCountProvider).value ?? 0;
+
+    // Titik baru ditempelkan ke garis yang sudah ada. Tidak ada setState di
+    // sini, jadi petanya tidak ikut dibangun ulang.
+    ref.listen(
+      recordingControllerProvider.select((s) => s.latest),
+      (_, terbaru) {
+        if (terbaru == null) return;
+        _peta.tambahTitik(_jalurSesi, LatLng(terbaru.lat, terbaru.lng));
+      },
+    );
+
+    if (!rekaman.isRecording) {
+      return const _TidakSedangMerekam();
+    }
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: PetaRute(
+              controller: _peta,
+              jalur: [
+                JalurRute(
+                  id: _jalurSesi,
+                  titik: [
+                    for (final t in rekaman.jejak) LatLng(t.lat, t.lng),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Peta memenuhi layar, jadi panel dibuat mengambang di atasnya —
+          // bukan memotongnya jadi kotak-kotak.
+          SafeArea(
+            child: Column(
+              children: [
+                _PanelAtas(
+                  judul: rekaman.title ?? 'Perjalanan',
+                  belumTerkirim: belumTerkirim,
+                ),
+                const Spacer(),
+                _PanelBawah(
+                  berjalan: _berjalan,
+                  jejak: rekaman.recordedCount,
+                  onCatat: _catat,
+                  onSelesai: _selesai,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PanelAtas extends StatelessWidget {
+  const _PanelAtas({required this.judul, required this.belumTerkirim});
+
+  final String judul;
+  final int belumTerkirim;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 20, 12),
+            decoration: BoxDecoration(
+              color: NapakColors.base.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: NapakColors.textPrimary.withValues(alpha: 0.07),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                NapakPressable(
+                  skala: 0.9,
+                  onTap: () => context.go('/'),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: NapakColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const TitikBerdenyut(
+                  warna: NapakColors.deepAccent,
+                  ukuran: 8,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Sedang merekam', style: text.labelMedium),
+                      Text(
+                        judul,
+                        style: text.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Muncul sendiri hanya kalau ada yang tertahan, lalu hilang lagi
+          // begitu terkirim. Tidak perlu ada ruang kosong menunggunya.
+          AnimatedSize(
+            duration: NapakMotion.sedang,
+            curve: NapakMotion.mengalir,
+            child: belumTerkirim == 0
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: NapakColors.warmNeutral.withValues(alpha: 0.95),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.cloud_off_rounded,
+                            size: 15,
+                            color: NapakColors.deepAccent,
+                          ),
+                          const SizedBox(width: 9),
+                          Text(
+                            '$belumTerkirim jejak menunggu sinyal',
+                            style: text.bodySmall?.copyWith(
+                              color: NapakColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PanelBawah extends StatelessWidget {
+  const _PanelBawah({
+    required this.berjalan,
+    required this.jejak,
+    required this.onCatat,
+    required this.onSelesai,
+  });
+
+  final Duration berjalan;
+  final int jejak;
+  final VoidCallback onCatat;
+  final VoidCallback onSelesai;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
+      decoration: BoxDecoration(
+        color: NapakColors.base.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: NapakColors.textPrimary.withValues(alpha: 0.1),
+            blurRadius: 26,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _Angka(
+                  nilai: _jam(berjalan),
+                  label: 'Berjalan',
+                  besar: true,
+                ),
+              ),
+              Container(width: 1, height: 42, color: NapakColors.divider),
+              Expanded(
+                child: _Angka(nilai: '$jejak', label: 'Jejak terekam'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onCatat,
+                  icon: const Icon(Icons.edit_note_rounded, size: 20),
+                  label: const Text('Catatan'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onSelesai,
+                  icon: const Icon(Icons.stop_rounded, size: 20),
+                  label: const Text('Selesai'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _jam(Duration d) {
+    final j = d.inHours.toString().padLeft(2, '0');
+    final m = (d.inMinutes % 60).toString().padLeft(2, '0');
+    final dt = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return d.inHours > 0 ? '$j:$m:$dt' : '$m:$dt';
+  }
+}
+
+class _Angka extends StatelessWidget {
+  const _Angka({required this.nilai, required this.label, this.besar = false});
+
+  final String nilai;
+  final String label;
+  final bool besar;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      children: [
+        Text(
+          nilai,
+          style: (besar ? text.displaySmall : text.headlineMedium)?.copyWith(
+            // Angka yang berubah tiap detik tidak boleh menggeser lebarnya
+            // sendiri — mata langsung menangkap kedutan seperti itu.
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(label, style: text.bodySmall),
+      ],
+    );
+  }
+}
+
+class _TidakSedangMerekam extends StatelessWidget {
+  const _TidakSedangMerekam();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.route_outlined,
+                  size: 44,
+                  color: NapakColors.primary,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Tidak ada perjalanan yang sedang berjalan',
+                  style: text.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: () => context.pushReplacement('/rekam/mulai'),
+                  child: const Text('Mulai perjalanan'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

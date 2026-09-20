@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_motion.dart';
 import '../../trips/data/trip_models.dart';
 
 /// Lembar pembuatan video animasi rute.
@@ -43,6 +45,9 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
   bool _mengunduh = false;
   String? _kesalahan;
 
+  VideoPlayerController? _pemutar;
+  File? _berkasVideo;
+
   @override
   void initState() {
     super.initState();
@@ -54,7 +59,48 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
   @override
   void dispose() {
     _penanya?.cancel();
+    _pemutar?.dispose();
     super.dispose();
+  }
+
+  /// Unduh videonya sekali, lalu pakai berkas yang sama untuk ditonton dan
+  /// dibagikan. Mengunduh dua kali untuk dua keperluan itu pemborosan yang
+  /// paling terasa di kuota orang.
+  Future<File> _pastikanTerunduh(RenderJob job) async {
+    final sudah = _berkasVideo;
+    if (sudah != null && await sudah.exists()) return sudah;
+
+    final folder = await getTemporaryDirectory();
+    final berkas = File('${folder.path}/napak-${job.id}.mp4');
+    await ref.read(tripRepositoryProvider).unduhVideo(job.id, berkas.path);
+
+    _berkasVideo = berkas;
+    return berkas;
+  }
+
+  /// Siapkan pemutar begitu videonya jadi, tanpa menunggu diminta.
+  ///
+  /// Videonya cuma ratusan kilobyte, dan melihat hasilnya sebelum membagikan
+  /// itu yang paling wajar diinginkan orang — bukan menekan "bagikan" sambil
+  /// berharap.
+  Future<void> _siapkanPratinjau(RenderJob job) async {
+    if (_pemutar != null) return;
+
+    try {
+      final berkas = await _pastikanTerunduh(job);
+      final pemutar = VideoPlayerController.file(berkas);
+      await pemutar.initialize();
+      await pemutar.setLooping(true);
+      await pemutar.play();
+
+      if (!mounted) {
+        await pemutar.dispose();
+        return;
+      }
+      setState(() => _pemutar = pemutar);
+    } catch (_) {
+      // Pratinjau itu bonus. Kalau gagal, tombol bagikan tetap jalan.
+    }
   }
 
   Future<void> _muatTerakhir() async {
@@ -71,9 +117,12 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
   }
 
   Future<void> _minta() async {
+    await _pemutar?.dispose();
     setState(() {
       _meminta = true;
       _kesalahan = null;
+      _pemutar = null;
+      _berkasVideo = null;
     });
 
     try {
@@ -103,7 +152,11 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
         final terbaru = await ref.read(tripRepositoryProvider).statusRender(id);
         if (!mounted) return timer.cancel();
         setState(() => _job = terbaru);
-        if (!terbaru.sedangBerjalan) timer.cancel();
+
+        if (!terbaru.sedangBerjalan) {
+          timer.cancel();
+          if (terbaru.siapDiunduh) unawaited(_siapkanPratinjau(terbaru));
+        }
       } catch (_) {
         timer.cancel();
       }
@@ -116,13 +169,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
 
     setState(() => _mengunduh = true);
     try {
-      final folder = await getTemporaryDirectory();
-      final berkas = File('${folder.path}/napak-${job.id}.mp4');
-
-      await ref
-          .read(tripRepositoryProvider)
-          .unduhVideo(job.id, berkas.path);
-
+      final berkas = await _pastikanTerunduh(job);
       if (!mounted) return;
       await SharePlus.instance.share(
         ShareParams(
@@ -205,6 +252,10 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
           ],
 
           const SizedBox(height: 28),
+          if (_pemutar != null) ...[
+            _Pratinjau(pemutar: _pemutar!),
+            const SizedBox(height: 20),
+          ],
           if (job != null) _Kemajuan(job: job),
           if (_kesalahan != null) ...[
             const SizedBox(height: 14),
@@ -323,5 +374,43 @@ class _Kemajuan extends StatelessWidget {
   static String _ukuran(int byte) {
     if (byte < 1024 * 1024) return '${(byte / 1024).round()} KB';
     return '${(byte / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+}
+
+/// Pratinjau video yang berputar terus di dalam lembar ini.
+///
+/// Tanpa suara dan tanpa kontrol: durasinya cuma tujuh detik, dan yang ingin
+/// dilihat orang adalah apakah rutenya tergambar bagus — bukan menggulir
+/// maju-mundur di dalamnya.
+class _Pratinjau extends StatelessWidget {
+  const _Pratinjau({required this.pemutar});
+
+  final VideoPlayerController pemutar;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: NapakMotion.lambat,
+      curve: NapakMotion.mengalir,
+      builder: (context, t, anak) => Opacity(
+        opacity: t,
+        child: Transform.scale(scale: 0.94 + t * 0.06, child: anak),
+      ),
+      child: Center(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: SizedBox(
+            // Dibatasi tingginya supaya video tegak 9:16 tidak mendorong
+            // tombol bagikan keluar layar.
+            height: 260,
+            child: AspectRatio(
+              aspectRatio: pemutar.value.aspectRatio,
+              child: VideoPlayer(pemutar),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

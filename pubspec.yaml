@@ -48,6 +48,8 @@ dependencies:
   socket_io_client: ^3.1.6
   share_plus: ^13.3.0
   path_provider: ^2.1.6
+  flutter_animate: ^4.5.2
+  video_player: ^2.14.0
 
 dev_dependencies:
   flutter_test:
@@ -61,11 +63,26 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.15.1
   drift_dev: ^2.35.0
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+# Layar yang tampil sebelum Flutter sendiri hidup.
+#
+# Sengaja warna polos tanpa logo. Yang menggantikannya beberapa ratus
+# milidetik kemudian adalah SplashPage, dan warnanya sama persis — jadi
+# peralihannya tidak terlihat sama sekali. Menaruh logo di sini justru
+# membuat logonya berkedip lalu diganti animasi, dan kedipan itu yang
+# paling terasa murah.
+#
+# Regenerate dengan: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#F5F9FC"
+  android_12:
+    color: "#F5F9FC"
+
 flutter:
 
   # The following line ensures that the Material Icons font is

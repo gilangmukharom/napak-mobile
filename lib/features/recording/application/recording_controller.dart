@@ -17,6 +17,7 @@ class RecordingState {
     this.title,
     this.recordedCount = 0,
     this.latest,
+    this.jejak = const [],
     this.starting = false,
     this.izinDitolak = false,
     this.message,
@@ -32,6 +33,15 @@ class RecordingState {
   /// Posisi terakhir yang diterima, untuk menggeser peta tanpa menggambar ulang.
   final ({double lat, double lng, DateTime at})? latest;
 
+  /// Rute sesi ini, di memori saja.
+  ///
+  /// Dipakai layar perekaman untuk menggambar garis rutenya seketika. Tidak
+  /// bisa mengandalkan database lokal: begitu sebuah titik berhasil terkirim,
+  /// ia dihapus dari antrean — antrean itu daftar yang belum sampai, bukan
+  /// catatan perjalanan. Dan tidak bisa mengandalkan server juga, karena
+  /// justru saat sinyal hilang layar ini harus tetap menggambar.
+  final List<({double lat, double lng})> jejak;
+
   final bool starting;
   final bool izinDitolak;
   final String? message;
@@ -43,6 +53,7 @@ class RecordingState {
     String? title,
     int? recordedCount,
     ({double lat, double lng, DateTime at})? latest,
+    List<({double lat, double lng})>? jejak,
     bool? starting,
     bool? izinDitolak,
     String? message,
@@ -54,6 +65,7 @@ class RecordingState {
       title: clearTrip ? null : (title ?? this.title),
       recordedCount: clearTrip ? 0 : (recordedCount ?? this.recordedCount),
       latest: clearTrip ? null : (latest ?? this.latest),
+      jejak: clearTrip ? const [] : (jejak ?? this.jejak),
       starting: starting ?? this.starting,
       izinDitolak: izinDitolak ?? this.izinDitolak,
       message: clearMessage ? null : (message ?? this.message),
@@ -225,6 +237,10 @@ class RecordingController extends Notifier<RecordingState> {
         lng: position.longitude,
         at: recordedAt,
       ),
+      jejak: [
+        ...state.jejak,
+        (lat: position.latitude, lng: position.longitude),
+      ],
     );
   }
 

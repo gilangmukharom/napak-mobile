@@ -69,6 +69,7 @@ class Trip {
     required this.distanceKm,
     required this.pointCount,
     required this.isOwner,
+    this.previewPath = const [],
     this.startedAt,
     this.endedAt,
     this.shareSlug,
@@ -82,6 +83,13 @@ class Trip {
     distanceKm: (json['distanceKm'] as num).toDouble(),
     pointCount: json['pointCount'] as int? ?? 0,
     isOwner: json['isOwner'] as bool? ?? true,
+    previewPath: [
+      for (final t in (json['previewPath'] as List<dynamic>? ?? const []))
+        (
+          lng: ((t as List<dynamic>)[0] as num).toDouble(),
+          lat: (t[1] as num).toDouble(),
+        ),
+    ],
     startedAt: _parseDate(json['startedAt']),
     endedAt: _parseDate(json['endedAt']),
     shareSlug: json['shareUrlSlug'] as String?,
@@ -94,6 +102,14 @@ class Trip {
   final double distanceKm;
   final int pointCount;
   final bool isOwner;
+
+  /// Bentuk rute yang sudah disederhanakan, untuk pratinjau di kartu.
+  ///
+  /// Kosong kalau perjalanannya belum punya jejak — atau kalau backend-nya
+  /// versi lama yang belum mengirim ini. Dua-duanya ditangani sama: kartunya
+  /// tampil tanpa gambar, bukan rusak.
+  final List<({double lat, double lng})> previewPath;
+
   final DateTime? startedAt;
   final DateTime? endedAt;
   final String? shareSlug;

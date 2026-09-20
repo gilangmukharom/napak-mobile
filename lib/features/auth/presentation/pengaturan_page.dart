@@ -4,8 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/widgets/napak_gerak.dart';
 import '../../recording/application/recording_controller.dart';
+import '../../trips/data/trip_models.dart';
 
+/// Tab "Kamu" — profil, janji privasi, dan pintu keluar.
+///
+/// Janji privasi ditaruh di sini, bukan disembunyikan di dokumen terpisah
+/// yang tidak pernah dibuka siapa pun. Kalau Napak memang menjadikan privasi
+/// sebagai fondasi, orangnya berhak membaca janji itu di tempat yang wajar
+/// dilihat — bukan di halaman syarat dan ketentuan.
 class PengaturanPage extends ConsumerWidget {
   const PengaturanPage({super.key});
 
@@ -13,82 +21,164 @@ class PengaturanPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
     final nama = ref.watch(savedNameProvider).value;
+    final trips = ref.watch(tripListProvider).value ?? const <Trip>[];
+
+    final totalKm = trips.fold<double>(0, (jml, t) => jml + t.distanceKm);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pengaturan')),
+      backgroundColor: NapakColors.base,
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 8, 24, 40),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: NapakColors.softSky,
-              borderRadius: BorderRadius.circular(18),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20, bottom: 4),
+              child: Text('Kamu', style: text.displaySmall),
             ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: NapakColors.primary,
-                  child: Text(
-                    (nama ?? 'P').characters.first.toUpperCase(),
-                    style: text.titleLarge,
-                  ),
+          ),
+          const SizedBox(height: 22),
+
+          MunculBertahap(
+            indeks: 0,
+            child: Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [NapakColors.softSky, NapakColors.primary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text(nama ?? 'Penjejak', style: text.titleMedium),
-                      const SizedBox(height: 2),
-                      Text('Akun Napak', style: text.bodySmall),
+                      Container(
+                        height: 54,
+                        width: 54,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: NapakColors.base,
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                        child: Text(
+                          (nama ?? 'P').characters.first.toUpperCase(),
+                          style: text.headlineSmall,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              nama ?? 'Penjejak',
+                              style: text.titleLarge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text('Akun Napak', style: text.bodySmall),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      _AngkaRingkas(
+                        nilai: totalKm,
+                        desimal: 1,
+                        satuan: 'km',
+                        label: 'Total ditempuh',
+                      ),
+                      const SizedBox(width: 24),
+                      _AngkaRingkas(
+                        nilai: trips.length.toDouble(),
+                        satuan: '',
+                        label: 'Perjalanan',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 32),
-          Text('Jejakmu, kendalimu', style: text.titleLarge),
-          const SizedBox(height: 12),
-          const _ButirPrivasi(
-            ikon: Icons.lock_outline_rounded,
-            judul: 'Semua perjalanan tertutup sejak awal',
-            keterangan:
-                'Tidak ada yang bisa melihat jejakmu sampai kamu sendiri '
-                'yang membukanya.',
+
+          const SizedBox(height: 34),
+          MunculBertahap(
+            indeks: 1,
+            child: Text('Jejakmu, kendalimu', style: text.titleLarge),
           ),
-          const _ButirPrivasi(
-            ikon: Icons.enhanced_encryption_outlined,
-            judul: 'Koordinatmu tersimpan terenkripsi',
-            keterangan:
-                'Titik persis perjalananmu diacak sebelum disimpan. Yang bisa '
-                'dibaca langsung dari database hanya perkiraan kasar.',
-          ),
-          const _ButirPrivasi(
-            ikon: Icons.visibility_off_outlined,
-            judul: 'Tamu hanya melihat bentuk rutenya',
-            keterangan:
-                'Saat sebuah perjalanan kamu bagikan, orang lain melihat '
-                'garis besarnya saja — bukan titik persis dan bukan catatanmu.',
-          ),
-          const SizedBox(height: 36),
-          OutlinedButton.icon(
-            onPressed: () => _keluar(context, ref),
-            icon: const Icon(Icons.logout_rounded, size: 20),
-            label: const Text('Keluar'),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => _hapusAkun(context, ref),
-            style: TextButton.styleFrom(
-              foregroundColor: NapakColors.attention,
-              minimumSize: const Size.fromHeight(52),
+          const SizedBox(height: 14),
+
+          const MunculBertahap(
+            indeks: 2,
+            child: _ButirPrivasi(
+              ikon: Icons.lock_outline_rounded,
+              judul: 'Semua perjalanan tertutup sejak awal',
+              keterangan:
+                  'Tidak ada yang bisa melihat jejakmu sampai kamu sendiri '
+                  'yang membukanya.',
             ),
-            child: const Text('Hapus akun dan semua jejak'),
           ),
-          const SizedBox(height: 8),
+          const MunculBertahap(
+            indeks: 3,
+            child: _ButirPrivasi(
+              ikon: Icons.enhanced_encryption_outlined,
+              judul: 'Koordinatmu tersimpan terenkripsi',
+              keterangan:
+                  'Titik persis perjalananmu diacak sebelum disimpan. Yang '
+                  'bisa dibaca langsung dari database hanya perkiraan kasar.',
+            ),
+          ),
+          const MunculBertahap(
+            indeks: 4,
+            child: _ButirPrivasi(
+              ikon: Icons.visibility_off_outlined,
+              judul: 'Tamu hanya melihat bentuk rutenya',
+              keterangan:
+                  'Saat sebuah perjalanan kamu bagikan, orang lain melihat '
+                  'garis besarnya saja — bukan titik persis, bukan catatanmu.',
+            ),
+          ),
+          const MunculBertahap(
+            indeks: 5,
+            child: _ButirPrivasi(
+              ikon: Icons.delete_outline_rounded,
+              judul: 'Hapus berarti benar-benar hilang',
+              keterangan:
+                  'Termasuk video yang sudah dibuat. Tidak disembunyikan, '
+                  'tidak diarsipkan.',
+            ),
+          ),
+
+          const SizedBox(height: 26),
+          MunculBertahap(
+            indeks: 6,
+            child: OutlinedButton.icon(
+              onPressed: () => _keluar(context, ref),
+              icon: const Icon(Icons.logout_rounded, size: 20),
+              label: const Text('Keluar'),
+            ),
+          ),
+          const SizedBox(height: 10),
+          MunculBertahap(
+            indeks: 7,
+            child: TextButton(
+              onPressed: () => _hapusAkun(context, ref),
+              style: TextButton.styleFrom(
+                foregroundColor: NapakColors.attention,
+                minimumSize: const Size.fromHeight(52),
+              ),
+              child: const Text('Hapus akun dan semua jejak'),
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             'Menghapus akun berarti menghapus seluruh perjalananmu secara '
             'permanen. Tidak ada arsip, tidak ada masa tenggang.',
@@ -152,7 +242,7 @@ class PengaturanPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Semua perjalanan, jejak, catatan, dan fotomu dihapus '
+              'Semua perjalanan, jejak, catatan, foto, dan video dihapus '
               'sepenuhnya. Ini tidak bisa dibatalkan.',
               style: TextStyle(height: 1.5),
             ),
@@ -196,9 +286,7 @@ class PengaturanPage extends ConsumerWidget {
       ref.invalidate(sessionProvider);
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(pesan)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
       context.go('/masuk');
     } catch (error) {
       if (!context.mounted) return;
@@ -206,6 +294,45 @@ class PengaturanPage extends ConsumerWidget {
         context,
       ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
+  }
+}
+
+class _AngkaRingkas extends StatelessWidget {
+  const _AngkaRingkas({
+    required this.nilai,
+    required this.satuan,
+    required this.label,
+    this.desimal = 0,
+  });
+
+  final double nilai;
+  final String satuan;
+  final String label;
+  final int desimal;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            AngkaBerjalan(
+              nilai: nilai,
+              desimal: desimal,
+              gaya: text.headlineSmall,
+            ),
+            if (satuan.isNotEmpty) Text(' $satuan', style: text.bodySmall),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: text.bodySmall),
+      ],
+    );
   }
 }
 
@@ -229,7 +356,15 @@ class _ButirPrivasi extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(ikon, size: 20, color: NapakColors.deepAccent),
+          Container(
+            height: 36,
+            width: 36,
+            decoration: BoxDecoration(
+              color: NapakColors.softSky,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(ikon, size: 18, color: NapakColors.deepAccent),
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

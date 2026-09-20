@@ -5,194 +5,157 @@ import 'package:intl/intl.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_motion.dart';
+import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/napak_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
 import '../data/trip_models.dart';
+import 'pratinjau_rute.dart';
 
+/// Beranda: jejak-jejakmu, yang terbaru di atas.
+///
+/// Disusun seperti feed karena yang dilihat orang di sini bukan data,
+/// melainkan kenangan. Bentuk rutenya tampil besar dan lebih dulu; angka
+/// jarak dan tanggal menyusul di bawahnya sebagai keterangan — bukan
+/// sebaliknya.
 class BerandaPage extends ConsumerWidget {
   const BerandaPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
     final trips = ref.watch(tripListProvider);
     final nama = ref.watch(savedNameProvider).value;
-    final rekaman = ref.watch(recordingControllerProvider);
+    final merekam = ref.watch(recordingControllerProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: NapakColors.deepAccent,
-          onRefresh: () async => ref.invalidate(tripListProvider),
-          child: CustomScrollView(
-            slivers: [
+      backgroundColor: NapakColors.base,
+      body: RefreshIndicator(
+        color: NapakColors.deepAccent,
+        backgroundColor: Colors.white,
+        onRefresh: () async => ref.invalidate(tripListProvider),
+        child: CustomScrollView(
+          slivers: [
+            _Sapaan(nama: nama),
+            const SliverToBoxAdapter(child: _AntreanJejak()),
+            if (merekam.isRecording)
               SliverToBoxAdapter(
+                child: _SedangMerekam(judul: merekam.title ?? 'Perjalanan'),
+              ),
+
+            trips.when(
+              loading: () => const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(_salam(), style: text.bodyMedium?.copyWith(
-                              color: NapakColors.textSecondary,
-                            )),
-                            const SizedBox(height: 2),
-                            Text(nama ?? 'Penjejak', style: text.headlineSmall),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => _gabungBareng(context, ref),
-                        icon: const Icon(Icons.group_add_outlined),
-                        color: NapakColors.deepAccent,
-                        tooltip: 'Gabung Trip Bareng',
-                      ),
-                      IconButton(
-                        onPressed: () => context.push('/recap'),
-                        icon: const Icon(Icons.auto_awesome_outlined),
-                        color: NapakColors.deepAccent,
-                        tooltip: 'Napak Tilas tahunan',
-                      ),
-                      IconButton(
-                        onPressed: () => context.push('/pengaturan'),
-                        icon: const Icon(Icons.settings_outlined),
-                        color: NapakColors.deepAccent,
-                        tooltip: 'Pengaturan',
-                      ),
-                    ],
+                  padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  child: SkeletonDaftarTrip(),
+                ),
+              ),
+              error: (error, _) => SliverToBoxAdapter(
+                child: _Kosong(
+                  ikon: Icons.cloud_off_rounded,
+                  judul: 'Belum tersambung',
+                  keterangan: error.toString(),
+                  aksi: FilledButton(
+                    onPressed: () => ref.invalidate(tripListProvider),
+                    child: const Text('Coba lagi'),
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: _AntreanJejak()),
-              if (rekaman.isRecording)
-                const SliverToBoxAdapter(child: _SedangMerekam()),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  child: Text('Jejakmu', style: text.titleLarge),
-                ),
-              ),
-              trips.when(
-                loading: () => const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) => SliverToBoxAdapter(
-                  child: _PesanKosong(
-                    ikon: Icons.cloud_off_rounded,
-                    judul: 'Belum tersambung',
-                    keterangan: error.toString(),
-                    aksi: FilledButton(
-                      onPressed: () => ref.invalidate(tripListProvider),
-                      child: const Text('Coba lagi'),
+              data: (daftar) {
+                if (daftar.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: _Kosong(
+                      ikon: Icons.route_outlined,
+                      judul: 'Belum ada jejak di sini',
+                      keterangan:
+                          'Mulai perjalanan pertamamu. Napak merekam '
+                          'diam-diam sementara kamu menikmati jalannya.',
+                      aksi: FilledButton.icon(
+                        onPressed: () => context.push('/rekam/mulai'),
+                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                        label: const Text('Mulai merekam'),
+                      ),
+                    ),
+                  );
+                }
+
+                return SliverList.separated(
+                  itemCount: daftar.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 18),
+                  itemBuilder: (context, i) => Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      i == 0 ? 14 : 0,
+                      20,
+                      i == daftar.length - 1 ? 110 : 0,
+                    ),
+                    child: MunculBertahap(
+                      indeks: i,
+                      child: _KartuTrip(trip: daftar[i]),
                     ),
                   ),
-                ),
-                data: (daftar) {
-                  if (daftar.isEmpty) {
-                    return const SliverToBoxAdapter(
-                      child: _PesanKosong(
-                        ikon: Icons.route_outlined,
-                        judul: 'Belum ada jejak di sini',
-                        keterangan:
-                            'Mulai perjalanan pertamamu. Napak akan merekam '
-                            'diam-diam sementara kamu menikmati jalannya.',
-                      ),
-                    );
-                  }
-                  return SliverList.separated(
-                    itemCount: daftar.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) =>
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(
-                            24,
-                            0,
-                            24,
-                            index == daftar.length - 1 ? 120 : 0,
-                          ),
-                          child: _KartuTrip(trip: daftar[index]),
-                        ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: rekaman.isRecording
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _tanyaJudul(context, ref),
-              backgroundColor: NapakColors.deepAccent,
-              foregroundColor: NapakColors.textOnDeep,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Mulai merekam'),
-            ),
-    );
-  }
-
-  /// Gabung ke perjalanan orang lain lewat kode undangan.
-  Future<void> _gabungBareng(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-
-    final gabung = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
-        title: const Text('Gabung Trip Bareng'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Masukkan kode undangan dari pemimpin perjalanan.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'Kode undangan'),
+                );
+              },
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Gabung'),
-          ),
-        ],
       ),
     );
+  }
+}
 
-    if (gabung != true || controller.text.trim().isEmpty) return;
+/// Sapaan yang mengecil saat digulir.
+///
+/// Judul besar memberi ruang bernapas saat halaman baru dibuka, lalu
+/// menyingkir sendiri begitu orang mulai membaca isinya.
+class _Sapaan extends StatelessWidget {
+  const _Sapaan({required this.nama});
 
-    try {
-      final anggota = await ref
-          .read(tripRepositoryProvider)
-          .joinBySlug(controller.text.trim());
-      ref.invalidate(tripListProvider);
+  final String? nama;
 
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Kamu bergabung sebagai ${anggota.name}. Selamat jalan bareng.',
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return SliverAppBar(
+      backgroundColor: NapakColors.base,
+      surfaceTintColor: Colors.transparent,
+      pinned: true,
+      expandedHeight: 116,
+      elevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+        title: Text(
+          'Jejakmu',
+          style: text.titleLarge?.copyWith(color: NapakColors.textPrimary),
+        ),
+        background: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  _salam(),
+                  style: text.bodyMedium?.copyWith(
+                    color: NapakColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  nama ?? 'Penjejak',
+                  style: text.displaySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error.toString())));
-    }
+      ),
+    );
   }
 
   static String _salam() {
@@ -201,91 +164,6 @@ class BerandaPage extends ConsumerWidget {
     if (jam < 15) return 'Selamat siang,';
     if (jam < 19) return 'Selamat sore,';
     return 'Selamat malam,';
-  }
-
-  Future<void> _tanyaJudul(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    var mode = TripMode.solo;
-
-    final mulai = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 24,
-          bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-        ),
-        child: StatefulBuilder(
-          builder: (context, setSheetState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Mau ke mana hari ini?',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                autofocus: true,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  hintText: 'Mudik ke Solo',
-                ),
-              ),
-              const SizedBox(height: 16),
-              SegmentedButton<TripMode>(
-                segments: const [
-                  ButtonSegment(
-                    value: TripMode.solo,
-                    label: Text('Sendiri'),
-                    icon: Icon(Icons.person_outline_rounded),
-                  ),
-                  ButtonSegment(
-                    value: TripMode.group,
-                    label: Text('Bareng'),
-                    icon: Icon(Icons.group_outlined),
-                  ),
-                ],
-                selected: {mode},
-                onSelectionChanged: (pilihan) =>
-                    setSheetState(() => mode = pilihan.first),
-                style: SegmentedButton.styleFrom(
-                  backgroundColor: NapakColors.softSky,
-                  selectedBackgroundColor: NapakColors.primary,
-                  selectedForegroundColor: NapakColors.textPrimary,
-                  foregroundColor: NapakColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: () => Navigator.of(sheetContext).pop(true),
-                child: const Text('Mulai'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    if (mulai != true) return;
-    final judul = controller.text.trim().isEmpty
-        ? 'Perjalanan ${DateFormat('d MMMM', 'id_ID').format(DateTime.now())}'
-        : controller.text.trim();
-
-    await ref
-        .read(recordingControllerProvider.notifier)
-        .start(title: judul, mode: mode);
-
-    final state = ref.read(recordingControllerProvider);
-    if (state.message != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(state.message!)));
-    }
-    ref.invalidate(tripListProvider);
   }
 }
 
@@ -296,170 +174,102 @@ class _AntreanJejak extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final jumlah = ref.watch(pendingPointCountProvider).value ?? 0;
-    if (jumlah == 0) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.cloud_sync_outlined,
-              size: 18,
-              color: NapakColors.deepAccent,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                '$jumlah jejak menunggu sinyal. Sudah aman tersimpan di HP-mu.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: NapakColors.textPrimary,
+    // Tingginya menyusut sendiri jadi nol saat tidak ada apa-apa, bukan
+    // menyisakan ruang kosong yang menunggu.
+    return AnimatedSize(
+      duration: NapakMotion.sedang,
+      curve: NapakMotion.mengalir,
+      child: jumlah == 0
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: NapakColors.warmNeutral,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.cloud_sync_outlined,
+                      size: 18,
+                      color: NapakColors.deepAccent,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '$jumlah jejak menunggu sinyal. Sudah aman di HP-mu.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: NapakColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
 
-class _SedangMerekam extends ConsumerWidget {
-  const _SedangMerekam();
+class _SedangMerekam extends StatelessWidget {
+  const _SedangMerekam({required this.judul});
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(recordingControllerProvider);
-    final text = Theme.of(context).textTheme;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: NapakColors.primary, width: 1.5),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const _TitikBerdenyut(),
-                const SizedBox(width: 10),
-                Text('Sedang merekam', style: text.titleMedium),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(state.title ?? 'Perjalanan', style: text.bodyLarge),
-            const SizedBox(height: 4),
-            Text('${state.recordedCount} jejak terekam', style: text.bodySmall),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _tambahCatatan(context, ref),
-                    icon: const Icon(Icons.edit_note_rounded, size: 20),
-                    label: const Text('Catatan'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: () =>
-                        ref.read(recordingControllerProvider.notifier).stop(),
-                    icon: const Icon(Icons.stop_rounded, size: 20),
-                    label: const Text('Selesai'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _tambahCatatan(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final simpan = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
-        title: const Text('Ada apa di sini?'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'Berhenti makan soto di pinggir jalan',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-
-    if (simpan == true) {
-      await ref
-          .read(recordingControllerProvider.notifier)
-          .addNote(controller.text);
-    }
-  }
-}
-
-class _TitikBerdenyut extends StatefulWidget {
-  const _TitikBerdenyut();
-
-  @override
-  State<_TitikBerdenyut> createState() => _TitikBerdenyutState();
-}
-
-class _TitikBerdenyutState extends State<_TitikBerdenyut>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final String judul;
 
   @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _controller.drive(Tween(begin: 0.35, end: 1)),
-      child: Container(
-        height: 10,
-        width: 10,
-        decoration: const BoxDecoration(
-          color: NapakColors.deepAccent,
-          shape: BoxShape.circle,
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+      child: NapakPressable(
+        onTap: () => context.push('/rekam'),
+        skala: 0.98,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [NapakColors.softSky, NapakColors.primary],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 9),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Sedang merekam', style: text.labelMedium),
+                    Text(
+                      judul,
+                      style: text.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: NapakColors.deepAccent,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+/// Kartu perjalanan: bentuk rutenya dulu, keterangannya menyusul.
 class _KartuTrip extends StatelessWidget {
   const _KartuTrip({required this.trip});
 
@@ -469,72 +279,94 @@ class _KartuTrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return InkWell(
+    return NapakPressable(
       onTap: () => context.push('/trip/${trip.id}'),
-      borderRadius: BorderRadius.circular(18),
+      skala: 0.985,
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(18),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: NapakColors.textPrimary.withValues(alpha: 0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Stack(
               children: [
-                Expanded(child: Text(trip.title, style: text.titleMedium)),
+                PratinjauRute(titik: trip.previewPath),
                 if (trip.isRecording)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: NapakColors.primary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Berjalan',
-                      style: text.labelMedium?.copyWith(
-                        color: NapakColors.textPrimary,
-                      ),
+                  const Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _LencanaBerjalan(),
+                  ),
+                if (trip.mode == TripMode.group)
+                  const Positioned(
+                    top: 12,
+                    left: 12,
+                    child: _Lencana(
+                      ikon: Icons.group_rounded,
+                      teks: 'Bareng',
                     ),
                   ),
               ],
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                _Keping(
-                  ikon: Icons.straighten_rounded,
-                  teks: '${trip.distanceKm.toStringAsFixed(1)} km',
-                ),
-                const SizedBox(width: 16),
-                _Keping(
-                  ikon: trip.mode == TripMode.group
-                      ? Icons.group_outlined
-                      : Icons.person_outline_rounded,
-                  teks: trip.mode.label,
-                ),
-                const SizedBox(width: 16),
-                _Keping(
-                  ikon: switch (trip.visibility) {
-                    TripVisibility.private => Icons.lock_outline_rounded,
-                    TripVisibility.link => Icons.link_rounded,
-                    TripVisibility.public => Icons.public_rounded,
-                  },
-                  teks: trip.visibility.label,
-                ),
-              ],
-            ),
-            if (trip.startedAt != null) ...[
-              const SizedBox(height: 10),
-              Text(
-                DateFormat("d MMMM yyyy", 'id_ID').format(trip.startedAt!),
-                style: text.bodySmall,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    trip.title,
+                    style: text.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    trip.startedAt == null
+                        ? 'Belum berangkat'
+                        : DateFormat(
+                            "EEEE, d MMMM yyyy",
+                            'id_ID',
+                          ).format(trip.startedAt!),
+                    style: text.bodySmall,
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _Keping(
+                        ikon: Icons.straighten_rounded,
+                        teks: '${trip.distanceKm.toStringAsFixed(1)} km',
+                        tebal: true,
+                      ),
+                      const SizedBox(width: 16),
+                      _Keping(
+                        ikon: Icons.timeline_rounded,
+                        teks: '${trip.pointCount} jejak',
+                      ),
+                      const Spacer(),
+                      Icon(
+                        switch (trip.visibility) {
+                          TripVisibility.private => Icons.lock_outline_rounded,
+                          TripVisibility.link => Icons.link_rounded,
+                          TripVisibility.public => Icons.public_rounded,
+                        },
+                        size: 15,
+                        color: NapakColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -542,27 +374,84 @@ class _KartuTrip extends StatelessWidget {
   }
 }
 
-class _Keping extends StatelessWidget {
-  const _Keping({required this.ikon, required this.teks});
+class _Lencana extends StatelessWidget {
+  const _Lencana({required this.ikon, required this.teks});
 
   final IconData ikon;
   final String teks;
 
   @override
   Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: NapakColors.base.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(ikon, size: 13, color: NapakColors.deepAccent),
+          const SizedBox(width: 6),
+          Text(teks, style: Theme.of(context).textTheme.labelMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _LencanaBerjalan extends StatelessWidget {
+  const _LencanaBerjalan();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 5, 12, 5),
+      decoration: BoxDecoration(
+        color: NapakColors.base.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 6),
+          const SizedBox(width: 2),
+          Text('Berjalan', style: Theme.of(context).textTheme.labelMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _Keping extends StatelessWidget {
+  const _Keping({required this.ikon, required this.teks, this.tebal = false});
+
+  final IconData ikon;
+  final String teks;
+  final bool tebal;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(ikon, size: 15, color: NapakColors.deepAccent),
-        const SizedBox(width: 5),
-        Text(teks, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(width: 6),
+        Text(
+          teks,
+          style: tebal
+              ? text.bodyMedium?.copyWith(fontWeight: FontWeight.w600)
+              : text.bodySmall,
+        ),
       ],
     );
   }
 }
 
-class _PesanKosong extends StatelessWidget {
-  const _PesanKosong({
+class _Kosong extends StatelessWidget {
+  const _Kosong({
     required this.ikon,
     required this.judul,
     required this.keterangan,
@@ -579,15 +468,22 @@ class _PesanKosong extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(40, 48, 40, 40),
+      padding: const EdgeInsets.fromLTRB(40, 60, 40, 40),
       child: Column(
         children: [
-          Icon(ikon, size: 44, color: NapakColors.primary),
-          const SizedBox(height: 20),
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: NapakMotion.lambat,
+            curve: NapakMotion.memantul,
+            builder: (context, t, anak) =>
+                Transform.scale(scale: t, child: anak),
+            child: Icon(ikon, size: 44, color: NapakColors.primary),
+          ),
+          const SizedBox(height: 22),
           Text(judul, style: text.titleMedium, textAlign: TextAlign.center),
           const SizedBox(height: 8),
           Text(keterangan, style: text.bodySmall, textAlign: TextAlign.center),
-          if (aksi != null) ...[const SizedBox(height: 24), aksi!],
+          if (aksi != null) ...[const SizedBox(height: 26), aksi!],
         ],
       ),
     );

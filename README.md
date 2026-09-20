@@ -48,17 +48,69 @@ lib/
     config/       alamat backend, jeda tracking, ambang jarak
     network/      klien HTTP + rotasi token otomatis
     storage/      token di Keystore/Keychain
-    theme/        palet dan tema — satu-satunya sumber warna
+    theme/        napak_colors (palet) + napak_motion (durasi & kurva)
+    widgets/      shell tab, pressable, skeleton, angka berjalan
     router/       go_router + pengalihan sesi
     providers.dart
   features/
-    auth/         masuk dengan OTP, pengaturan, hapus akun
-    trips/        daftar, detail, peta rute
-    recording/    perekaman GPS, antrean offline (drift), sinkron
+    splash/       layar pembuka: jejak yang menggambar dirinya
+    auth/         masuk dengan OTP, profil, hapus akun
+    trips/        beranda feed, detail, peta rute, pratinjau rute
+    recording/    mulai & jalannya perekaman, antrean offline, sinkron
     groups/       Trip Bareng: anggota, undangan, posisi langsung
-    render/       minta video animasi rute lalu bagikan
+    render/       minta video, pratinjau, bagikan
     recap/        Napak Tilas tahunan
 ```
+
+## Gerak
+
+Gerak punya palet, sama seperti warna. Semua durasi dan kurva berasal dari
+[`lib/core/theme/napak_motion.dart`](lib/core/theme/napak_motion.dart) — kalau
+tiap layar memilih sendiri, aplikasinya terasa gelisah: satu tombol memantul,
+tombol sebelahnya meluncur, dan tidak ada yang terasa satu keluarga.
+
+Satu pertimbangan mendasarinya: gerak di Napak harus terasa seperti sesuatu
+yang **mengalir**, bukan yang **melompat**. Perjalanan tidak melompat.
+
+| | |
+|---|---|
+| `kilat` 120 ms | umpan balik sentuhan, lebih cepat dari yang disadari mata |
+| `cepat` 220 ms | perubahan kecil dalam satu layar |
+| `sedang` 380 ms | bawaan, termasuk perpindahan halaman |
+| `lambat` 520 ms | yang perlu diikuti mata |
+| `mengalir` | kurva utama: mulai tegas, berhenti lembut |
+| `memantul` | dipakai hemat, hanya untuk momen yang pantas dirayakan |
+
+Tiga hal yang paling menentukan rasa "enak dipakai":
+
+- **`NapakPressable`** membungkus apa pun yang bisa ditekan. Saat kartu
+  menyusut sedikit di bawah jari lalu kembali, otak membacanya sebagai benda,
+  bukan gambar. Turunnya lebih cepat daripada naiknya — benda nyata memang
+  begitu.
+- **`NapakSkeleton`** menggantikan lingkaran berputar. Kerangka memberi tahu
+  bentuk apa yang sedang datang, jadi halamannya tidak melompat saat isinya
+  masuk. Lingkaran berputar tidak memberi tahu apa-apa selain "tunggu".
+- **`MunculBertahap`** membuat daftar muncul satu per satu. Serentak terasa
+  seperti halaman yang di-refresh; bertahap terasa seperti sesuatu yang
+  sedang disusun.
+
+## Tata letak
+
+Empat tab di bawah dengan tombol rekam di tengah, meminjam bentuk yang ibu
+jari orang sudah hafal. Menaruh "Mulai merekam" di pojok kanan atas berarti
+meminta orang memindahkan genggaman di atas motor.
+
+Yang dipinjam hanya mekanikanya — warnanya tetap Napak: latar nyaris putih,
+aksen biru pastel, tanpa satu pun titik merah pemberitahuan.
+
+Beranda disusun seperti feed: **bentuk rute tampil besar dan lebih dulu**,
+angka jarak dan tanggal menyusul sebagai keterangan. Yang dilihat orang di
+sana bukan data, melainkan kenangan.
+
+Pratinjau rute di kartu digambar dengan `CustomPaint`, bukan MapLibre.
+Sepuluh kartu berarti sepuluh konteks GL, tile yang diunduh, dan memorinya
+masing-masing — beranda akan tersendat hanya untuk digulir. Di ukuran
+sekecil itu yang dibutuhkan mata memang cuma bentuknya.
 
 ## Warna
 
