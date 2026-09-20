@@ -20,6 +20,7 @@ class PratinjauRute extends StatelessWidget {
     required this.titik,
     this.tinggi = 156,
     this.warna,
+    this.latar,
     this.animasikan = true,
     super.key,
   });
@@ -30,6 +31,11 @@ class PratinjauRute extends StatelessWidget {
   /// Warna tunggal untuk rute anggota Trip Bareng. Kalau null, dipakai
   /// gradasi khas Napak.
   final Color? warna;
+
+  /// Warna latar di belakang garisnya. Diisi `Colors.transparent` kalau
+  /// pratinjaunya digambar di atas foto sampul, supaya fotonya tidak
+  /// tertutup blok pastel.
+  final Color? latar;
 
   final bool animasikan;
 
@@ -47,7 +53,7 @@ class PratinjauRute extends StatelessWidget {
     return Container(
       height: tinggi,
       width: double.infinity,
-      color: NapakColors.softSky,
+      color: latar ?? NapakColors.softSky,
       child: animasikan
           ? TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),

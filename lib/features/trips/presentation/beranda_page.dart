@@ -271,6 +271,78 @@ class _SedangMerekam extends StatelessWidget {
 }
 
 /// Kartu perjalanan: bentuk rutenya dulu, keterangannya menyusul.
+/// Kepala kartu perjalanan: fotonya, dengan bentuk rutenya di atasnya.
+///
+/// Sebelumnya cuma bentuk rute di atas blok pastel. Itu terbaca rapi, tapi
+/// sepuluh kartu berikutnya terbaca rapi dengan cara yang persis sama —
+/// daftar perjalanan jadi deretan garis biru yang sulit dibedakan.
+///
+/// Fotonya yang membedakan. Bentuk rutenya tetap digambar di atasnya, karena
+/// itu yang memberi tahu perjalanan ini panjang lurus atau berkelok naik
+/// gunung — hal yang tidak pernah diceritakan satu foto.
+class _SampulTrip extends StatelessWidget {
+  const _SampulTrip({required this.trip});
+
+  final Trip trip;
+
+  static const _tinggi = 168.0;
+
+  @override
+  Widget build(BuildContext context) {
+    if (trip.coverUrl == null) {
+      return PratinjauRute(titik: trip.previewPath, tinggi: _tinggi);
+    }
+
+    return SizedBox(
+      height: _tinggi,
+      width: double.infinity,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Blok pastel di bawah fotonya. Ini yang terlihat selama fotonya
+          // masih diunduh, jadi kartunya tidak pernah berlubang putih.
+          const ColoredBox(color: NapakColors.softSky),
+
+          Image.network(
+            trip.coverUrl!,
+            fit: BoxFit.cover,
+            frameBuilder: (context, anak, frame, sinkron) {
+              if (sinkron) return anak;
+              return AnimatedOpacity(
+                opacity: frame == null ? 0 : 1,
+                duration: NapakMotion.sedang,
+                curve: NapakMotion.mengalir,
+                child: anak,
+              );
+            },
+            errorBuilder: (context, galat, jejak) => const SizedBox.shrink(),
+          ),
+
+          // Kerudung tipis. Garis rute dan lencana di atas foto terang akan
+          // hilang tanpa ini.
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0x40000000), Color(0x00000000), Color(0x59000000)],
+                stops: [0, 0.45, 1],
+              ),
+            ),
+          ),
+
+          PratinjauRute(
+            titik: trip.previewPath,
+            tinggi: _tinggi,
+            warna: Colors.white,
+            latar: Colors.transparent,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _KartuTrip extends StatelessWidget {
   const _KartuTrip({required this.trip});
 
@@ -301,7 +373,7 @@ class _KartuTrip extends StatelessWidget {
           children: [
             Stack(
               children: [
-                PratinjauRute(titik: trip.previewPath),
+                _SampulTrip(trip: trip),
                 if (trip.isRecording)
                   const Positioned(
                     top: 12,

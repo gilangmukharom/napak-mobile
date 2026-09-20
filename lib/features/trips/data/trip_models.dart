@@ -71,6 +71,7 @@ class Trip {
     required this.isOwner,
     this.previewPath = const [],
     this.retraceOf,
+    this.coverUrl,
     this.startedAt,
     this.endedAt,
     this.shareSlug,
@@ -91,6 +92,7 @@ class Trip {
           lat: (t[1] as num).toDouble(),
         ),
     ],
+    coverUrl: json['coverUrl'] as String?,
     retraceOf: json['retraceOf'] == null
         ? null
         : RingkasTrip.fromJson(json['retraceOf'] as Map<String, dynamic>),
@@ -113,6 +115,15 @@ class Trip {
   /// versi lama yang belum mengirim ini. Dua-duanya ditangani sama: kartunya
   /// tampil tanpa gambar, bukan rusak.
   final List<({double lat, double lng})> previewPath;
+
+  /// Foto pertama perjalanan ini, sebagai tautan bertanda tangan.
+  ///
+  /// Umurnya pendek — tautan yang sama tidak bisa dipakai lagi besok. Itu
+  /// disengaja: foto singgahan sama pribadinya dengan jejaknya sendiri.
+  ///
+  /// `null` kalau perjalanannya memang tanpa foto, dan kartunya jatuh ke
+  /// pratinjau bentuk rute seperti sebelumnya.
+  final String? coverUrl;
 
   /// Perjalanan lama yang sedang ditapak-tilasi perjalanan ini.
   final RingkasTrip? retraceOf;
