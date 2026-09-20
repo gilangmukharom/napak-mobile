@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_motion.dart';
+import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/widgets/napak_pressable.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
@@ -102,6 +106,8 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
               children: [
+                _PanelSinyal(tripId: widget.tripId, live: live),
+                const SizedBox(height: 22),
                 _KartuBerbagiPosisi(tripId: widget.tripId, live: live),
                 const SizedBox(height: 28),
                 Text(
@@ -443,4 +449,191 @@ class _Memuat extends StatelessWidget {
     padding: EdgeInsets.all(24),
     child: Center(child: CircularProgressIndicator()),
   );
+}
+
+/// Ikon untuk tiap sinyal.
+///
+/// Dipetakan di sini, bukan di model: lapisan data tidak perlu tahu apa-apa
+/// soal Material.
+IconData _ikonSinyal(Sinyal s) => switch (s) {
+  Sinyal.isiBensin => Icons.local_gas_station_outlined,
+  Sinyal.nunggu => Icons.pin_drop_outlined,
+  Sinyal.jalanDuluan => Icons.fast_forward_outlined,
+  Sinyal.istirahat => Icons.local_cafe_outlined,
+  Sinyal.adaMasalah => Icons.warning_amber_rounded,
+  Sinyal.sampai => Icons.flag_outlined,
+};
+
+/// Sinyal satu ketuk.
+///
+/// Ini pengganti chat, dan bukan karena chat sulit dibuat. Rombongan touring
+/// sudah ada di WhatsApp, dan di atas motor tidak ada yang mengetik. Yang
+/// dibutuhkan saat jalan itu isyarat sekali ketuk dengan sarung tangan.
+///
+/// Tombolnya besar-besar dengan sengaja — ini satu-satunya bagian aplikasi
+/// yang dirancang untuk ditekan sambil berhenti di lampu merah.
+class _PanelSinyal extends ConsumerWidget {
+  const _PanelSinyal({required this.tripId, required this.live});
+
+  final String tripId;
+  final LiveState live;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Kabari rombongan', style: text.titleLarge),
+            const SizedBox(width: 8),
+            if (!live.tersambung)
+              Text('· belum tersambung', style: text.bodySmall),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Sekali ketuk, langsung sampai ke semua yang sedang menonton.',
+          style: text.bodySmall,
+        ),
+        const SizedBox(height: 14),
+
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final s in Sinyal.values)
+              _TombolSinyal(
+                sinyal: s,
+                aktif: live.tersambung,
+                onTap: () => ref
+                    .read(liveLocationControllerProvider(tripId).notifier)
+                    .kirimSinyal(s),
+              ),
+          ],
+        ),
+
+        // Riwayatnya cuma di memori dan cuma delapan terakhir. Ini alat
+        // koordinasi saat jalan, bukan riwayat percakapan.
+        AnimatedSize(
+          duration: NapakMotion.sedang,
+          curve: NapakMotion.mengalir,
+          child: live.sinyal.isEmpty
+              ? const SizedBox(width: double.infinity)
+              : Padding(
+                  padding: const EdgeInsets.only(top: 18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final (i, m) in live.sinyal.take(4).indexed)
+                        MunculBertahap(
+                          indeks: i,
+                          jarakGeser: 10,
+                          child: _BarisSinyal(masuk: m),
+                        ),
+                    ],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TombolSinyal extends StatelessWidget {
+  const _TombolSinyal({
+    required this.sinyal,
+    required this.aktif,
+    required this.onTap,
+  });
+
+  final Sinyal sinyal;
+  final bool aktif;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    // "Ada masalah" diberi warna hangat, bukan merah menyala. Ini isyarat
+    // minta berhenti, bukan alarm kebakaran — dan palet Napak memang tidak
+    // punya warna yang berteriak.
+    final mendesak = sinyal == Sinyal.adaMasalah;
+    final latar = mendesak ? NapakColors.warmNeutral : Colors.white;
+
+    return NapakPressable(
+      onTap: aktif ? onTap : null,
+      skala: 0.94,
+      child: AnimatedOpacity(
+        duration: NapakMotion.cepat,
+        opacity: aktif ? 1 : 0.45,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          decoration: BoxDecoration(
+            color: latar,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: mendesak ? NapakColors.attention : NapakColors.divider,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _ikonSinyal(sinyal),
+                size: 18,
+                color: mendesak
+                    ? NapakColors.attention
+                    : NapakColors.deepAccent,
+              ),
+              const SizedBox(width: 9),
+              Text(sinyal.label, style: text.bodyMedium),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BarisSinyal extends StatelessWidget {
+  const _BarisSinyal({required this.masuk});
+
+  final SinyalMasuk masuk;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(
+            _ikonSinyal(masuk.sinyal),
+            size: 16,
+            color: NapakColors.deepAccent,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                text: masuk.nama,
+                style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                children: [
+                  TextSpan(text: ' — ${masuk.pesan}', style: text.bodyMedium),
+                ],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(DateFormat('HH:mm').format(masuk.pada), style: text.bodySmall),
+        ],
+      ),
+    );
+  }
 }

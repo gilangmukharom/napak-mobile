@@ -65,15 +65,31 @@ class TripRepository {
         .toList();
   }
 
+  /// Perjalanan di tanggal yang sama, tahun-tahun lalu.
+  Future<List<Trip>> kenanganHariIni() async {
+    final data = await _api.get<List<dynamic>>('/trips/kenangan');
+    return data
+        .map((json) => Trip.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<Trip> detail(String tripId) async {
     final data = await _api.get<Map<String, dynamic>>('/trips/$tripId');
     return Trip.fromJson(data);
   }
 
-  Future<Trip> create({required String title, TripMode mode = TripMode.solo}) async {
+  Future<Trip> create({
+    required String title,
+    TripMode mode = TripMode.solo,
+    String? retraceOf,
+  }) async {
     final data = await _api.post<Map<String, dynamic>>(
       '/trips',
-      body: {'title': title, 'mode': mode.wire},
+      body: {
+        'title': title,
+        'mode': mode.wire,
+        'retraceOf': ?retraceOf,
+      },
     );
     return Trip.fromJson(data);
   }
@@ -190,6 +206,14 @@ class TripRepository {
     return data
         .map((json) => RenderJob.fromJson(json as Map<String, dynamic>))
         .toList();
+  }
+
+  /// Unduh perjalanan sebagai GPX.
+  ///
+  /// Pasangan jujur dari penghapusan permanen: kalau jejak ini milikmu, kamu
+  /// harus bisa membawanya pergi. GPX dibaca hampir semua perkakas peta.
+  Future<void> unduhGpx(String tripId, String tujuan) {
+    return _api.unduhKeBerkas('/trips/$tripId/gpx', tujuan);
   }
 
   /// Unduh videonya ke berkas lokal supaya bisa dibagikan dari HP.

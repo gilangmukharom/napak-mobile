@@ -1,13 +1,17 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/config/napak_config.dart';
 import '../../../core/providers.dart';
 import '../../trips/data/trip_models.dart';
+import '../data/photo_uploader.dart';
+import 'napak_tilas.dart';
 import 'sync_service.dart';
 
 @immutable
@@ -18,6 +22,10 @@ class RecordingState {
     this.recordedCount = 0,
     this.latest,
     this.jejak = const [],
+    this.jarakM = 0,
+    this.jejakLama = const [],
+    this.menapakTilas,
+    this.mengunggahFoto = false,
     this.starting = false,
     this.izinDitolak = false,
     this.message,
@@ -42,6 +50,23 @@ class RecordingState {
   /// justru saat sinyal hilang layar ini harus tetap menggambar.
   final List<({double lat, double lng})> jejak;
 
+  /// Jarak yang sudah ditempuh sesi ini, meter.
+  ///
+  /// Dihitung di HP, bukan ditanyakan ke server. Perbandingan napak tilas
+  /// harus tetap jalan di jalur yang sinyalnya putus — justru di sanalah
+  /// perjalanan panjang terjadi.
+  final double jarakM;
+
+  /// Perjalanan lama yang sedang ditapak-tilasi, sudah disiapkan.
+  final List<JejakLama> jejakLama;
+
+  /// Judul dan tanggal perjalanan lama itu.
+  final RingkasTrip? menapakTilas;
+
+  /// Sedang mengirim foto singgahan. Unggahannya bisa lama di sinyal buruk,
+  /// jadi layarnya perlu bisa mengatakan itu.
+  final bool mengunggahFoto;
+
   final bool starting;
   final bool izinDitolak;
   final String? message;
@@ -54,6 +79,10 @@ class RecordingState {
     int? recordedCount,
     ({double lat, double lng, DateTime at})? latest,
     List<({double lat, double lng})>? jejak,
+    double? jarakM,
+    List<JejakLama>? jejakLama,
+    RingkasTrip? menapakTilas,
+    bool? mengunggahFoto,
     bool? starting,
     bool? izinDitolak,
     String? message,
@@ -66,6 +95,10 @@ class RecordingState {
       recordedCount: clearTrip ? 0 : (recordedCount ?? this.recordedCount),
       latest: clearTrip ? null : (latest ?? this.latest),
       jejak: clearTrip ? const [] : (jejak ?? this.jejak),
+      jarakM: clearTrip ? 0 : (jarakM ?? this.jarakM),
+      jejakLama: clearTrip ? const [] : (jejakLama ?? this.jejakLama),
+      menapakTilas: clearTrip ? null : (menapakTilas ?? this.menapakTilas),
+      mengunggahFoto: mengunggahFoto ?? this.mengunggahFoto,
       starting: starting ?? this.starting,
       izinDitolak: izinDitolak ?? this.izinDitolak,
       message: clearMessage ? null : (message ?? this.message),
@@ -107,6 +140,7 @@ class RecordingController extends Notifier<RecordingState> {
   Future<void> start({
     required String title,
     TripMode mode = TripMode.solo,
+    Trip? tapakTilas,
   }) async {
     if (state.isRecording || state.starting) return;
     state = state.copyWith(starting: true, clearMessage: true);
@@ -123,14 +157,38 @@ class RecordingController extends Notifier<RecordingState> {
     }
 
     try {
-      final trip = await ref
-          .read(tripRepositoryProvider)
-          .create(title: title, mode: mode);
+      final repo = ref.read(tripRepositoryProvider);
+      final trip = await repo.create(
+        title: title,
+        mode: mode,
+        retraceOf: tapakTilas?.id,
+      );
+
+      // Jejak lama diambil dan dihitung sekali di sini, bukan berulang tiap
+      // titik GPS masuk.
+      var lama = const <JejakLama>[];
+      if (tapakTilas != null) {
+        try {
+          lama = siapkanJejakLama(await repo.points(tapakTilas.id));
+        } catch (_) {
+          // Gagal mengambil rute lama tidak boleh menggagalkan perekaman.
+          // Perjalanannya tetap jalan, cuma tanpa perbandingan.
+        }
+      }
+
       state = state.copyWith(
         tripId: trip.id,
         title: trip.title,
         recordedCount: 0,
         starting: false,
+        jejakLama: lama,
+        menapakTilas: tapakTilas == null
+            ? null
+            : RingkasTrip(
+                id: tapakTilas.id,
+                title: tapakTilas.title,
+                startedAt: tapakTilas.startedAt,
+              ),
       );
       _listenToPosition(trip.id);
       _startPeriodicSync();
@@ -177,17 +235,40 @@ class RecordingController extends Notifier<RecordingState> {
     ref.invalidate(tripListProvider);
   }
 
-  /// Tambah catatan pada posisi saat ini — "di sini kami berhenti makan soto".
-  Future<void> addNote(String note) async {
+  /// Tandai singgahan di posisi sekarang — catatan, foto, atau dua-duanya.
+  ///
+  /// Fotonya diunggah lebih dulu, dan kalau gagal, catatannya tetap disimpan.
+  /// Kehilangan sinyal di pinggir jalan tidak boleh berarti kehilangan
+  /// kalimat yang sudah terlanjur diketik.
+  Future<void> addNote(String note, {XFile? foto}) async {
     final tripId = state.tripId;
-    if (tripId == null || note.trim().isEmpty) return;
+    if (tripId == null) return;
+    if (note.trim().isEmpty && foto == null) return;
 
     final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
-    await _record(tripId, position, note: note.trim());
+
+    String? kunciFoto;
+    if (foto != null) {
+      state = state.copyWith(mengunggahFoto: true, clearMessage: true);
+      try {
+        kunciFoto = await ref
+            .read(photoUploaderProvider)
+            .unggah(tripId, foto);
+      } catch (error) {
+        state = state.copyWith(message: error.toString());
+      } finally {
+        state = state.copyWith(mengunggahFoto: false);
+      }
+    }
+
+    await _record(
+      tripId,
+      position,
+      note: note.trim().isEmpty ? null : note.trim(),
+      photoUrl: kunciFoto,
+    );
   }
 
   void _listenToPosition(String tripId) {
@@ -212,7 +293,12 @@ class RecordingController extends Notifier<RecordingState> {
     );
   }
 
-  Future<void> _record(String tripId, Position position, {String? note}) async {
+  Future<void> _record(
+    String tripId,
+    Position position, {
+    String? note,
+    String? photoUrl,
+  }) async {
     final recordedAt = position.timestamp.toLocal();
 
     await ref
@@ -228,10 +314,22 @@ class RecordingController extends Notifier<RecordingState> {
           speedMps: position.speed >= 0 ? position.speed : null,
           transportMode: _guessTransportMode(position.speed).wire,
           note: note,
+          photoUrl: photoUrl,
         );
+
+    final sebelumnya = state.jejak.isEmpty ? null : state.jejak.last;
+    final tambahan = sebelumnya == null
+        ? 0.0
+        : _jarakMeter(
+            sebelumnya.lat,
+            sebelumnya.lng,
+            position.latitude,
+            position.longitude,
+          );
 
     state = state.copyWith(
       recordedCount: state.recordedCount + 1,
+      jarakM: state.jarakM + tambahan,
       latest: (
         lat: position.latitude,
         lng: position.longitude,
@@ -242,6 +340,27 @@ class RecordingController extends Notifier<RecordingState> {
         (lat: position.latitude, lng: position.longitude),
       ],
     );
+  }
+
+  /// Haversine, dipakai menghitung jarak tempuh sesi berjalan.
+  static double _jarakMeter(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) {
+    double rad(double d) => d * math.pi / 180;
+
+    final dLat = rad(lat2 - lat1);
+    final dLng = rad(lng2 - lng1);
+    final h =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(rad(lat1)) *
+            math.cos(rad(lat2)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+
+    return 2 * 6371008.8 * math.asin(math.min(1, math.sqrt(h)));
   }
 
   /// Tebakan kasar moda perjalanan dari kecepatan.
@@ -283,4 +402,9 @@ final recordingControllerProvider =
 /// Daftar perjalanan milik pengguna.
 final tripListProvider = FutureProvider<List<Trip>>(
   (ref) => ref.watch(tripRepositoryProvider).list(),
+);
+
+/// Perjalanan di tanggal yang sama, tahun-tahun lalu.
+final kenanganProvider = FutureProvider<List<Trip>>(
+  (ref) => ref.watch(tripRepositoryProvider).kenanganHariIni(),
 );

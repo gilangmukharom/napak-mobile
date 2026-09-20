@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:io';
+
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
@@ -78,6 +82,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               jalurId: _jalurUtama,
               onVisibility: () => _aturVisibility(context, data),
               onHapus: () => _hapus(context, data),
+              onEkspor: () => _ekspor(context, data),
             ),
             SliverToBoxAdapter(child: _Ringkasan(trip: data)),
             SliverToBoxAdapter(child: _BarisAksi(trip: data)),
@@ -159,6 +164,33 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     ref.invalidate(tripListProvider);
   }
 
+  /// Bawa perjalanan ini keluar dari Napak.
+  Future<void> _ekspor(BuildContext context, Trip trip) async {
+    try {
+      final folder = await getTemporaryDirectory();
+      final nama = trip.title
+          .toLowerCase()
+          .replaceAll(RegExp('[^a-z0-9]+'), '-')
+          .replaceAll(RegExp(r'^-|-$'), '');
+      final berkas = File('${folder.path}/napak-$nama.gpx');
+
+      await ref.read(tripRepositoryProvider).unduhGpx(trip.id, berkas.path);
+
+      if (!context.mounted) return;
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(berkas.path, mimeType: 'application/gpx+xml')],
+          text: '${trip.title} — jejak lengkap dalam format GPX',
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    }
+  }
+
   Future<void> _hapus(BuildContext context, Trip trip) async {
     final controller = TextEditingController();
 
@@ -236,6 +268,7 @@ class _KepalaPeta extends StatelessWidget {
     required this.jalurId,
     required this.onVisibility,
     required this.onHapus,
+    required this.onEkspor,
   });
 
   final Trip trip;
@@ -244,6 +277,7 @@ class _KepalaPeta extends StatelessWidget {
   final String jalurId;
   final VoidCallback onVisibility;
   final VoidCallback onHapus;
+  final VoidCallback onEkspor;
 
   @override
   Widget build(BuildContext context) {
@@ -264,6 +298,7 @@ class _KepalaPeta extends StatelessWidget {
             },
             onTap: onVisibility,
           ),
+        _TombolBulat(ikon: Icons.ios_share_rounded, onTap: onEkspor),
         if (trip.isOwner)
           _TombolBulat(
             ikon: Icons.delete_outline_rounded,
@@ -362,6 +397,13 @@ class _Ringkasan extends StatelessWidget {
                 DateFormat("EEEE, d MMMM yyyy", 'id_ID').format(trip.startedAt!),
                 style: text.bodySmall,
               ),
+            ),
+          ],
+          if (trip.retraceOf != null) ...[
+            const SizedBox(height: 16),
+            MunculBertahap(
+              indeks: 2,
+              child: _KaitanTilas(lama: trip.retraceOf!),
             ),
           ],
           const SizedBox(height: 22),
@@ -494,27 +536,40 @@ class _BarisAksi extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
       child: MunculBertahap(
         indeks: 3,
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: bisaDirender
-                    ? () => VideoSheet.tampilkan(context, trip)
-                    : null,
-                icon: const Icon(Icons.movie_creation_outlined, size: 20),
-                label: const Text('Jadikan video'),
-              ),
+            // Cerita ditaruh paling depan: inilah cara paling menyenangkan
+            // membuka kembali sebuah perjalanan, dan yang paling jarang
+            // ditemukan orang kalau disembunyikan di menu.
+            FilledButton.icon(
+              onPressed: () => context.push('/trip/${trip.id}/cerita'),
+              icon: const Icon(Icons.auto_stories_outlined, size: 20),
+              label: const Text('Buka ceritanya'),
             ),
-            if (trip.mode == TripMode.group) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => context.push('/trip/${trip.id}/bareng'),
-                  icon: const Icon(Icons.group_outlined, size: 20),
-                  label: const Text('Rombongan'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: bisaDirender
+                        ? () => VideoSheet.tampilkan(context, trip)
+                        : null,
+                    icon: const Icon(Icons.movie_creation_outlined, size: 20),
+                    label: const Text('Video'),
+                  ),
                 ),
-              ),
-            ],
+                if (trip.mode == TripMode.group) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => context.push('/trip/${trip.id}/bareng'),
+                      icon: const Icon(Icons.group_outlined, size: 20),
+                      label: const Text('Rombongan'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
       ),
@@ -533,7 +588,11 @@ class _DaftarSinggahan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bercatatan = titik.where((t) => t.note != null).toList();
+    // Singgahan itu titik yang sengaja ditandai — entah dengan kalimat,
+    // entah dengan foto. Dua-duanya sama-sama layak masuk garis waktu.
+    final bercatatan = titik
+        .where((t) => t.note != null || t.photoUrl != null)
+        .toList();
     final text = Theme.of(context).textTheme;
 
     if (bercatatan.isEmpty) {
@@ -629,8 +688,14 @@ class _DaftarSinggahan extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(t.note!, style: text.bodyMedium),
+                            if (t.photoUrl != null) ...[
+                              const SizedBox(height: 12),
+                              _FotoSinggahan(url: t.photoUrl!),
+                            ],
+                            if (t.note != null) ...[
+                              const SizedBox(height: 10),
+                              Text(t.note!, style: text.bodyMedium),
+                            ],
                           ],
                         ),
                       ),
@@ -687,6 +752,116 @@ class _Galat extends StatelessWidget {
           pesan,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+}
+
+/// Foto singgahan.
+///
+/// URL-nya bertanda tangan dan berumur pendek — dibuat ulang tiap kali jejak
+/// dibaca, bukan disimpan. Tautan yang bocor mati dengan sendirinya.
+class _FotoSinggahan extends StatelessWidget {
+  const _FotoSinggahan({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: AspectRatio(
+        aspectRatio: 4 / 3,
+        child: Image.network(
+          url,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, anak, kemajuan) {
+            if (kemajuan == null) return anak;
+            return const NapakSkeleton(tinggi: double.infinity, radius: 0);
+          },
+          // Tautan bertanda tangan bisa kedaluwarsa kalau halamannya dibiarkan
+          // terbuka lama. Yang tampil kemudian adalah penjelasan, bukan ikon
+          // rusak tanpa keterangan.
+          errorBuilder: (context, galat, jejak) => Container(
+            color: NapakColors.softSky,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.image_not_supported_outlined,
+                  size: 22,
+                  color: NapakColors.primary,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Fotonya belum termuat.\nTarik ke bawah untuk menyegarkan.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Menandai bahwa perjalanan ini mengulang perjalanan lama.
+///
+/// Bisa diketuk untuk membuka yang lama — dan dari sana, kalau yang lama juga
+/// menapak tilas sesuatu, rantainya bisa ditelusuri terus ke belakang.
+class _KaitanTilas extends StatelessWidget {
+  const _KaitanTilas({required this.lama});
+
+  final RingkasTrip lama;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return NapakPressable(
+      onTap: () => context.push('/trip/${lama.id}'),
+      skala: 0.98,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: NapakColors.warmNeutral,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.history_rounded,
+              size: 18,
+              color: NapakColors.deepAccent,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Menapak tilas', style: text.bodySmall),
+                  const SizedBox(height: 2),
+                  Text(
+                    lama.startedAt == null
+                        ? lama.title
+                        : '${lama.title} · ${DateFormat("MMMM yyyy", 'id_ID').format(lama.startedAt!)}',
+                    style: text.bodyMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: NapakColors.deepAccent,
+            ),
+          ],
         ),
       ),
     );

@@ -38,6 +38,7 @@ class BerandaPage extends ConsumerWidget {
           slivers: [
             _Sapaan(nama: nama),
             const SliverToBoxAdapter(child: _AntreanJejak()),
+            const SliverToBoxAdapter(child: _Kenangan()),
             if (merekam.isRecording)
               SliverToBoxAdapter(
                 child: _SedangMerekam(judul: merekam.title ?? 'Perjalanan'),
@@ -485,6 +486,132 @@ class _Kosong extends StatelessWidget {
           Text(keterangan, style: text.bodySmall, textAlign: TextAlign.center),
           if (aksi != null) ...[const SizedBox(height: 26), aksi!],
         ],
+      ),
+    );
+  }
+}
+
+/// "Tahun lalu hari ini."
+///
+/// Satu-satunya bagian Napak yang punya alasan dibuka di hari orang tidak
+/// bepergian ke mana-mana. Jejak yang tidak hilang itu baru terasa artinya
+/// kalau sesekali datang menghampiri sendiri — bukan cuma menunggu dicari.
+///
+/// Muncul sendiri hanya kalau memang ada, lalu hilang lagi besoknya. Tidak
+/// ada ruang kosong yang menunggu diisi.
+class _Kenangan extends ConsumerWidget {
+  const _Kenangan();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kenangan = ref.watch(kenanganProvider).value ?? const <Trip>[];
+
+    return AnimatedSize(
+      duration: NapakMotion.lambat,
+      curve: NapakMotion.mengalir,
+      child: kenangan.isEmpty
+          ? const SizedBox(width: double.infinity)
+          : Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (i, t) in kenangan.take(2).indexed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: MunculBertahap(
+                        indeks: i,
+                        child: _KartuKenangan(trip: t),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class _KartuKenangan extends StatelessWidget {
+  const _KartuKenangan({required this.trip});
+
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final tahunLalu = trip.startedAt == null
+        ? null
+        : DateTime.now().year - trip.startedAt!.year;
+
+    return NapakPressable(
+      // Langsung ke ceritanya, bukan ke halaman detail. Yang ingin dilakukan
+      // orang saat kenangan menghampiri adalah membukanya kembali, bukan
+      // membaca angkanya.
+      onTap: () => context.push('/trip/${trip.id}/cerita'),
+      skala: 0.98,
+      child: Container(
+        decoration: BoxDecoration(
+          color: NapakColors.warmNeutral,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 104,
+              height: 104,
+              child: PratinjauRute(
+                titik: trip.previewPath,
+                tinggi: 104,
+                animasikan: false,
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.auto_awesome_outlined,
+                          size: 13,
+                          color: NapakColors.deepAccent,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          tahunLalu == null
+                              ? 'Hari ini, dulu'
+                              : tahunLalu == 1
+                              ? 'Setahun lalu hari ini'
+                              : '$tahunLalu tahun lalu hari ini',
+                          style: text.labelMedium?.copyWith(
+                            color: NapakColors.deepAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      trip.title,
+                      style: text.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${trip.distanceKm.toStringAsFixed(1)} km · buka ceritanya',
+                      style: text.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

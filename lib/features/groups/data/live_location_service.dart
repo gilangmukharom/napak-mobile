@@ -32,6 +32,7 @@ class LiveLocationService {
   final _posisi = StreamController<PosisiLangsung>.broadcast();
   final _galat = StreamController<String>.broadcast();
   final _tersambung = StreamController<bool>.broadcast();
+  final _sinyal = StreamController<SinyalMasuk>.broadcast();
 
   /// Posisi teman seperjalanan yang masuk satu per satu.
   Stream<PosisiLangsung> get posisi => _posisi.stream;
@@ -40,6 +41,9 @@ class LiveLocationService {
   Stream<String> get galat => _galat.stream;
 
   Stream<bool> get tersambung => _tersambung.stream;
+
+  /// Sinyal satu ketuk dari teman seperjalanan.
+  Stream<SinyalMasuk> get sinyal => _sinyal.stream;
 
   /// Buka sambungan dan mulai menonton peta bersama satu perjalanan.
   Future<void> tonton(String tripId) async {
@@ -70,6 +74,14 @@ class LiveLocationService {
       } catch (error) {
         debugPrint('Posisi langsung tidak terbaca: $error');
       }
+    });
+
+    socket.on('sinyal:masuk', (data) {
+      if (data is! Map) return;
+      final masuk = SinyalMasuk.fromJson(Map<String, dynamic>.from(data));
+      // Sinyal yang tidak dikenali versi aplikasi ini diabaikan, bukan
+      // ditampilkan sebagai teks mentah.
+      if (masuk != null) _sinyal.add(masuk);
     });
 
     socket.on('napak:error', (data) {
@@ -122,8 +134,14 @@ class LiveLocationService {
     _tersambung.add(false);
   }
 
+  /// Kirim sinyal satu ketuk ke rombongan.
+  void kirimSinyal({required String tripId, required Sinyal sinyal}) {
+    _socket?.emit('sinyal:kirim', {'tripId': tripId, 'kode': sinyal.wire});
+  }
+
   Future<void> tutup() async {
     await putus();
+    await _sinyal.close();
     await _posisi.close();
     await _galat.close();
     await _tersambung.close();

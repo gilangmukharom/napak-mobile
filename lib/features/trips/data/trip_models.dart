@@ -70,6 +70,7 @@ class Trip {
     required this.pointCount,
     required this.isOwner,
     this.previewPath = const [],
+    this.retraceOf,
     this.startedAt,
     this.endedAt,
     this.shareSlug,
@@ -90,6 +91,9 @@ class Trip {
           lat: (t[1] as num).toDouble(),
         ),
     ],
+    retraceOf: json['retraceOf'] == null
+        ? null
+        : RingkasTrip.fromJson(json['retraceOf'] as Map<String, dynamic>),
     startedAt: _parseDate(json['startedAt']),
     endedAt: _parseDate(json['endedAt']),
     shareSlug: json['shareUrlSlug'] as String?,
@@ -110,11 +114,30 @@ class Trip {
   /// tampil tanpa gambar, bukan rusak.
   final List<({double lat, double lng})> previewPath;
 
+  /// Perjalanan lama yang sedang ditapak-tilasi perjalanan ini.
+  final RingkasTrip? retraceOf;
+
   final DateTime? startedAt;
   final DateTime? endedAt;
   final String? shareSlug;
 
   bool get isRecording => endedAt == null;
+}
+
+/// Rujukan ringkas ke perjalanan lain.
+@immutable
+class RingkasTrip {
+  const RingkasTrip({required this.id, required this.title, this.startedAt});
+
+  factory RingkasTrip.fromJson(Map<String, dynamic> json) => RingkasTrip(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    startedAt: _parseDate(json['startedAt']),
+  );
+
+  final String id;
+  final String title;
+  final DateTime? startedAt;
 }
 
 @immutable
@@ -353,5 +376,64 @@ class PosisiLangsung {
   final String nama;
   final double lat;
   final double lng;
+  final DateTime pada;
+}
+
+/// Sinyal satu ketuk saat Trip Bareng.
+///
+/// Daftarnya tetap dan pendek, sama persis dengan yang dikenali server.
+/// Begitu bisa menulis pesan bebas, ini berubah jadi chat — lengkap dengan
+/// seluruh kewajiban yang mengikutinya.
+/// Ikonnya sengaja tidak ada di sini. Model data tidak perlu tahu apa-apa
+/// soal Material — pemetaan ke ikon ada di sisi tampilan.
+enum Sinyal {
+  isiBensin('isi_bensin', 'Isi bensin'),
+  nunggu('nunggu', 'Nunggu di depan'),
+  jalanDuluan('jalan_duluan', 'Jalan duluan'),
+  istirahat('istirahat', 'Istirahat'),
+  adaMasalah('ada_masalah', 'Ada masalah'),
+  sampai('sampai', 'Sudah sampai');
+
+  const Sinyal(this.wire, this.label);
+
+  final String wire;
+  final String label;
+
+  static Sinyal? fromWire(String value) {
+    for (final s in Sinyal.values) {
+      if (s.wire == value) return s;
+    }
+    return null;
+  }
+}
+
+/// Sinyal yang masuk dari teman seperjalanan.
+@immutable
+class SinyalMasuk {
+  const SinyalMasuk({
+    required this.userId,
+    required this.nama,
+    required this.sinyal,
+    required this.pesan,
+    required this.pada,
+  });
+
+  static SinyalMasuk? fromJson(Map<String, dynamic> json) {
+    final sinyal = Sinyal.fromWire(json['kode'] as String? ?? '');
+    if (sinyal == null) return null;
+
+    return SinyalMasuk(
+      userId: json['userId'] as String,
+      nama: json['nama'] as String? ?? 'Penjejak',
+      sinyal: sinyal,
+      pesan: json['pesan'] as String? ?? sinyal.label,
+      pada: DateTime.parse(json['pada'] as String).toLocal(),
+    );
+  }
+
+  final String userId;
+  final String nama;
+  final Sinyal sinyal;
+  final String pesan;
   final DateTime pada;
 }

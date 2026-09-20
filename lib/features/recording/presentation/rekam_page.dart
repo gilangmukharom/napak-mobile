@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
@@ -11,7 +13,9 @@ import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../trips/presentation/peta_rute.dart';
+import '../application/napak_tilas.dart';
 import '../application/recording_controller.dart';
+import '../data/photo_uploader.dart';
 
 /// Layar perjalanan yang sedang berjalan.
 ///
@@ -32,6 +36,7 @@ class RekamPage extends ConsumerStatefulWidget {
 
 class _RekamPageState extends ConsumerState<RekamPage> {
   static const _jalurSesi = 'sesi';
+  static const _jalurLama = 'lama';
 
   final _peta = PetaRuteController();
   Timer? _detak;
@@ -89,40 +94,139 @@ class _RekamPageState extends ConsumerState<RekamPage> {
     context.go('/');
   }
 
+  /// Tandai singgahan: catatan, foto, atau dua-duanya.
+  ///
+  /// Foto dan catatan disatukan dalam satu lembar, bukan dua alur terpisah.
+  /// Saat orang berhenti, yang terjadi di kepalanya satu hal — "ini perlu
+  /// diingat" — bukan dua keputusan terpisah soal media apa yang dipakai.
   Future<void> _catat() async {
     final controller = TextEditingController();
-    final simpan = await showDialog<bool>(
+    XFile? foto;
+
+    final simpan = await showModalBottomSheet<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
-        title: const Text('Ada apa di sini?'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLines: 3,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'Berhenti makan soto di pinggir jalan',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Simpan'),
-          ),
-        ],
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          Future<void> ambil(bool dariKamera) async {
+            final pengunggah = ref.read(photoUploaderProvider);
+            final hasil = dariKamera
+                ? await pengunggah.dariKamera()
+                : await pengunggah.dariGaleri();
+            if (hasil != null) setSheetState(() => foto = hasil);
+          }
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              24,
+              24,
+              MediaQuery.of(sheetContext).viewInsets.bottom + 28,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ada apa di sini?',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 16),
+
+                AnimatedSize(
+                  duration: NapakMotion.sedang,
+                  curve: NapakMotion.mengalir,
+                  child: foto == null
+                      ? const SizedBox(width: double.infinity)
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Stack(
+                              children: [
+                                Image.file(
+                                  File(foto!.path),
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: NapakPressable(
+                                    skala: 0.85,
+                                    onTap: () =>
+                                        setSheetState(() => foto = null),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: NapakColors.base.withValues(
+                                          alpha: 0.92,
+                                        ),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close_rounded,
+                                        size: 16,
+                                        color: NapakColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+
+                TextField(
+                  controller: controller,
+                  autofocus: foto == null,
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(
+                    hintText: 'Berhenti makan soto di pinggir jalan',
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                if (foto == null)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => ambil(true),
+                          icon: const Icon(Icons.photo_camera_outlined, size: 19),
+                          label: const Text('Foto'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => ambil(false),
+                          icon: const Icon(Icons.image_outlined, size: 19),
+                          label: const Text('Galeri'),
+                        ),
+                      ),
+                    ],
+                  ),
+                if (foto == null) const SizedBox(height: 12),
+
+                FilledButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(true),
+                  child: const Text('Simpan singgahan'),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
 
-    if (simpan == true) {
-      await ref
-          .read(recordingControllerProvider.notifier)
-          .addNote(controller.text);
-    }
+    if (simpan != true) return;
+    await ref
+        .read(recordingControllerProvider.notifier)
+        .addNote(controller.text, foto: foto);
   }
 
   @override
@@ -151,6 +255,17 @@ class _RekamPageState extends ConsumerState<RekamPage> {
             child: PetaRute(
               controller: _peta,
               jalur: [
+                // Rute lama digambar lebih dulu supaya berada di bawah, dan
+                // dengan warna pastel muda — ini bayangan masa lalu, bukan
+                // jejak yang sedang kamu buat.
+                if (rekaman.jejakLama.isNotEmpty)
+                  JalurRute(
+                    id: _jalurLama,
+                    warna: '#A8C8E8',
+                    titik: [
+                      for (final t in rekaman.jejakLama) LatLng(t.lat, t.lng),
+                    ],
+                  ),
                 JalurRute(
                   id: _jalurSesi,
                   titik: [
@@ -171,6 +286,19 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                   belumTerkirim: belumTerkirim,
                 ),
                 const Spacer(),
+                if (rekaman.menapakTilas != null)
+                  _KartuTilas(
+                    lama: rekaman.jejakLama,
+                    judulLama: rekaman.menapakTilas!.title,
+                    sudahBerjalan: _berjalan,
+                    jarakM: rekaman.jarakM,
+                    posisiSekarang: rekaman.latest == null
+                        ? null
+                        : (
+                            lat: rekaman.latest!.lat,
+                            lng: rekaman.latest!.lng,
+                          ),
+                  ),
                 _PanelBawah(
                   berjalan: _berjalan,
                   jejak: rekaman.recordedCount,
@@ -435,6 +563,114 @@ class _TidakSedangMerekam extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Perbandingan dengan perjalanan yang sedang ditapak-tilasi.
+///
+/// Yang ditampilkan bukan lomba. Kalimatnya sengaja tenang dan tidak pernah
+/// memuji atau menyalahkan — napak tilas itu mengingat, bukan mengalahkan
+/// diri sendiri yang dulu.
+class _KartuTilas extends StatelessWidget {
+  const _KartuTilas({
+    required this.lama,
+    required this.judulLama,
+    required this.sudahBerjalan,
+    required this.jarakM,
+    required this.posisiSekarang,
+  });
+
+  final List<JejakLama> lama;
+  final String judulLama;
+  final Duration sudahBerjalan;
+  final double jarakM;
+  final ({double lat, double lng})? posisiSekarang;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    final hasil = bandingkan(
+      lama: lama,
+      sudahBerjalan: sudahBerjalan,
+      jarakSekarangM: jarakM,
+      posisiSekarang: posisiSekarang,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+        decoration: BoxDecoration(
+          color: NapakColors.warmNeutral.withValues(alpha: 0.96),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: NapakColors.textPrimary.withValues(alpha: 0.07),
+              blurRadius: 16,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.history_rounded,
+                  size: 16,
+                  color: NapakColors.deepAccent,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Menapak tilas $judulLama',
+                    style: text.labelMedium,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              kalimatSelisih(hasil.selisih),
+              style: text.titleMedium,
+            ),
+
+            // Catatan lama muncul sendiri saat kamu lewat tempat yang sama.
+            // Inilah bagian yang paling terasa seperti napak tilas sungguhan.
+            AnimatedSize(
+              duration: NapakMotion.sedang,
+              curve: NapakMotion.mengalir,
+              child: hasil.catatanTerdekat == null
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.format_quote_rounded,
+                            size: 15,
+                            color: NapakColors.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Dulu di sini: ${hasil.catatanTerdekat}',
+                              style: text.bodySmall,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
         ),
       ),
     );

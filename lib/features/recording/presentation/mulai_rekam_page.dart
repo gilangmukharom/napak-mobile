@@ -26,6 +26,7 @@ class MulaiRekamPage extends ConsumerStatefulWidget {
 class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
   final _judul = TextEditingController();
   TripMode _mode = TripMode.solo;
+  Trip? _tapakTilas;
   bool _memulai = false;
 
   @override
@@ -43,7 +44,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
 
     await ref
         .read(recordingControllerProvider.notifier)
-        .start(title: judul, mode: _mode);
+        .start(title: judul, mode: _mode, tapakTilas: _tapakTilas);
 
     if (!mounted) return;
     final state = ref.read(recordingControllerProvider);
@@ -156,13 +157,21 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 28),
+                  MunculBertahap(
+                    indeks: 6,
+                    child: _PilihTapakTilas(
+                      terpilih: _tapakTilas,
+                      onPilih: (t) => setState(() => _tapakTilas = t),
+                    ),
+                  ),
                 ],
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 0, 28, 20),
               child: MunculBertahap(
-                indeks: 6,
+                indeks: 7,
                 child: FilledButton.icon(
                   onPressed: _memulai ? null : _mulai,
                   icon: _memulai
@@ -175,7 +184,13 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                           ),
                         )
                       : const Icon(Icons.play_arrow_rounded),
-                  label: Text(_memulai ? 'Menyiapkan...' : 'Mulai merekam'),
+                  label: Text(
+                    _memulai
+                        ? 'Menyiapkan...'
+                        : _tapakTilas == null
+                        ? 'Mulai merekam'
+                        : 'Mulai napak tilas',
+                  ),
                 ),
               ),
             ),
@@ -271,5 +286,202 @@ class _PilihanMode extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Pilihan menapak tilas perjalanan lama.
+///
+/// Inilah yang membuat nama aplikasi ini berarti sesuatu. "Napak tilas"
+/// adalah menyusuri kembali jejak perjalanan — dan sampai fitur ini ada,
+/// aplikasinya cuma meminjam namanya.
+class _PilihTapakTilas extends ConsumerWidget {
+  const _PilihTapakTilas({required this.terpilih, required this.onPilih});
+
+  final Trip? terpilih;
+  final ValueChanged<Trip?> onPilih;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final text = Theme.of(context).textTheme;
+    final semua = ref.watch(tripListProvider).value ?? const <Trip>[];
+
+    // Yang bisa ditapak-tilasi cuma perjalanan yang sudah selesai dan punya
+    // cukup jejak untuk dibandingkan.
+    final bisa = semua
+        .where((t) => !t.isRecording && t.pointCount >= 10)
+        .toList();
+
+    if (bisa.isEmpty) return const SizedBox.shrink();
+
+    if (terpilih != null) {
+      return NapakPressable(
+        onTap: () => onPilih(null),
+        skala: 0.98,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: NapakColors.softSky,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: NapakColors.deepAccent, width: 1.6),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.history_rounded,
+                size: 20,
+                color: NapakColors.deepAccent,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Menapak tilas', style: text.bodySmall),
+                    const SizedBox(height: 2),
+                    Text(
+                      terpilih!.title,
+                      style: text.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.close_rounded,
+                size: 18,
+                color: NapakColors.textSecondary,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return NapakPressable(
+      onTap: () => _pilih(context, bisa),
+      skala: 0.98,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: NapakColors.warmNeutral,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.history_rounded,
+              size: 20,
+              color: NapakColors.deepAccent,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Napak tilas perjalanan lama', style: text.titleMedium),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Ulangi rute yang pernah kamu tempuh, lihat bedanya.',
+                    style: text.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: NapakColors.deepAccent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pilih(BuildContext context, List<Trip> bisa) async {
+    final hasil = await showModalBottomSheet<Trip>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.62,
+        maxChildSize: 0.9,
+        builder: (sheetContext, gulir) => ListView.builder(
+          controller: gulir,
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+          itemCount: bisa.length + 1,
+          itemBuilder: (context, i) {
+            if (i == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mau menapak tilas yang mana?',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Napak akan menunjukkan rute lamamu di peta dan '
+                      'membandingkan perjalanan hari ini dengan hari itu.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final t = bisa[i - 1];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: NapakPressable(
+                onTap: () => Navigator.of(sheetContext).pop(t),
+                skala: 0.98,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: NapakColors.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.title,
+                              style: Theme.of(context).textTheme.titleMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              '${t.distanceKm.toStringAsFixed(1)} km'
+                              '${t.startedAt == null ? '' : ' · ${DateFormat("d MMM yyyy", 'id_ID').format(t.startedAt!)}'}',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.history_rounded,
+                        size: 18,
+                        color: NapakColors.deepAccent,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+
+    if (hasil != null) onPilih(hasil);
   }
 }

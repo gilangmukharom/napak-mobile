@@ -29,6 +29,7 @@ class LiveState {
     this.posisi = const {},
     this.tersambung = false,
     this.berbagiSendiri = false,
+    this.sinyal = const [],
     this.pesan,
   });
 
@@ -41,18 +42,27 @@ class LiveState {
   /// Apakah kamu sendiri sedang membagikan posisi di sesi ini.
   final bool berbagiSendiri;
 
+  /// Sinyal terbaru dari rombongan, yang terbaru di depan.
+  ///
+  /// Hanya di memori dan dibatasi jumlahnya. Ini alat koordinasi saat jalan,
+  /// bukan riwayat percakapan — menyimpannya berarti membangun chat lewat
+  /// pintu belakang, lengkap dengan kewajiban retensi dan penghapusannya.
+  final List<SinyalMasuk> sinyal;
+
   final String? pesan;
 
   LiveState copyWith({
     Map<String, PosisiLangsung>? posisi,
     bool? tersambung,
     bool? berbagiSendiri,
+    List<SinyalMasuk>? sinyal,
     String? pesan,
     bool hapusPesan = false,
   }) => LiveState(
     posisi: posisi ?? this.posisi,
     tersambung: tersambung ?? this.tersambung,
     berbagiSendiri: berbagiSendiri ?? this.berbagiSendiri,
+    sinyal: sinyal ?? this.sinyal,
     pesan: hapusPesan ? null : (pesan ?? this.pesan),
   );
 }
@@ -83,6 +93,11 @@ class LiveLocationController extends Notifier<LiveState> {
       }),
       service.galat.listen((g) {
         state = state.copyWith(pesan: g);
+      }),
+      service.sinyal.listen((m) {
+        // Delapan terakhir saja. Yang lebih lama sudah tidak berguna untuk
+        // mengoordinasikan apa pun.
+        state = state.copyWith(sinyal: [m, ...state.sinyal].take(8).toList());
       }),
     ]);
 
@@ -129,6 +144,16 @@ class LiveLocationController extends Notifier<LiveState> {
   }
 
   void hapusPesan() => state = state.copyWith(hapusPesan: true);
+
+  /// Kirim sinyal satu ketuk ke rombongan.
+  ///
+  /// Tidak menunggu balasan server: sinyalnya kembali lewat socket bersama
+  /// sinyal orang lain, jadi tampilannya tidak perlu menebak-nebak sendiri.
+  void kirimSinyal(Sinyal sinyal) {
+    ref
+        .read(liveLocationServiceProvider)
+        .kirimSinyal(tripId: tripId, sinyal: sinyal);
+  }
 
   /// Kirim posisi tiap 15 detik selama berbagi menyala.
   ///

@@ -12,6 +12,7 @@ import '../../features/recording/presentation/mulai_rekam_page.dart';
 import '../../features/recording/presentation/rekam_page.dart';
 import '../../features/splash/presentation/splash_page.dart';
 import '../../features/trips/presentation/beranda_page.dart';
+import '../../features/trips/presentation/cerita_page.dart';
 import '../../features/trips/presentation/trip_detail_page.dart';
 import '../providers.dart';
 import '../theme/napak_colors.dart';
@@ -108,6 +109,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'bareng',
             pageBuilder: (context, state) => GeserMasuk(
               child: TripBarengPage(tripId: state.pathParameters['id']!),
+            ),
+          ),
+          GoRoute(
+            path: 'cerita',
+            pageBuilder: (context, state) => NaikMasuk(
+              child: CeritaPage(tripId: state.pathParameters['id']!),
             ),
           ),
         ],
