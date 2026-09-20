@@ -1,0 +1,330 @@
+import 'package:flutter/foundation.dart';
+
+/// Seberapa terbuka sebuah perjalanan.
+enum TripVisibility {
+  /// Hanya kamu. Ini keadaan awal setiap perjalanan di Napak.
+  private('private', 'Hanya kamu'),
+
+  /// Siapa pun yang punya tautannya.
+  link('link', 'Yang punya tautan'),
+
+  /// Terbuka untuk semua.
+  public('public', 'Terbuka untuk semua');
+
+  const TripVisibility(this.wire, this.label);
+
+  final String wire;
+  final String label;
+
+  static TripVisibility fromWire(String value) =>
+      TripVisibility.values.firstWhere(
+        (v) => v.wire == value,
+        orElse: () => TripVisibility.private,
+      );
+}
+
+enum TripMode {
+  solo('solo', 'Sendiri'),
+  group('group', 'Bareng');
+
+  const TripMode(this.wire, this.label);
+
+  final String wire;
+  final String label;
+
+  static TripMode fromWire(String value) => TripMode.values.firstWhere(
+    (v) => v.wire == value,
+    orElse: () => TripMode.solo,
+  );
+}
+
+enum TransportMode {
+  jalanKaki('jalan_kaki', 'Jalan kaki'),
+  motor('motor', 'Motor'),
+  mobil('mobil', 'Mobil'),
+  kereta('kereta', 'Kereta'),
+  kapal('kapal', 'Kapal'),
+  pesawat('pesawat', 'Pesawat'),
+  tidakDiketahui('tidak_diketahui', 'Belum jelas');
+
+  const TransportMode(this.wire, this.label);
+
+  final String wire;
+  final String label;
+
+  static TransportMode fromWire(String value) =>
+      TransportMode.values.firstWhere(
+        (v) => v.wire == value,
+        orElse: () => TransportMode.tidakDiketahui,
+      );
+}
+
+@immutable
+class Trip {
+  const Trip({
+    required this.id,
+    required this.title,
+    required this.visibility,
+    required this.mode,
+    required this.distanceKm,
+    required this.pointCount,
+    required this.isOwner,
+    this.startedAt,
+    this.endedAt,
+    this.shareSlug,
+  });
+
+  factory Trip.fromJson(Map<String, dynamic> json) => Trip(
+    id: json['id'] as String,
+    title: json['title'] as String,
+    visibility: TripVisibility.fromWire(json['visibility'] as String),
+    mode: TripMode.fromWire(json['mode'] as String),
+    distanceKm: (json['distanceKm'] as num).toDouble(),
+    pointCount: json['pointCount'] as int? ?? 0,
+    isOwner: json['isOwner'] as bool? ?? true,
+    startedAt: _parseDate(json['startedAt']),
+    endedAt: _parseDate(json['endedAt']),
+    shareSlug: json['shareUrlSlug'] as String?,
+  );
+
+  final String id;
+  final String title;
+  final TripVisibility visibility;
+  final TripMode mode;
+  final double distanceKm;
+  final int pointCount;
+  final bool isOwner;
+  final DateTime? startedAt;
+  final DateTime? endedAt;
+  final String? shareSlug;
+
+  bool get isRecording => endedAt == null;
+}
+
+@immutable
+class TripPoint {
+  const TripPoint({
+    required this.id,
+    required this.lat,
+    required this.lng,
+    required this.recordedAt,
+    required this.transportMode,
+    required this.coarse,
+    required this.recordedBy,
+    this.speedMps,
+    this.note,
+    this.photoUrl,
+  });
+
+  factory TripPoint.fromJson(Map<String, dynamic> json) => TripPoint(
+    id: json['id'] as String,
+    lat: (json['lat'] as num).toDouble(),
+    lng: (json['lng'] as num).toDouble(),
+    recordedAt: DateTime.parse(json['recordedAt'] as String).toLocal(),
+    transportMode: TransportMode.fromWire(json['transportMode'] as String),
+    coarse: json['coarse'] as bool? ?? false,
+    recordedBy: json['recordedBy'] as String? ?? '',
+    speedMps: (json['speedMps'] as num?)?.toDouble(),
+    note: json['note'] as String?,
+    photoUrl: json['photoUrl'] as String?,
+  );
+
+  final String id;
+  final double lat;
+  final double lng;
+  final DateTime recordedAt;
+  final TransportMode transportMode;
+
+  /// true kalau koordinat ini sengaja dikasarkan karena kamu menontonnya
+  /// sebagai orang luar, bukan pemiliknya.
+  final bool coarse;
+
+  /// Siapa yang merekam titik ini. Dipakai memecah jejak jadi garis berwarna
+  /// per orang di peta Trip Bareng.
+  final String recordedBy;
+
+  final double? speedMps;
+  final String? note;
+  final String? photoUrl;
+}
+
+@immutable
+class TripMember {
+  const TripMember({
+    required this.userId,
+    required this.name,
+    required this.role,
+    required this.routeColor,
+    required this.liveLocationEnabled,
+  });
+
+  factory TripMember.fromJson(Map<String, dynamic> json) => TripMember(
+    userId: json['userId'] as String,
+    name: json['name'] as String,
+    role: json['role'] as String,
+    routeColor: json['routeColor'] as String,
+    liveLocationEnabled: json['liveLocationEnabled'] as bool? ?? false,
+  );
+
+  final String userId;
+  final String name;
+  final String role;
+
+  /// Hex dari palet rute Napak, dikirim backend supaya warna tiap orang
+  /// konsisten di semua perangkat yang menonton peta bersama.
+  final String routeColor;
+
+  final bool liveLocationEnabled;
+  bool get isLeader => role == 'leader';
+}
+
+@immutable
+class Recap {
+  const Recap({
+    required this.year,
+    required this.totalDistanceKm,
+    required this.totalTrips,
+    required this.totalCities,
+    required this.cities,
+    required this.caption,
+    this.longestTripTitle,
+    this.longestTripKm,
+  });
+
+  factory Recap.fromJson(Map<String, dynamic> json) {
+    final longest = json['longestTrip'] as Map<String, dynamic>?;
+    return Recap(
+      year: json['year'] as int,
+      totalDistanceKm: (json['totalDistanceKm'] as num).toDouble(),
+      totalTrips: json['totalTrips'] as int,
+      totalCities: json['totalCities'] as int,
+      cities: ((json['cities'] as List<dynamic>?) ?? const [])
+          .map((c) => c as String)
+          .toList(),
+      caption: json['caption'] as String,
+      longestTripTitle: longest?['title'] as String?,
+      longestTripKm: (longest?['distanceKm'] as num?)?.toDouble(),
+    );
+  }
+
+  final int year;
+  final double totalDistanceKm;
+  final int totalTrips;
+  final int totalCities;
+
+  /// Nama kotanya, bukan cuma jumlahnya — inilah yang bikin recap terasa
+  /// seperti cerita, bukan laporan.
+  final List<String> cities;
+
+  final String caption;
+  final String? longestTripTitle;
+  final double? longestTripKm;
+}
+
+DateTime? _parseDate(Object? value) =>
+    value == null ? null : DateTime.parse(value as String).toLocal();
+
+/// Status permintaan render video animasi rute.
+enum StatusRender {
+  menunggu('menunggu', 'Menunggu giliran'),
+  menggambar('menggambar', 'Sedang digambar'),
+  selesai('selesai', 'Siap'),
+  gagal('gagal', 'Gagal');
+
+  const StatusRender(this.wire, this.label);
+
+  final String wire;
+  final String label;
+
+  static StatusRender fromWire(String value) => StatusRender.values.firstWhere(
+    (v) => v.wire == value,
+    orElse: () => StatusRender.menunggu,
+  );
+}
+
+enum FormatRender {
+  tegak('tegak', '9:16', 'Story & Reels'),
+  lebar('lebar', '16:9', 'Layar lebar');
+
+  const FormatRender(this.wire, this.rasio, this.keterangan);
+
+  final String wire;
+  final String rasio;
+  final String keterangan;
+}
+
+enum TemplateRender {
+  perjalanan('perjalanan', 'Perjalanan'),
+  mudik('mudik', 'Mudik');
+
+  const TemplateRender(this.wire, this.label);
+
+  final String wire;
+  final String label;
+}
+
+@immutable
+class RenderJob {
+  const RenderJob({
+    required this.id,
+    required this.status,
+    required this.format,
+    required this.template,
+    required this.progress,
+    required this.siapDiunduh,
+    this.ukuranByte,
+    this.pesanGalat,
+  });
+
+  factory RenderJob.fromJson(Map<String, dynamic> json) => RenderJob(
+    id: json['id'] as String,
+    status: StatusRender.fromWire(json['status'] as String),
+    format: json['format'] as String,
+    template: json['template'] as String,
+    progress: json['progress'] as int? ?? 0,
+    siapDiunduh: json['siapDiunduh'] as bool? ?? false,
+    ukuranByte: json['ukuranByte'] as int?,
+    pesanGalat: json['pesanGalat'] as String?,
+  );
+
+  final String id;
+  final StatusRender status;
+  final String format;
+  final String template;
+  final int progress;
+  final bool siapDiunduh;
+  final int? ukuranByte;
+  final String? pesanGalat;
+
+  bool get sedangBerjalan =>
+      status == StatusRender.menunggu || status == StatusRender.menggambar;
+}
+
+/// Posisi teman seperjalanan yang datang lewat WebSocket.
+///
+/// Tidak pernah disimpan — hanya dipakai menggambar penanda di peta selama
+/// aplikasinya terbuka, lalu hilang.
+@immutable
+class PosisiLangsung {
+  const PosisiLangsung({
+    required this.userId,
+    required this.nama,
+    required this.lat,
+    required this.lng,
+    required this.pada,
+  });
+
+  factory PosisiLangsung.fromJson(Map<String, dynamic> json) => PosisiLangsung(
+    userId: json['userId'] as String,
+    nama: json['name'] as String? ?? 'Penjejak',
+    lat: (json['lat'] as num).toDouble(),
+    lng: (json['lng'] as num).toDouble(),
+    pada: DateTime.parse(json['at'] as String).toLocal(),
+  );
+
+  final String userId;
+  final String nama;
+  final double lat;
+  final double lng;
+  final DateTime pada;
+}
