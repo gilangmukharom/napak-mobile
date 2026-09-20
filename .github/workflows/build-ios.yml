@@ -1,0 +1,133 @@
+name: Build iOS
+
+# Membuat IPA tanpa tanda tangan di runner macOS.
+#
+# Sengaja tanpa tanda tangan: penandatanganannya dilakukan di komputer sendiri
+# lewat Sideloadly atau AltStore, yang mengurus sertifikat dan provisioning
+# profile-nya sendiri memakai Apple ID. Artinya tidak ada satu pun sertifikat
+# atau kunci pribadi yang perlu dititipkan ke GitHub Secrets — kunci
+# penandatangan adalah benda yang paling tidak enak kalau sampai bocor, dan
+# cara paling aman menjaganya adalah tidak menaruhnya di mana-mana.
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: >-
+          Alamat backend, lengkap dengan /api. Tempel URL dari `npm run tunnel`
+          — alamatnya berganti tiap tunnel dijalankan ulang.
+        required: true
+        default: https://contoh.trycloudflare.com/api
+      map_style_url:
+        description: >-
+          Gaya peta. Kosongkan untuk memakai gaya pastel Napak dari backend.
+          Isi dengan https://demotiles.maplibre.org/style.json kalau backend
+          belum punya sumber tile.
+        required: false
+        default: ''
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2.23.0
+        with:
+          # Dipatok supaya hasil di sini sama dengan yang diuji di mesin lokal.
+          flutter-version: 3.44.4
+          channel: stable
+          cache: true
+
+      - name: Ambil dependensi
+        run: flutter pub get
+
+      - name: Bangun kode drift
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      # Dijalankan sebelum build supaya kegagalannya jelas di sini, bukan
+      # berupa aplikasi yang tiba-tiba mati saat pertama kali meminta lokasi.
+      # iOS menutup paksa aplikasi yang meminta izin tanpa teks penjelasannya.
+      - name: Periksa izin di Info.plist
+        run: |
+          plist=ios/Runner/Info.plist
+          kurang=0
+          for kunci in \
+            NSLocationWhenInUseUsageDescription \
+            NSLocationAlwaysAndWhenInUseUsageDescription \
+            NSPhotoLibraryAddUsageDescription
+          do
+            if ! /usr/libexec/PlistBuddy -c "Print :$kunci" "$plist" >/dev/null 2>&1; then
+              echo "::error file=$plist::$kunci belum diisi — iOS akan menutup paksa aplikasinya saat izin itu diminta."
+              kurang=1
+            fi
+          done
+
+          if /usr/libexec/PlistBuddy -c "Print :NSAppTransportSecurity:NSAllowsArbitraryLoads" "$plist" >/dev/null 2>&1; then
+            echo "::warning file=$plist::NSAllowsArbitraryLoads menyala. Itu membuka seluruh lalu lintas aplikasi tanpa enkripsi, dan Apple menanyakannya saat review. Backend lewat Cloudflare Tunnel sudah HTTPS, jadi ini semestinya tidak perlu."
+          fi
+
+          exit $kurang
+
+      - name: Analisis dan uji
+        run: |
+          flutter analyze lib test
+          flutter test
+
+      - name: Bangun iOS tanpa tanda tangan
+        env:
+          API_URL: ${{ inputs.api_url }}
+          MAP_STYLE: ${{ inputs.map_style_url }}
+        run: |
+          argumen=(--release --no-codesign --dart-define=NAPAK_API_URL="$API_URL")
+          if [ -n "$MAP_STYLE" ]; then
+            argumen+=(--dart-define=NAPAK_MAP_STYLE="$MAP_STYLE")
+          fi
+          flutter build ios "${argumen[@]}"
+
+      # IPA itu sebenarnya cuma zip berisi folder Payload. Tanpa tanda tangan,
+      # Sideloadly yang akan membongkar, menandatangani, lalu memasangnya.
+      - name: Bungkus jadi IPA
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+          zip -qry Napak-unsigned.ipa Payload
+          echo "UKURAN=$(du -h Napak-unsigned.ipa | cut -f1)" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Napak-unsigned-ipa
+          path: build/ios/iphoneos/Napak-unsigned.ipa
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Ringkasan
+        run: |
+          {
+            echo "## Napak — IPA siap diunduh"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Berkas | \`Napak-unsigned.ipa\` (${UKURAN}) |"
+            echo "| Backend | \`${{ inputs.api_url }}\` |"
+            echo "| Tanda tangan | belum — ditandatangani saat dipasang |"
+            echo ""
+            echo "### Memasangnya"
+            echo ""
+            echo "1. Unduh artefak \`Napak-unsigned-ipa\` di bawah."
+            echo "2. Buka Sideloadly (atau AltStore) di Windows, sambungkan iPhone."
+            echo "3. Jatuhkan IPA-nya ke sana, masuk dengan Apple ID."
+            echo "4. Di iPhone: Pengaturan ▸ Umum ▸ VPN & Manajemen Perangkat ▸ percayai sertifikatnya."
+            echo ""
+            echo "> Apple ID gratis membuat aplikasinya berhenti berlaku setelah 7 hari."
+            echo "> Pasang ulang dengan cara yang sama untuk memperpanjang."
+            echo ""
+            echo "### Sebelum membuka aplikasinya"
+            echo ""
+            echo "Pastikan backend dan tunnel-nya masih hidup — alamat di atas"
+            echo "sudah tertanam di dalam IPA ini. Kalau tunnel sudah mati,"
+            echo "jalankan \`npm run tunnel\` lagi dan bangun ulang dengan URL barunya."
+          } >> "$GITHUB_STEP_SUMMARY"

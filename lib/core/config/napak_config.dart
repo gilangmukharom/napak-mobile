@@ -6,8 +6,16 @@ abstract final class NapakConfig {
   ///
   /// Emulator Android tidak bisa menyebut "localhost" — itu merujuk ke emulator
   /// itu sendiri, bukan ke komputer yang menjalankannya. 10.0.2.2 adalah jalan
-  /// tembusnya. Saat build untuk perangkat asli, isi lewat:
-  ///   flutter run --dart-define=NAPAK_API_URL=https://api.napak.id
+  /// tembusnya.
+  ///
+  /// **iPhone atau iPad sungguhan tidak punya jalan tembus seperti itu.**
+  /// "localhost" di sana berarti HP-nya sendiri, dan backend tidak ada di
+  /// situ. Sebutkan alamat LAN komputer yang menjalankan backend:
+  ///
+  ///   flutter run --dart-define=NAPAK_API_URL=http://192.168.1.10:3000/api
+  ///
+  /// Simulator iOS ikut memakai jaringan Mac-nya, jadi "localhost" hanya jalan
+  /// kalau backend-nya memang di Mac yang sama.
   static String get apiBaseUrl {
     const fromEnv = String.fromEnvironment('NAPAK_API_URL');
     if (fromEnv.isNotEmpty) return fromEnv;

@@ -307,11 +307,8 @@ class _BarisAnggota extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  sedangTerlihat
-                      ? 'Posisinya terlihat sekarang'
-                      : anggota.liveLocationEnabled
-                      ? 'Berbagi posisi, menunggu kabar'
-                      : 'Tidak berbagi posisi',
+                  '${anggota.distanceKm.toStringAsFixed(1)} km · '
+                  '${sedangTerlihat ? 'posisinya terlihat sekarang' : anggota.liveLocationEnabled ? 'berbagi posisi, menunggu kabar' : 'tidak berbagi posisi'}',
                   style: text.bodySmall,
                 ),
               ],

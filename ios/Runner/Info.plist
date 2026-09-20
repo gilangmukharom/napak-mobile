@@ -8,6 +8,54 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Napak</string>
+	<!-- Izin lokasi.
+	     Teksnya muncul apa adanya di dialog iOS, jadi ditulis dengan bahasa
+	     yang sama dengan isi aplikasi: menjelaskan apa gunanya, bukan sekadar
+	     meminta. Orang berhak tahu untuk apa lokasinya dipakai sebelum
+	     menyerahkannya. -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Napak merekam jejak perjalananmu selama aplikasi terbuka. Semua trip tersimpan tertutup — kamu sendiri yang memutuskan kapan dibagikan.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Supaya Napak bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Supaya Napak bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
+
+	<!-- Untuk menyimpan video animasi rute ke galeri. -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Untuk menyimpan video perjalananmu ke galeri.</string>
+
+	<!-- Perekaman harus tetap jalan saat aplikasi di latar belakang. -->
+	<!-- ============================================================
+	     App Transport Security
+
+	     Tidak ada pengecualian di sini, dan memang sebaiknya begitu.
+	     Backend Napak diakses lewat Cloudflare Tunnel yang sudah HTTPS
+	     dengan sertifikat sah, jadi ATS tidak perlu dilonggarkan sama
+	     sekali — termasuk saat mencoba dari HP sungguhan.
+
+	     NSAllowsLocalNetworking aman dan boleh tetap ada: ia cuma
+	     mengizinkan tujuan di jaringan lokal, bukan membuka semuanya.
+
+	     Kalau suatu saat terpaksa menembak backend lewat HTTP polos di
+	     alamat LAN, tambahkan NSAllowsArbitraryLoads SEMENTARA lalu hapus
+	     lagi. Apple menanyakannya saat review, dan membiarkannya menyala
+	     berarti seluruh lalu lintas aplikasi boleh tanpa enkripsi.
+	     ============================================================ -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+
+	<!-- iOS 14+ meminta izin sebelum aplikasi menyapa jaringan lokal. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Untuk menyambung ke backend Napak yang sedang berjalan di jaringan yang sama saat pengembangan.</string>
+
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

@@ -12,12 +12,19 @@ dart run build_runner build --delete-conflicting-outputs   # kode drift
 flutter run
 ```
 
-Pastikan [`napak-api`](../napak-api) sudah jalan lebih dulu. Emulator Android
-otomatis menunjuk ke `10.0.2.2:3000` (jalan tembus menuju localhost host).
-Untuk perangkat asli:
+Pastikan [`napak-api`](../napak-api) sudah jalan lebih dulu, dan sudah disemai
+data contohnya (`npm run seed`). Emulator Android otomatis menunjuk ke
+`10.0.2.2:3000` — jalan tembus menuju localhost komputernya.
+
+**HP sungguhan tidak punya jalan tembus seperti itu.** Buka tunnel di sisi
+backend, lalu pakai alamat yang dicetaknya:
 
 ```bash
-flutter run --dart-define=NAPAK_API_URL=http://192.168.1.10:3000/api
+# di napak-api
+npm run tunnel
+
+# lalu, dengan alamat yang tadi tercetak
+flutter run --dart-define=NAPAK_API_URL=https://<acak>.trycloudflare.com/api
 ```
 
 ### Gaya peta
@@ -118,6 +125,80 @@ dart run build_runner build --delete-conflicting-outputs
 flutter build apk --debug
 ```
 
+## Menjalankan di iOS
+
+Kompilasi iOS butuh Xcode, dan Xcode hanya ada di macOS — Flutter di Windows
+bahkan tidak menampilkan `ios` maupun `ipa` di daftar target `flutter build`.
+Jalan keluarnya: runner macOS di GitHub Actions membuat IPA-nya,
+[Sideloadly](https://sideloadly.io) di Windows yang memasangnya.
+
+### Sekali jalan
+
+```
+1. di napak-api:  npm run tunnel          → salin URL yang tercetak
+2. di GitHub:     Actions ▸ Build iOS ▸ Run workflow
+                  tempel URL tadi ke kolom "api_url"
+3. tunggu ±10 menit, unduh artefak Napak-unsigned-ipa
+4. buka Sideloadly, sambungkan iPhone, jatuhkan IPA-nya, masuk Apple ID
+5. di iPhone: Pengaturan ▸ Umum ▸ VPN & Manajemen Perangkat ▸ percayai
+```
+
+Workflow-nya membangun **tanpa tanda tangan**, dan itu disengaja: Sideloadly
+sudah mengurus sertifikat dan provisioning profile-nya sendiri lewat Apple ID,
+jadi tidak ada satu pun kunci pribadi yang perlu dititipkan ke GitHub Secrets.
+Kunci penandatangan adalah benda yang paling tidak enak kalau sampai bocor,
+dan cara paling aman menjaganya adalah tidak menaruhnya di mana-mana.
+
+### Yang perlu diketahui
+
+- **Sideloadly butuh iTunes dan iCloud versi dari apple.com**, bukan yang dari
+  Microsoft Store — yang dari Store tidak membawa driver perangkatnya.
+- **Apple ID gratis: aplikasinya berhenti berlaku setelah 7 hari**, dan
+  maksimal tiga aplikasi sideload sekaligus. Pasang ulang dengan cara yang
+  sama untuk memperpanjang.
+- **Alamat backend tertanam di dalam IPA.** URL tunnel berganti tiap kali
+  `npm run tunnel` dijalankan ulang, jadi tunnel-nya harus tetap hidup selama
+  kamu mencoba. Kalau mati, jalankan lagi dan bangun ulang dengan URL barunya.
+- Perekaman latar belakang (`UIBackgroundModes: location`) hanya butuh kunci
+  di Info.plist, bukan entitlement berbayar — jadi tetap jalan dengan Apple ID
+  gratis.
+
+### Yang sudah disiapkan dari sisi proyek
+
+| Hal | Keadaan |
+|---|---|
+| `NSLocationWhenInUseUsageDescription` | terisi, Bahasa Indonesia |
+| `NSLocationAlwaysAndWhenInUseUsageDescription` | terisi |
+| `NSPhotoLibraryAddUsageDescription` | terisi |
+| `UIBackgroundModes` | `location`, `fetch` |
+| Deployment target | 13.0 — sesuai syarat MapLibre |
+| Bundle ID | `id.napak.napak` |
+| App Transport Security | tanpa `NSAllowsArbitraryLoads` |
+
+Teks izinnya muncul apa adanya di dialog iOS, jadi ditulis dengan bahasa yang
+sama dengan isi aplikasi: menjelaskan apa gunanya, bukan sekadar meminta.
+
+Workflow-nya memeriksa ketiga teks izin itu **sebelum** membangun. iOS menutup
+paksa aplikasi yang meminta izin tanpa teks penjelasannya, dan kegagalan
+seperti itu jauh lebih enak ketahuan di CI daripada di HP.
+
+### Kalau punya akses Mac
+
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+cd ios && pod install && cd ..
+flutter run --dart-define=NAPAK_API_URL=https://<acak>.trycloudflare.com/api
+```
+
+Simulator iOS tidak butuh Apple ID, tapi tidak punya GPS sungguhan —
+perekaman harus disimulasikan lewat Debug ▸ Location di Simulator.
+
+## Android lewat Actions
+
+`Actions ▸ Build Android ▸ Run workflow`, isi `api_url` yang sama. Hasilnya
+APK rilis yang tinggal dipindah ke HP.
+
 ## Catatan lingkungan
 
 **SDK Flutter di path bersepasi.** Kalau SDK terpasang di `D:\Program Files\flutter`,
@@ -128,6 +209,10 @@ SDK ke path tanpa spasi (`D:\flutter`) untuk menyelesaikannya.
 **`kotlin.incremental=false`** di `android/gradle.properties` bukan pilihan gaya:
 tanpanya, Kotlin 2.3 + AGP 9 gagal menutup cache incremental di Windows dan
 menggagalkan `compileDebugKotlin` milik plugin pihak ketiga.
+
+**Sisi iOS belum pernah dikompilasi.** Konfigurasinya sudah disiapkan dan
+diperiksa, tapi kompilasi sungguhannya menunggu mesin macOS. Wajar kalau masih
+ada yang perlu dirapikan saat `pod install` pertama.
 
 ## Yang belum dikerjakan
 

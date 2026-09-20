@@ -156,6 +156,8 @@ class TripMember {
     required this.role,
     required this.routeColor,
     required this.liveLocationEnabled,
+    required this.distanceKm,
+    required this.pointCount,
   });
 
   factory TripMember.fromJson(Map<String, dynamic> json) => TripMember(
@@ -164,6 +166,8 @@ class TripMember {
     role: json['role'] as String,
     routeColor: json['routeColor'] as String,
     liveLocationEnabled: json['liveLocationEnabled'] as bool? ?? false,
+    distanceKm: (json['distanceKm'] as num?)?.toDouble() ?? 0,
+    pointCount: json['pointCount'] as int? ?? 0,
   );
 
   final String userId;
@@ -175,6 +179,13 @@ class TripMember {
   final String routeColor;
 
   final bool liveLocationEnabled;
+
+  /// Jarak yang ditempuh anggota ini sendiri — bukan jarak gabungan
+  /// seluruh rombongan.
+  final double distanceKm;
+
+  final int pointCount;
+
   bool get isLeader => role == 'leader';
 }
 
