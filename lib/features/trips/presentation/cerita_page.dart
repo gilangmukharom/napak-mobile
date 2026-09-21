@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
@@ -253,8 +254,8 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
     // Perjalanan tanpa foto sama sekali tetap dapat latar bergradasi, jadi
     // bentuk halamannya tidak berubah-ubah tergantung isi.
     final berfoto = singgahan
-        .where((t) => t.photoUrl != null)
-        .map((t) => t.photoUrl!)
+        .where((t) => t.gambarDiam != null)
+        .map((t) => t.gambarDiam!)
         .toList();
 
     return [
@@ -284,9 +285,14 @@ class _LatarFoto extends StatelessWidget {
     required this.foto,
     required this.benih,
     required this.anak,
+    this.video,
   });
 
   final String? foto;
+
+  /// Kalau singgahannya video: diputar tanpa suara di belakang tulisannya,
+  /// menggantikan geser-perlahan foto diam.
+  final String? video;
 
   /// Menentukan arah geseran, supaya dua ruas berturut-turut tidak bergerak
   /// ke arah yang persis sama.
@@ -343,6 +349,8 @@ class _LatarFoto extends StatelessWidget {
             ),
           ),
 
+        if (video != null) _LatarVideo(url: video!),
+
         // Kerudung gelap dari bawah. Tanpa ini tulisan putih hilang begitu
         // fotonya kebetulan terang — dan foto langit siang hampir selalu
         // terang.
@@ -375,6 +383,66 @@ class _LatarFoto extends StatelessWidget {
       Alignment.topLeft,
     ];
     return arah[benih % arah.length];
+  }
+}
+
+/// Video singgahan sebagai latar: tanpa suara, berulang, memenuhi layar.
+///
+/// Tanpa suara karena Cerita diputar di mana saja — di angkot, di kantor —
+/// dan suara knalpot yang tiba-tiba keluar dari HP orang bukan cara yang
+/// baik mengenang perjalanan.
+class _LatarVideo extends StatefulWidget {
+  const _LatarVideo({required this.url});
+
+  final String url;
+
+  @override
+  State<_LatarVideo> createState() => _LatarVideoState();
+}
+
+class _LatarVideoState extends State<_LatarVideo> {
+  late final VideoPlayerController _c = VideoPlayerController.networkUrl(
+    Uri.parse(widget.url),
+  );
+  bool _siap = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _c.setVolume(0);
+    _c.setLooping(true);
+    _c.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _siap = true);
+      _c.play();
+    });
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Poster di bawahnya sudah tampil; videonya memudar masuk di atasnya
+    // begitu siap, jadi tidak ada kedipan hitam.
+    return AnimatedOpacity(
+      opacity: _siap ? 1 : 0,
+      duration: NapakMotion.lambat,
+      child: _siap
+          ? FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: SizedBox(
+                width: _c.value.size.width,
+                height: _c.value.size.height,
+                child: VideoPlayer(_c),
+              ),
+            )
+          : const SizedBox.expand(),
+    );
   }
 }
 
@@ -504,7 +572,8 @@ class _RuasSinggahan extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return _LatarFoto(
-      foto: titik.photoUrl,
+      foto: titik.gambarDiam,
+      video: titik.video ? titik.photoUrl : null,
       benih: urutan + 1,
       anak: SafeArea(
         child: Padding(

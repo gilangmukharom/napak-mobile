@@ -16,6 +16,7 @@ import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../obrolan/data/obrolan_data.dart';
+import '../../profil/presentation/penampil_media.dart';
 import '../../render/presentation/video_sheet.dart';
 import '../../sosial/presentation/kirim_kartu_pos_sheet.dart';
 import '../../sosial/presentation/undang_teman_sheet.dart';
@@ -59,17 +60,17 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
 
     // Kalau perjalanan ini yang sedang direkam, titik baru ditempelkan ke
     // garis yang sudah ada — bukan dengan memuat ulang seluruh rute.
-    ref.listen(
-      recordingControllerProvider.select((s) => s.latest),
-      (sebelum, sekarang) {
-        final rekaman = ref.read(recordingControllerProvider);
-        if (sekarang == null || rekaman.tripId != widget.tripId) return;
-        _petaController.tambahTitik(
-          _jalurUtama,
-          LatLng(sekarang.lat, sekarang.lng),
-        );
-      },
-    );
+    ref.listen(recordingControllerProvider.select((s) => s.latest), (
+      sebelum,
+      sekarang,
+    ) {
+      final rekaman = ref.read(recordingControllerProvider);
+      if (sekarang == null || rekaman.tripId != widget.tripId) return;
+      _petaController.tambahTitik(
+        _jalurUtama,
+        LatLng(sekarang.lat, sekarang.lng),
+      );
+    });
 
     return Scaffold(
       backgroundColor: NapakColors.base,
@@ -89,6 +90,8 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
             ),
             SliverToBoxAdapter(child: _Ringkasan(trip: data)),
             SliverToBoxAdapter(child: _BarisAksi(trip: data)),
+            if (data.isOwner)
+              SliverToBoxAdapter(child: _SakelarProfil(trip: data)),
             titik.when(
               loading: () => const SliverToBoxAdapter(
                 child: Padding(
@@ -105,10 +108,8 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               error: (error, _) =>
                   SliverToBoxAdapter(child: _Galat(pesan: error.toString())),
-              data: (daftar) => _DaftarSinggahan(
-                titik: daftar,
-                bolehKirim: data.isOwner,
-              ),
+              data: (daftar) =>
+                  _DaftarSinggahan(titik: daftar, bolehKirim: data.isOwner),
             ),
           ],
         ),
@@ -147,7 +148,10 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
             ),
             for (final v in TripVisibility.values)
               ListTile(
-                leading: Icon(_ikonVisibility(v), color: NapakColors.deepAccent),
+                leading: Icon(
+                  _ikonVisibility(v),
+                  color: NapakColors.deepAccent,
+                ),
                 title: Text(v.label),
                 trailing: trip.visibility == v
                     ? const Icon(
@@ -254,7 +258,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
       ref.invalidate(tripListProvider);
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(pesan)));
       context.go('/');
     } catch (error) {
       if (!context.mounted) return;
@@ -400,7 +406,10 @@ class _Ringkasan extends StatelessWidget {
             MunculBertahap(
               indeks: 1,
               child: Text(
-                DateFormat("EEEE, d MMMM yyyy", 'id_ID').format(trip.startedAt!),
+                DateFormat(
+                  "EEEE, d MMMM yyyy",
+                  'id_ID',
+                ).format(trip.startedAt!),
                 style: text.bodySmall,
               ),
             ),
@@ -486,7 +495,8 @@ class _Angka extends StatelessWidget {
                     desimal: desimal,
                     gaya: text.titleLarge,
                   ),
-                  if (satuan.isNotEmpty) Text(' $satuan', style: text.bodySmall),
+                  if (satuan.isNotEmpty)
+                    Text(' $satuan', style: text.bodySmall),
                 ],
               ),
             ),
@@ -580,9 +590,7 @@ class _BarisAksi extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: _TombolObrolanRombongan(trip: trip),
-                  ),
+                  Expanded(child: _TombolObrolanRombongan(trip: trip)),
                   if (trip.isOwner) ...[
                     const SizedBox(width: 12),
                     Expanded(
@@ -672,6 +680,21 @@ class _DaftarSinggahan extends StatelessWidget {
         .where((t) => t.note != null || t.photoUrl != null)
         .toList();
     final text = Theme.of(context).textTheme;
+
+    // Semua media di perjalanan ini, supaya penampil layar penuh bisa
+    // digeser dari satu singgahan ke singgahan berikutnya.
+    final media = [
+      for (final t in bercatatan)
+        if (t.photoUrl != null)
+          MediaTampil(
+            id: t.id,
+            url: t.photoUrl!,
+            video: t.video,
+            posterUrl: t.posterUrl,
+            catatan: t.note,
+            pada: t.recordedAt,
+          ),
+    ];
 
     if (bercatatan.isEmpty) {
       return SliverToBoxAdapter(
@@ -768,8 +791,17 @@ class _DaftarSinggahan extends StatelessWidget {
                             ),
                             if (t.photoUrl != null) ...[
                               const SizedBox(height: 12),
-                              _FotoSinggahan(url: t.photoUrl!),
-                              if (bolehKirim)
+                              _FotoSinggahan(
+                                titik: t,
+                                onTap: () => PenampilMedia.buka(
+                                  context,
+                                  media,
+                                  media.indexWhere((m) => m.id == t.id),
+                                ),
+                              ),
+                              // Kartu pos cuma dari foto; video tidak bisa
+                              // dicetak di kartu.
+                              if (bolehKirim && !t.video)
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: TextButton.icon(
@@ -860,46 +892,181 @@ class _Galat extends StatelessWidget {
 /// URL-nya bertanda tangan dan berumur pendek — dibuat ulang tiap kali jejak
 /// dibaca, bukan disimpan. Tautan yang bocor mati dengan sendirinya.
 class _FotoSinggahan extends StatelessWidget {
-  const _FotoSinggahan({required this.url});
+  const _FotoSinggahan({required this.titik, required this.onTap});
 
-  final String url;
+  final TripPoint titik;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: AspectRatio(
-        aspectRatio: 4 / 3,
-        child: Image.network(
-          url,
-          fit: BoxFit.cover,
-          loadingBuilder: (context, anak, kemajuan) {
-            if (kemajuan == null) return anak;
-            return const NapakSkeleton(tinggi: double.infinity, radius: 0);
-          },
-          // Tautan bertanda tangan bisa kedaluwarsa kalau halamannya dibiarkan
-          // terbuka lama. Yang tampil kemudian adalah penjelasan, bukan ikon
-          // rusak tanpa keterangan.
-          errorBuilder: (context, galat, jejak) => Container(
-            color: NapakColors.softSky,
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    final url = titik.gambarDiam;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Hero(
+        tag: 'media-${titik.id}',
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                const Icon(
-                  Icons.image_not_supported_outlined,
-                  size: 22,
-                  color: NapakColors.primary,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Fotonya belum termuat.\nTarik ke bawah untuk menyegarkan.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                if (url == null)
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: NapakColors.routeGradient,
+                      ),
+                    ),
+                  )
+                else
+                  Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, anak, kemajuan) {
+                      if (kemajuan == null) return anak;
+                      return const NapakSkeleton(
+                        tinggi: double.infinity,
+                        radius: 0,
+                      );
+                    },
+                    // Tautan bertanda tangan bisa kedaluwarsa kalau halamannya dibiarkan
+                    // terbuka lama. Yang tampil kemudian adalah penjelasan, bukan ikon
+                    // rusak tanpa keterangan.
+                    errorBuilder: (context, galat, jejak) => Container(
+                      color: NapakColors.softSky,
+                      alignment: Alignment.center,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.image_not_supported_outlined,
+                            size: 22,
+                            color: NapakColors.primary,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Fotonya belum termuat.\nTarik ke bawah untuk menyegarkan.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (titik.video)
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: NapakColors.textPrimary.withValues(alpha: 0.45),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow_rounded,
+                        size: 34,
+                        color: NapakColors.textOnDeep,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Sakelar "pajang di profil" — mati bawaan.
+class _SakelarProfil extends ConsumerStatefulWidget {
+  const _SakelarProfil({required this.trip});
+
+  final Trip trip;
+
+  @override
+  ConsumerState<_SakelarProfil> createState() => _SakelarProfilState();
+}
+
+class _SakelarProfilState extends ConsumerState<_SakelarProfil> {
+  late bool _nyala = widget.trip.diProfil;
+  bool _sibuk = false;
+
+  Future<void> _ubah(bool nyala) async {
+    setState(() {
+      _nyala = nyala;
+      _sibuk = true;
+    });
+    try {
+      await ref
+          .read(tripRepositoryProvider)
+          .setDiProfil(widget.trip.id, pajang: nyala);
+      ref.invalidate(_tripDetailProvider(widget.trip.id));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            nyala
+                ? 'Dipajang. Temanmu bisa melihat foto dan ceritanya.'
+                : 'Diturunkan dari profil. Hanya kamu yang bisa melihatnya.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _nyala = !nyala);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _sibuk = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
+      child: AnimatedContainer(
+        duration: NapakMotion.sedang,
+        padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+        decoration: BoxDecoration(
+          color: _nyala
+              ? NapakColors.softSky
+              : NapakColors.softSky.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Row(
+          children: [
+            AnimatedSwitcher(
+              duration: NapakMotion.cepat,
+              child: Icon(
+                _nyala ? Icons.grid_on_rounded : Icons.lock_outline_rounded,
+                key: ValueKey(_nyala),
+                color: NapakColors.deepAccent,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Pajang di profil', style: text.titleSmall),
+                  Text(
+                    _nyala
+                        ? 'Teman melihat foto, video, dan ceritanya.'
+                        : 'Hanya kamu yang melihat perjalanan ini.',
+                    style: text.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            Switch(value: _nyala, onChanged: _sibuk ? null : _ubah),
+          ],
         ),
       ),
     );

@@ -18,6 +18,10 @@ class TokenStore {
   Future<String?> readRefreshToken() => _storage.read(key: _refreshKey);
   Future<String?> readName() => _storage.read(key: _nameKey);
 
+  /// Nama sapaan berganti saat profil diubah.
+  Future<void> saveName(String name) =>
+      _storage.write(key: _nameKey, value: name);
+
   Future<void> save({
     required String accessToken,
     required String refreshToken,

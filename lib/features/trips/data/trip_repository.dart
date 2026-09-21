@@ -131,6 +131,14 @@ class TripRepository {
     return Trip.fromJson(data);
   }
 
+  Future<Trip> setDiProfil(String tripId, {required bool pajang}) async {
+    final data = await _api.patch<Map<String, dynamic>>(
+      '/trips/$tripId',
+      body: {'diProfil': pajang},
+    );
+    return Trip.fromJson(data);
+  }
+
   Future<Trip> rename(String tripId, String title) async {
     final data = await _api.patch<Map<String, dynamic>>(
       '/trips/$tripId',

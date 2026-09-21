@@ -67,6 +67,8 @@ class AuthRepository {
 
   Future<String?> savedName() => _tokens.readName();
 
+  Future<void> simpanNama(String nama) => _tokens.saveName(nama);
+
   /// Keluar. Refresh token dicabut di server, lalu jejaknya di perangkat dihapus.
   Future<void> signOut() async {
     final refresh = await _tokens.readRefreshToken();

@@ -12,6 +12,7 @@ import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
+import '../../peta/presentation/layanan_sheet.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/napak_tilas.dart';
 import '../application/recording_controller.dart';
@@ -108,11 +109,13 @@ class _RekamPageState extends ConsumerState<RekamPage> {
       isScrollControlled: true,
       builder: (sheetContext) => StatefulBuilder(
         builder: (sheetContext, setSheetState) {
-          Future<void> ambil(bool dariKamera) async {
+          Future<void> ambil(String sumber) async {
             final pengunggah = ref.read(photoUploaderProvider);
-            final hasil = dariKamera
-                ? await pengunggah.dariKamera()
-                : await pengunggah.dariGaleri();
+            final hasil = switch (sumber) {
+              'foto' => await pengunggah.dariKamera(),
+              'video' => await pengunggah.videoDariKamera(),
+              _ => await pengunggah.dariGaleri(),
+            };
             if (hasil != null) setSheetState(() => foto = hasil);
           }
 
@@ -144,12 +147,44 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                             borderRadius: BorderRadius.circular(16),
                             child: Stack(
                               children: [
-                                Image.file(
-                                  File(foto!.path),
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
+                                if (PhotoUploader.apakahVideo(foto!))
+                                  // Tanpa pemutar di sini: lembar ini dibuka
+                                  // di pinggir jalan, dan yang perlu dipastikan
+                                  // cuma bahwa videonya sudah tertangkap.
+                                  Container(
+                                    height: 180,
+                                    width: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: NapakColors.routeGradient,
+                                      ),
+                                    ),
+                                    child: const Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.play_circle_outline_rounded,
+                                          size: 48,
+                                          color: NapakColors.textOnDeep,
+                                        ),
+                                        SizedBox(height: 6),
+                                        Text(
+                                          'Video siap disimpan',
+                                          style: TextStyle(
+                                            color: NapakColors.textOnDeep,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  Image.file(
+                                    File(foto!.path),
+                                    height: 180,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
                                 Positioned(
                                   top: 8,
                                   right: 8,
@@ -195,15 +230,26 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => ambil(true),
-                          icon: const Icon(Icons.photo_camera_outlined, size: 19),
+                          onPressed: () => ambil('foto'),
+                          icon: const Icon(
+                            Icons.photo_camera_outlined,
+                            size: 19,
+                          ),
                           label: const Text('Foto'),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => ambil(false),
+                          onPressed: () => ambil('video'),
+                          icon: const Icon(Icons.videocam_outlined, size: 19),
+                          label: const Text('Video'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => ambil('galeri'),
                           icon: const Icon(Icons.image_outlined, size: 19),
                           label: const Text('Galeri'),
                         ),
@@ -236,13 +282,13 @@ class _RekamPageState extends ConsumerState<RekamPage> {
 
     // Titik baru ditempelkan ke garis yang sudah ada. Tidak ada setState di
     // sini, jadi petanya tidak ikut dibangun ulang.
-    ref.listen(
-      recordingControllerProvider.select((s) => s.latest),
-      (_, terbaru) {
-        if (terbaru == null) return;
-        _peta.tambahTitik(_jalurSesi, LatLng(terbaru.lat, terbaru.lng));
-      },
-    );
+    ref.listen(recordingControllerProvider.select((s) => s.latest), (
+      _,
+      terbaru,
+    ) {
+      if (terbaru == null) return;
+      _peta.tambahTitik(_jalurSesi, LatLng(terbaru.lat, terbaru.lng));
+    });
 
     if (!rekaman.isRecording) {
       return const _TidakSedangMerekam();
@@ -268,9 +314,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                   ),
                 JalurRute(
                   id: _jalurSesi,
-                  titik: [
-                    for (final t in rekaman.jejak) LatLng(t.lat, t.lng),
-                  ],
+                  titik: [for (final t in rekaman.jejak) LatLng(t.lat, t.lng)],
                 ),
               ],
             ),
@@ -294,16 +338,14 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                     jarakM: rekaman.jarakM,
                     posisiSekarang: rekaman.latest == null
                         ? null
-                        : (
-                            lat: rekaman.latest!.lat,
-                            lng: rekaman.latest!.lng,
-                          ),
+                        : (lat: rekaman.latest!.lat, lng: rekaman.latest!.lng),
                   ),
                 _PanelBawah(
                   berjalan: _berjalan,
                   jejak: rekaman.recordedCount,
                   onCatat: _catat,
                   onSelesai: _selesai,
+                  onLayanan: () => LayananSheet.tampilkan(context),
                 ),
               ],
             ),
@@ -355,10 +397,7 @@ class _PanelAtas extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const TitikBerdenyut(
-                  warna: NapakColors.deepAccent,
-                  ukuran: 8,
-                ),
+                const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 8),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Column(
@@ -428,12 +467,14 @@ class _PanelBawah extends StatelessWidget {
     required this.jejak,
     required this.onCatat,
     required this.onSelesai,
+    required this.onLayanan,
   });
 
   final Duration berjalan;
   final int jejak;
   final VoidCallback onCatat;
   final VoidCallback onSelesai;
+  final VoidCallback onLayanan;
 
   @override
   Widget build(BuildContext context) {
@@ -478,7 +519,22 @@ class _PanelBawah extends StatelessWidget {
                   label: const Text('Catatan'),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
+              // SPBU dan bengkel terdekat — satu ketukan, karena yang
+              // membutuhkannya biasanya sedang menepi dengan tergesa.
+              IconButton.filledTonal(
+                tooltip: 'Bensin & bengkel terdekat',
+                onPressed: onLayanan,
+                style: IconButton.styleFrom(
+                  backgroundColor: NapakColors.softSky,
+                  minimumSize: const Size(48, 48),
+                ),
+                icon: const Icon(
+                  Icons.local_gas_station_rounded,
+                  color: NapakColors.deepAccent,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: FilledButton.icon(
                   onPressed: onSelesai,
@@ -637,10 +693,7 @@ class _KartuTilas extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              kalimatSelisih(hasil.selisih),
-              style: text.titleMedium,
-            ),
+            Text(kalimatSelisih(hasil.selisih), style: text.titleMedium),
 
             // Catatan lama muncul sendiri saat kamu lewat tempat yang sama.
             // Inilah bagian yang paling terasa seperti napak tilas sungguhan.

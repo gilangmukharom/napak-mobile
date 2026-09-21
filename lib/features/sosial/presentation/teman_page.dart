@@ -10,6 +10,7 @@ import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../obrolan/data/obrolan_data.dart';
+import '../../profil/presentation/profil_page.dart';
 import '../data/sosial_models.dart';
 import '../data/sosial_repository.dart';
 import 'komponen_sosial.dart';
@@ -531,55 +532,108 @@ class _BarisPermintaanState extends ConsumerState<_BarisPermintaan> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
+    // Dua tingkat, bukan satu baris. Nama, keterangan, dan dua tombol dalam
+    // satu baris membuat nama terjepit jadi huruf per huruf di layar HP yang
+    // sempit — dan nama justru hal pertama yang perlu dibaca di sini.
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: NapakColors.textPrimary.withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          LingkaranNama(nama: widget.p.orang.nama),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          GestureDetector(
+            onTap: () => context.push('/orang/${widget.p.orang.id}'),
+            behavior: HitTestBehavior.opaque,
+            child: Row(
               children: [
-                Text(widget.p.orang.nama, style: text.titleSmall),
-                Text(
-                  'ingin berteman · ${waktuSantai(widget.p.dibuat)}',
-                  style: text.bodySmall,
+                FotoProfil(
+                  nama: widget.p.orang.nama,
+                  url: widget.p.orang.fotoUrl,
+                  ukuran: 48,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.p.orang.nama,
+                        style: text.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'ingin berteman · ${waktuSantai(widget.p.dibuat)}',
+                        style: text.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: NapakColors.textSecondary,
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 12),
           AnimatedSwitcher(
             duration: NapakMotion.sedang,
             switchInCurve: NapakMotion.memantul,
-            transitionBuilder: (anak, a) =>
-                ScaleTransition(scale: a, child: anak),
+            transitionBuilder: (anak, a) => FadeTransition(
+              opacity: a,
+              child: ScaleTransition(scale: a, child: anak),
+            ),
             child: switch (_jawaban) {
-              true => const Row(
+              true => const SizedBox(
                 key: ValueKey('terima'),
-                children: [
-                  Icon(Icons.check_circle_rounded, color: NapakColors.affirm),
-                  SizedBox(width: 6),
-                  Text('Berteman'),
-                ],
+                height: 40,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_circle_rounded, color: NapakColors.affirm),
+                    SizedBox(width: 8),
+                    Text('Sekarang kalian berteman'),
+                  ],
+                ),
               ),
-              false => const Text('Dilewati', key: ValueKey('tolak')),
+              false => const SizedBox(
+                key: ValueKey('tolak'),
+                height: 40,
+                child: Center(child: Text('Dilewati')),
+              ),
               null => Row(
                 key: const ValueKey('tanya'),
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextButton(
-                    onPressed: () => _jawab(false),
-                    child: const Text('Lewati'),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _jawab(false),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(40),
+                      ),
+                      child: const Text('Lewati'),
+                    ),
                   ),
-                  FilledButton(
-                    onPressed: () => _jawab(true),
-                    child: const Text('Terima'),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => _jawab(true),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(40),
+                      ),
+                      child: const Text('Terima'),
+                    ),
                   ),
                 ],
               ),
@@ -604,11 +658,16 @@ class _BarisTerkirim extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Opacity(opacity: 0.6, child: LingkaranNama(nama: p.orang.nama)),
+          Opacity(
+            opacity: 0.6,
+            child: FotoProfil(nama: p.orang.nama, url: p.orang.fotoUrl),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               p.orang.nama,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: text.bodyMedium?.copyWith(
                 color: NapakColors.textSecondary,
               ),
@@ -681,20 +740,28 @@ class _BarisTeman extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
 
     return NapakPressable(
-      onTap: () => _obrolan(context, ref),
+      onTap: () => context.push('/orang/${teman.id}'),
       onLongPress: () => _lepas(context, ref),
       skala: 0.985,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
-            LingkaranNama(nama: teman.nama, ukuran: 48),
+            Hero(
+              tag: 'foto-${teman.id}',
+              child: FotoProfil(nama: teman.nama, url: teman.fotoUrl, ukuran: 48),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(teman.nama, style: text.titleSmall),
+                  Text(
+                    teman.nama,
+                    style: text.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   if (teman.sejak != null)
                     Text(
                       'berteman sejak ${waktuSantai(teman.sejak!)}',

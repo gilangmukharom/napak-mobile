@@ -7,6 +7,7 @@ class Teman {
     required this.nama,
     required this.kode,
     this.sejak,
+    this.fotoUrl,
   });
 
   factory Teman.fromJson(Map<String, dynamic> json) => Teman(
@@ -14,15 +15,16 @@ class Teman {
     nama: json['name'] as String,
     kode: json['friendCode'] as String,
     sejak: _tanggal(json['sejak']),
+    fotoUrl: json['fotoUrl'] as String?,
   );
 
   final String id;
   final String nama;
   final String kode;
   final DateTime? sejak;
+  final String? fotoUrl;
 
-  /// Huruf depan untuk lingkaran nama. Napak tidak menyimpan foto profil —
-  /// satu wajah lagi yang tidak perlu ada di server.
+  /// Huruf depan, untuk yang belum memasang foto profil.
   String get inisial {
     final bagian = nama.trim().split(RegExp(r'\s+'));
     if (bagian.isEmpty || bagian.first.isEmpty) return '?';

@@ -4,11 +4,10 @@ import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_skeleton.dart';
 
-/// Lingkaran berisi inisial.
+/// Lingkaran berisi inisial, untuk yang belum memasang foto profil.
 ///
-/// Napak tidak menyimpan foto profil. Satu wajah lagi di server adalah satu
-/// hal lagi yang harus dijaga, dan inisial sudah cukup untuk mengenali teman
-/// seperjalanan di daftar yang isinya belasan orang.
+/// Foto profil sendiri ada di `FotoProfil`, yang jatuh ke lingkaran ini saat
+/// fotonya belum ada atau gagal dimuat.
 ///
 /// Warnanya diambil dari nama, jadi orang yang sama selalu berwarna sama di
 /// mana pun dia muncul — di daftar teman, di obrolan, di inbox.

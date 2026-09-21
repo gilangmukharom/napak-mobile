@@ -43,12 +43,27 @@ class PhotoUploader {
     imageQuality: 82,
   );
 
-  Future<XFile?> dariGaleri() => _pemilih.pickImage(
-    source: ImageSource.gallery,
+  /// Foto atau video dari galeri.
+  Future<XFile?> dariGaleri() => _pemilih.pickMedia(
     maxWidth: 2048,
     maxHeight: 2048,
     imageQuality: 82,
   );
+
+  /// Video pendek dari kamera.
+  ///
+  /// Satu menit, bukan tanpa batas. Yang direkam di pinggir jalan adalah
+  /// suasana — ombak, kabut, suara knalpot rombongan — bukan film; dan satu
+  /// menit video HP sudah puluhan megabyte kuota orang.
+  Future<XFile?> videoDariKamera() => _pemilih.pickVideo(
+    source: ImageSource.camera,
+    maxDuration: const Duration(seconds: 60),
+  );
+
+  static bool apakahVideo(XFile berkas) {
+    final nama = berkas.path.toLowerCase();
+    return nama.endsWith('.mp4') || nama.endsWith('.mov');
+  }
 
   /// Unggah satu foto, kembalikan kunci objeknya untuk disimpan di jejak.
   Future<String> unggah(
@@ -81,7 +96,7 @@ class PhotoUploader {
       );
     } on DioException catch (error) {
       throw NapakException(
-        'Fotonya gagal terkirim. Coba lagi kalau sinyalnya sudah lebih baik.',
+        '${apakahVideo(berkas) ? 'Videonya' : 'Fotonya'} gagal terkirim. Coba lagi kalau sinyalnya sudah lebih baik.',
         statusCode: error.response?.statusCode,
       );
     }
@@ -92,6 +107,8 @@ class PhotoUploader {
   /// Ditebak dari nama berkasnya. Kamera iOS menghasilkan HEIC, Android JPG.
   String _tipeKonten(XFile berkas) {
     final nama = berkas.path.toLowerCase();
+    if (nama.endsWith('.mp4')) return 'video/mp4';
+    if (nama.endsWith('.mov')) return 'video/quicktime';
     if (nama.endsWith('.png')) return 'image/png';
     if (nama.endsWith('.webp')) return 'image/webp';
     if (nama.endsWith('.heic') || nama.endsWith('.heif')) return 'image/heic';

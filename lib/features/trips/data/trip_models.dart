@@ -72,6 +72,7 @@ class Trip {
     this.previewPath = const [],
     this.retraceOf,
     this.coverUrl,
+    this.diProfil = false,
     this.startedAt,
     this.endedAt,
     this.shareSlug,
@@ -93,6 +94,7 @@ class Trip {
         ),
     ],
     coverUrl: json['coverUrl'] as String?,
+    diProfil: json['diProfil'] as bool? ?? false,
     retraceOf: json['retraceOf'] == null
         ? null
         : RingkasTrip.fromJson(json['retraceOf'] as Map<String, dynamic>),
@@ -124,6 +126,9 @@ class Trip {
   /// `null` kalau perjalanannya memang tanpa foto, dan kartunya jatuh ke
   /// pratinjau bentuk rute seperti sebelumnya.
   final String? coverUrl;
+
+  /// Dipajang di profil, untuk dilihat teman. Mati bawaan.
+  final bool diProfil;
 
   /// Perjalanan lama yang sedang ditapak-tilasi perjalanan ini.
   final RingkasTrip? retraceOf;
@@ -164,6 +169,8 @@ class TripPoint {
     this.speedMps,
     this.note,
     this.photoUrl,
+    this.posterUrl,
+    this.video = false,
   });
 
   factory TripPoint.fromJson(Map<String, dynamic> json) => TripPoint(
@@ -177,6 +184,8 @@ class TripPoint {
     speedMps: (json['speedMps'] as num?)?.toDouble(),
     note: json['note'] as String?,
     photoUrl: json['photoUrl'] as String?,
+    posterUrl: json['posterUrl'] as String?,
+    video: json['jenisMedia'] == 'video',
   );
 
   final String id;
@@ -195,7 +204,17 @@ class TripPoint {
 
   final double? speedMps;
   final String? note;
+
+  /// Tautan media singgahan — foto, atau video kalau [video] true.
   final String? photoUrl;
+
+  /// Bingkai diam dari videonya. null untuk foto.
+  final String? posterUrl;
+  final bool video;
+
+  /// Gambar diam yang bisa ditampilkan di mana pun: foto itu sendiri, atau
+  /// poster videonya.
+  String? get gambarDiam => video ? posterUrl : photoUrl;
 }
 
 @immutable

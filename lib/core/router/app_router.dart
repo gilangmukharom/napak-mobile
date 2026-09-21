@@ -8,7 +8,10 @@ import '../../features/auth/presentation/pengaturan_page.dart';
 import '../../features/groups/presentation/bareng_page.dart';
 import '../../features/groups/presentation/trip_bareng_page.dart';
 import '../../features/obrolan/presentation/daftar_obrolan_page.dart';
+import '../../features/profil/presentation/edit_profil_page.dart';
+import '../../features/profil/presentation/profil_page.dart';
 import '../../features/obrolan/presentation/obrolan_page.dart';
+import '../../features/peta/presentation/peta_offline_page.dart';
 import '../../features/recap/presentation/jejak_nusantara_page.dart';
 import '../../features/recap/presentation/recap_page.dart';
 import '../../features/sosial/presentation/inbox_page.dart';
@@ -98,11 +101,29 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
           GoRoute(
-            path: '/pengaturan',
+            path: '/profil',
             pageBuilder: (context, state) =>
-                MemudarSilang(child: const PengaturanPage()),
+                MemudarSilang(child: const ProfilPage(id: 'saya')),
           ),
         ],
+      ),
+
+      // Pengaturan dan privasi, dibuka dari menu di profil.
+      GoRoute(
+        path: '/pengaturan',
+        pageBuilder: (context, state) =>
+            GeserMasuk(child: const PengaturanPage()),
+      ),
+      GoRoute(
+        path: '/profil/edit',
+        pageBuilder: (context, state) =>
+            NaikMasuk(child: const EditProfilPage()),
+      ),
+      GoRoute(
+        path: '/orang/:id',
+        pageBuilder: (context, state) => GeserMasuk(
+          child: ProfilPage(id: state.pathParameters['id']!),
+        ),
       ),
 
       // --- Halaman yang ditumpuk di atas tab ---
@@ -175,6 +196,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/peta-offline',
+        pageBuilder: (context, state) =>
+            GeserMasuk(child: const PetaOfflinePage()),
       ),
       GoRoute(
         path: '/jejak-nusantara',

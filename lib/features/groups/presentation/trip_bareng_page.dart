@@ -14,6 +14,7 @@ import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
 import 'panel_konvoi.dart';
+import '../../peta/presentation/layanan_sheet.dart';
 
 final _tripProvider = FutureProvider.autoDispose.family<Trip, String>(
   (ref, tripId) => ref.watch(tripRepositoryProvider).detail(tripId),
@@ -52,9 +53,7 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
     // Penanda posisi diperbarui langsung di peta, tanpa membangun ulang
     // MapLibreMap — rombongan yang ramai berarti pembaruan tiap beberapa detik.
     ref.listen(
-      liveLocationControllerProvider(
-        widget.tripId,
-      ).select((s) => s.posisi),
+      liveLocationControllerProvider(widget.tripId).select((s) => s.posisi),
       (_, posisi) {
         final warna = {
           for (final m in anggota.value ?? const <TripMember>[])
@@ -112,8 +111,7 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 AnimatedSize(
                   duration: NapakMotion.sedang,
                   curve: NapakMotion.mengalir,
-                  child: live.konvoi == null ||
-                          live.konvoi!.barisan.length < 2
+                  child: live.konvoi == null || live.konvoi!.barisan.length < 2
                       ? const SizedBox(width: double.infinity)
                       : Padding(
                           padding: const EdgeInsets.only(bottom: 22),
@@ -121,6 +119,12 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                         ),
                 ),
                 _PanelSinyal(tripId: widget.tripId, live: live),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => LayananSheet.tampilkan(context),
+                  icon: const Icon(Icons.local_gas_station_rounded, size: 20),
+                  label: const Text('SPBU & bengkel terdekat'),
+                ),
                 const SizedBox(height: 22),
                 _KartuBerbagiPosisi(tripId: widget.tripId, live: live),
                 const SizedBox(height: 28),
@@ -328,7 +332,11 @@ class _BarisAnggota extends StatelessWidget {
                 ),
                 Text(
                   '${anggota.distanceKm.toStringAsFixed(1)} km · '
-                  '${sedangTerlihat ? 'posisinya terlihat sekarang' : anggota.liveLocationEnabled ? 'berbagi posisi, menunggu kabar' : 'tidak berbagi posisi'}',
+                  '${sedangTerlihat
+                      ? 'posisinya terlihat sekarang'
+                      : anggota.liveLocationEnabled
+                      ? 'berbagi posisi, menunggu kabar'
+                      : 'tidak berbagi posisi'}',
                   style: text.bodySmall,
                 ),
               ],

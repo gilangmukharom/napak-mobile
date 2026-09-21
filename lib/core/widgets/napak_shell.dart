@@ -36,7 +36,7 @@ class NapakShell extends ConsumerWidget {
       label: 'Tilas',
     ),
     (
-      jalur: '/pengaturan',
+      jalur: '/profil',
       ikon: Icons.person_outline_rounded,
       aktif: Icons.person_rounded,
       label: 'Kamu',

@@ -27,17 +27,11 @@ class PengaturanPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
+      // Sekarang dibuka dari menu di profil, jadi punya jalan kembali.
+      appBar: AppBar(title: const Text('Pengaturan & privasi')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 110),
+        padding: const EdgeInsets.fromLTRB(24, 8, 24, 60),
         children: [
-          SafeArea(
-            bottom: false,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 20, bottom: 4),
-              child: Text('Kamu', style: text.displaySmall),
-            ),
-          ),
-          const SizedBox(height: 22),
 
           MunculBertahap(
             indeks: 0,
@@ -418,6 +412,14 @@ class _PintuSosial extends StatelessWidget {
             ikon: Icons.auto_awesome_outlined,
             label: 'Nusantara',
             onTap: () => context.push('/jejak-nusantara'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _Pintu(
+            ikon: Icons.download_for_offline_outlined,
+            label: 'Peta offline',
+            onTap: () => context.push('/peta-offline'),
           ),
         ),
       ],
