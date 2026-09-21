@@ -53,9 +53,7 @@ class _NapakPressableState extends State<NapakPressable>
   late final Animation<double> _skala = Tween(
     begin: 1.0,
     end: widget.skala,
-  ).animate(
-    CurvedAnimation(parent: _kendali, curve: NapakMotion.mengalir),
-  );
+  ).animate(CurvedAnimation(parent: _kendali, curve: NapakMotion.mengalir));
 
   @override
   void dispose() {

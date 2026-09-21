@@ -46,8 +46,9 @@ class NapakLocalDatabase extends _$NapakLocalDatabase {
   Future<void> enqueue(PendingPointsCompanion point) =>
       into(pendingPoints).insert(point, mode: InsertMode.insertOrReplace);
 
-  Future<void> enqueueAll(List<PendingPointsCompanion> points) =>
-      batch((b) => b.insertAll(pendingPoints, points, mode: InsertMode.insertOrReplace));
+  Future<void> enqueueAll(List<PendingPointsCompanion> points) => batch(
+    (b) => b.insertAll(pendingPoints, points, mode: InsertMode.insertOrReplace),
+  );
 
   /// Antrean tertua dulu — urutan jejak adalah urutan ceritanya.
   Future<List<PendingPoint>> pendingFor(String tripId, {int limit = 200}) =>
@@ -77,9 +78,9 @@ class NapakLocalDatabase extends _$NapakLocalDatabase {
   Stream<int> watchPendingCount() {
     final query = selectOnly(pendingPoints)
       ..addColumns([pendingPoints.clientId.count()]);
-    return query
-        .watchSingle()
-        .map((row) => row.read(pendingPoints.clientId.count()) ?? 0);
+    return query.watchSingle().map(
+      (row) => row.read(pendingPoints.clientId.count()) ?? 0,
+    );
   }
 
   /// Dipanggil setelah server memastikan titik-titik ini sudah masuk.

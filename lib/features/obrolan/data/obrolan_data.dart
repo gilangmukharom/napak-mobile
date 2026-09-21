@@ -164,7 +164,8 @@ class ObrolanSocket {
   String? _ruang;
 
   final _pesan = StreamController<Pesan>.broadcast();
-  final _mengetik = StreamController<({String userId, String nama})>.broadcast();
+  final _mengetik =
+      StreamController<({String userId, String nama})>.broadcast();
   final _tersambung = StreamController<bool>.broadcast();
   final _galat = StreamController<String>.broadcast();
 

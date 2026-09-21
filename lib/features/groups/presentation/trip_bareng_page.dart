@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
@@ -77,9 +78,10 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Trip Bareng'),
-        actions: [
+      appBar: BilahEkspedisi(
+        judul: 'Trip Bareng',
+        keterangan: live.tersambung ? 'Tersambung' : 'Mencari rombongan',
+        aksi: [
           _LampuSambungan(tersambung: live.tersambung),
           const SizedBox(width: 12),
         ],
@@ -128,9 +130,10 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 const SizedBox(height: 22),
                 _KartuBerbagiPosisi(tripId: widget.tripId, live: live),
                 const SizedBox(height: 28),
-                Text(
+                const LabelKapital(
                   'Teman seperjalanan',
-                  style: Theme.of(context).textTheme.titleLarge,
+                  warna: NapakColors.deepAccent,
+                  ukuran: 12,
                 ),
                 const SizedBox(height: 12),
                 ...anggota.when(
@@ -211,7 +214,16 @@ class _LampuSambungan extends StatelessWidget {
         width: 9,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: tersambung ? NapakColors.affirm : NapakColors.divider,
+          color: tersambung ? NapakColors.affirm : NapakColors.kontur,
+          boxShadow: tersambung
+              ? [
+                  BoxShadow(
+                    color: NapakColors.affirm.withValues(alpha: 0.6),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
         ),
       ),
     );

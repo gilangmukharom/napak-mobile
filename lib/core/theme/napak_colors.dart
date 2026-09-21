@@ -7,7 +7,14 @@ import 'package:flutter/material.dart';
 /// dituliskan langsung di widget. Begitu satu `Color(0xFF...)` lepas berkeliaran
 /// di halaman, ketenangan palet ini mulai bocor.
 ///
-/// Semuanya pastel dan rendah saturasi. Tidak ada neon di Napak.
+/// Dasarnya tetap pastel biru dan rendah saturasi — tidak ada neon di Napak.
+/// Di atasnya ada tiga warna ekspedisi: `malam`, `ember`, dan `rimba`.
+///
+/// Tiga itu ditambahkan setelah paletnya terbukti terlalu lembut untuk
+/// aplikasi tentang perjalanan: semuanya terang, semuanya sejuk, dan
+/// akibatnya tidak ada yang terasa seperti berangkat subuh-subuh. Pastel
+/// tetap memegang permukaan tenang — daftar, kartu, teks. Warna ekspedisi
+/// memegang saat-saat berangkat dan malam sebelum jalan.
 abstract final class NapakColors {
   /// Warna utama Napak. Tombol utama, elemen aktif, garis rute di peta.
   static const primary = Color(0xFFA8C8E8);
@@ -45,9 +52,42 @@ abstract final class NapakColors {
   /// Untuk konfirmasi lembut.
   static const affirm = Color(0xFF8FB8A8);
 
+  // --- Warna ekspedisi ---
+
+  /// Kanvas malam. Latar layar rekam, peta gelap, cerita, Jejak Nusantara.
+  ///
+  /// Lebih gelap dan lebih pekat daripada [textPrimary]: kalau latarnya cuma
+  /// setingkat warna teks, teks putih di atasnya tidak pernah benar-benar
+  /// menyala.
+  static const malam = Color(0xFF17202B);
+
+  /// Selapis di atas [malam] untuk kartu dan panel di layar gelap.
+  static const malamNaik = Color(0xFF212C3A);
+
+  /// Bara: matahari terbit, lampu sein, jarum odometer, stempel pencapaian.
+  ///
+  /// Satu-satunya warna hangat yang boleh berteriak sedikit, dan justru
+  /// karena itu dipakai hemat — untuk hal yang sedang terjadi sekarang.
+  static const ember = Color(0xFFD98A4E);
+
+  /// Bara yang lebih redup, untuk latar dan garis di atas kanvas terang.
+  static const emberRedup = Color(0xFFE8C4A0);
+
+  /// Rimba: hutan, kebun teh, jalur gunung. Pasangan gelap dari [affirm].
+  static const rimba = Color(0xFF2C5F52);
+
+  /// Garis kontur peta topografi yang digambar di latar.
+  static const kontur = Color(0xFF3A4A5E);
+
   /// Gradasi garis rute di peta: dari yang sudah lama dilalui menuju yang terbaru.
   ///
   /// Arahnya deepAccent → primary, memberi kesan jejak yang mengalir dan
   /// menipis, bukan garis datar yang kaku.
   static const routeGradient = [deepAccent, primary];
+
+  /// Gradasi ekspedisi: langit subuh di atas punggungan gunung.
+  static const langitSubuh = [malam, Color(0xFF2E3B4E), ember];
+
+  /// Gradasi kanvas malam, untuk latar layar aksi.
+  static const kanvasMalam = [malam, malamNaik];
 }

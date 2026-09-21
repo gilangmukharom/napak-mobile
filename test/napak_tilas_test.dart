@@ -44,18 +44,21 @@ void main() {
   group('bandingkan', () {
     final lama = siapkanJejakLama(_perjalananLama());
 
-    test('tahu kamu lebih cepat saat menempuh jarak yang sama lebih singkat', () {
-      // Dulu 20 km butuh 60 menit; sekarang baru 45 menit.
-      final hasil = bandingkan(
-        lama: lama,
-        sudahBerjalan: const Duration(minutes: 45),
-        jarakSekarangM: 20000,
-      );
+    test(
+      'tahu kamu lebih cepat saat menempuh jarak yang sama lebih singkat',
+      () {
+        // Dulu 20 km butuh 60 menit; sekarang baru 45 menit.
+        final hasil = bandingkan(
+          lama: lama,
+          sudahBerjalan: const Duration(minutes: 45),
+          jarakSekarangM: 20000,
+        );
 
-      expect(hasil.selisih, isNotNull);
-      expect(hasil.selisih!.inMinutes, closeTo(15, 2));
-      expect(kalimatSelisih(hasil.selisih), contains('lebih cepat'));
-    });
+        expect(hasil.selisih, isNotNull);
+        expect(hasil.selisih!.inMinutes, closeTo(15, 2));
+        expect(kalimatSelisih(hasil.selisih), contains('lebih cepat'));
+      },
+    );
 
     test('tahu kamu lebih lambat', () {
       // Dulu 20 km butuh 60 menit; sekarang sudah 90 menit.

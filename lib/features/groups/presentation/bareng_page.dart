@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
@@ -25,7 +27,6 @@ class BarengPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final trips = ref.watch(tripListProvider);
-    final text = Theme.of(context).textTheme;
 
     return Scaffold(
       backgroundColor: NapakColors.base,
@@ -35,34 +36,12 @@ class BarengPage extends ConsumerWidget {
         onRefresh: () async => ref.invalidate(tripListProvider),
         child: CustomScrollView(
           slivers: [
-            SliverToBoxAdapter(
-              child: SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Jalan bareng', style: text.displaySmall),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Perjalanan yang kamu tempuh bersama orang lain.',
-                        style: text.bodyMedium?.copyWith(
-                          color: NapakColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            const SliverToBoxAdapter(child: _KepalaBareng()),
 
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(24, 22, 24, 10),
-                child: _KartuGabung(
-                  onTap: () => _gabung(context, ref),
-                ),
+                child: _KartuGabung(onTap: () => _gabung(context, ref)),
               ),
             ),
 
@@ -189,6 +168,85 @@ class BarengPage extends ConsumerWidget {
   }
 }
 
+/// Kepala tab Bareng: kanvas malam, punggungan, dan satu kompas.
+///
+/// Kompasnya bukan hiasan yang berputar asal. Jarumnya bergoyang pelan
+/// seperti kompas sungguhan di atas tangki motor — cukup untuk memberi tahu
+/// bahwa halaman ini soal berangkat bersama, bukan soal arsip.
+class _KepalaBareng extends StatelessWidget {
+  const _KepalaBareng();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: NapakColors.langitSubuh,
+          stops: [0, 0.6, 1.5],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.18, benih: 13),
+            ),
+          ),
+          const Positioned.fill(
+            child: SiluetGunung(
+              warna: [NapakColors.malamNaik, NapakColors.malam],
+            ),
+          ),
+          const Positioned.fill(child: ButiranKertas(opasitas: 0.04)),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 18, 24, 26),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const LabelKapital(
+                          'Rombongan',
+                          warna: NapakColors.emberRedup,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Jalan bareng',
+                          style: text.displaySmall?.copyWith(
+                            color: NapakColors.base,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Perjalanan yang kamu tempuh bersama orang lain.',
+                          style: text.bodyMedium?.copyWith(
+                            color: NapakColors.base.withValues(alpha: 0.65),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const JarumKompas(arah: -18, ukuran: 62),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _KartuGabung extends StatelessWidget {
   const _KartuGabung({required this.onTap});
 
@@ -205,7 +263,8 @@ class _KartuGabung extends StatelessWidget {
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: NapakColors.warmNeutral,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
@@ -213,13 +272,13 @@ class _KartuGabung extends StatelessWidget {
               height: 42,
               width: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(14),
+                color: NapakColors.ember.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.group_add_outlined,
                 size: 21,
-                color: NapakColors.deepAccent,
+                color: NapakColors.ember,
               ),
             ),
             const SizedBox(width: 16),
@@ -227,16 +286,21 @@ class _KartuGabung extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Gabung perjalanan teman', style: text.titleMedium),
-                  const SizedBox(height: 2),
-                  Text('Pakai kode undangan', style: text.bodySmall),
+                  Text(
+                    'Gabung perjalanan teman',
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  const LabelKapital('Pakai kode undangan', ukuran: 10),
                 ],
               ),
             ),
             const Icon(
               Icons.arrow_forward_rounded,
               size: 18,
-              color: NapakColors.deepAccent,
+              color: NapakColors.ember,
             ),
           ],
         ),
@@ -281,10 +345,7 @@ class _KartuBareng extends ConsumerWidget {
             Text(
               trip.startedAt == null
                   ? 'Belum berangkat'
-                  : DateFormat(
-                      "d MMMM yyyy",
-                      'id_ID',
-                    ).format(trip.startedAt!),
+                  : DateFormat("d MMMM yyyy", 'id_ID').format(trip.startedAt!),
               style: text.bodySmall,
             ),
             const SizedBox(height: 18),

@@ -165,13 +165,12 @@ class ProfilRepository {
     return [for (final t in data) Trip.fromJson(t as Map<String, dynamic>)];
   }
 
-  Future<Profil> ubah({String? nama, String? bio}) async =>
-      Profil.fromJson(
-        await _api.patch<Map<String, dynamic>>(
-          '/profil/saya',
-          body: {'nama': ?nama, 'bio': ?bio},
-        ),
-      );
+  Future<Profil> ubah({String? nama, String? bio}) async => Profil.fromJson(
+    await _api.patch<Map<String, dynamic>>(
+      '/profil/saya',
+      body: {'nama': ?nama, 'bio': ?bio},
+    ),
+  );
 
   Future<XFile?> pilihFoto({required bool kamera}) => _pemilih.pickImage(
     source: kamera ? ImageSource.camera : ImageSource.gallery,

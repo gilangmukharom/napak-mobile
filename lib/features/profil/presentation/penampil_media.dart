@@ -56,8 +56,7 @@ class PenampilMedia extends StatefulWidget {
       barrierColor: Colors.black,
       transitionDuration: NapakMotion.sedang,
       reverseTransitionDuration: NapakMotion.cepat,
-      pageBuilder: (context, a, b) =>
-          PenampilMedia(daftar: daftar, awal: awal),
+      pageBuilder: (context, a, b) => PenampilMedia(daftar: daftar, awal: awal),
       transitionsBuilder: (context, a, b, anak) =>
           FadeTransition(opacity: a, child: anak),
     ),
@@ -68,9 +67,7 @@ class PenampilMedia extends StatefulWidget {
 }
 
 class _PenampilMediaState extends State<PenampilMedia> {
-  late final PageController _halaman = PageController(
-    initialPage: widget.awal,
-  );
+  late final PageController _halaman = PageController(initialPage: widget.awal);
   late int _indeks = widget.awal;
   double _geserBawah = 0;
   bool _tampilkanKeterangan = true;
@@ -98,8 +95,7 @@ class _PenampilMediaState extends State<PenampilMedia> {
       body: GestureDetector(
         onTap: () =>
             setState(() => _tampilkanKeterangan = !_tampilkanKeterangan),
-        onVerticalDragUpdate: (d) =>
-            setState(() => _geserBawah += d.delta.dy),
+        onVerticalDragUpdate: (d) => setState(() => _geserBawah += d.delta.dy),
         onVerticalDragEnd: (d) {
           if (_geserBawah.abs() > 140 || (d.primaryVelocity ?? 0).abs() > 900) {
             Navigator.of(context).pop();
@@ -185,10 +181,7 @@ class _PenampilMediaState extends State<PenampilMedia> {
               child: AnimatedOpacity(
                 duration: NapakMotion.cepat,
                 opacity: _tampilkanKeterangan && _geserBawah == 0 ? 1 : 0,
-                child: _Keterangan(
-                  key: ValueKey(sekarang.id),
-                  media: sekarang,
-                ),
+                child: _Keterangan(key: ValueKey(sekarang.id), media: sekarang),
               ),
             ),
           ],
@@ -239,9 +232,10 @@ class _Keterangan extends StatelessWidget {
                   [
                     ?media.tempat,
                     if (media.pada != null)
-                      DateFormat('d MMM yyyy · HH:mm', 'id_ID').format(
-                        media.pada!,
-                      ),
+                      DateFormat(
+                        'd MMM yyyy · HH:mm',
+                        'id_ID',
+                      ).format(media.pada!),
                   ].join(' · '),
                   style: text.labelMedium?.copyWith(
                     color: putih.withValues(alpha: 0.85),
@@ -361,8 +355,7 @@ class _PemutarVideoState extends State<_PemutarVideo> {
               child: VideoPlayer(c),
             ),
           ),
-        if (!_siap)
-          const CircularProgressIndicator(color: NapakColors.primary),
+        if (!_siap) const CircularProgressIndicator(color: NapakColors.primary),
         if (_siap && _jeda)
           const Icon(
             Icons.pause_circle_filled_rounded,

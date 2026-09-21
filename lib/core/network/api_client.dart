@@ -78,6 +78,7 @@ class ApiClient {
 
   final Dio _dio;
   final TokenStore _tokenStore;
+
   /// Dipanggil saat refresh token sudah tidak sah dan sesinya harus dilepas.
   final Future<void> Function()? onSignedOut;
 
@@ -107,17 +108,14 @@ class ApiClient {
   Future<T> get<T>(String path, {Map<String, dynamic>? query}) =>
       _send<T>(() => _dio.get<T>(path, queryParameters: query));
 
-  Future<T> post<T>(
-    String path, {
-    Object? body,
-    bool skipAuth = false,
-  }) => _send<T>(
-    () => _dio.post<T>(
-      path,
-      data: body,
-      options: Options(extra: {'skipAuth': skipAuth}),
-    ),
-  );
+  Future<T> post<T>(String path, {Object? body, bool skipAuth = false}) =>
+      _send<T>(
+        () => _dio.post<T>(
+          path,
+          data: body,
+          options: Options(extra: {'skipAuth': skipAuth}),
+        ),
+      );
 
   Future<T> patch<T>(String path, {Object? body}) =>
       _send<T>(() => _dio.patch<T>(path, data: body));
@@ -167,7 +165,9 @@ class ApiClient {
     if (data is Map && data['message'] != null) {
       final message = data['message'];
       // class-validator mengirim daftar pesan saat beberapa field bermasalah.
-      if (message is List && message.isNotEmpty) return message.first.toString();
+      if (message is List && message.isNotEmpty) {
+        return message.first.toString();
+      }
       return message.toString();
     }
 

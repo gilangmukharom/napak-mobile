@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_pressable.dart';
@@ -53,14 +54,18 @@ class _InboxPageState extends ConsumerState<InboxPage> {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(
-        title: const Text('Kabar'),
-        actions: [
+      appBar: BilahEkspedisi(
+        judul: 'Kabar',
+        keterangan: adaBelum ? 'Ada yang belum dibaca' : 'Semua terbaca',
+        aksi: [
           AnimatedOpacity(
             duration: NapakMotion.cepat,
             opacity: adaBelum ? 1 : 0,
             child: TextButton(
               onPressed: adaBelum ? _semuaDibaca : null,
+              style: TextButton.styleFrom(
+                foregroundColor: NapakColors.emberRedup,
+              ),
               child: const Text('Tandai terbaca'),
             ),
           ),
@@ -164,16 +169,19 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     NapakColors.deepAccent,
   ),
   JenisKabar.temanDiterima => (Icons.handshake_outlined, NapakColors.affirm),
-  JenisKabar.undanganTrip => (Icons.two_wheeler_rounded, NapakColors.deepAccent),
+  JenisKabar.undanganTrip => (
+    Icons.two_wheeler_rounded,
+    NapakColors.deepAccent,
+  ),
   JenisKabar.undanganDijawab => (
     Icons.event_available_rounded,
     NapakColors.affirm,
   ),
-  JenisKabar.videoSiap => (
-    Icons.movie_filter_outlined,
-    NapakColors.deepAccent,
+  JenisKabar.videoSiap => (Icons.movie_filter_outlined, NapakColors.deepAccent),
+  JenisKabar.kartuPos => (
+    Icons.local_post_office_outlined,
+    NapakColors.attention,
   ),
-  JenisKabar.kartuPos => (Icons.local_post_office_outlined, NapakColors.attention),
   JenisKabar.pesanBaru => (
     Icons.chat_bubble_outline_rounded,
     NapakColors.primary,
@@ -262,7 +270,11 @@ class _BarisKabar extends StatelessWidget {
                     ),
                   )
                   .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scaleXY(end: 1.35, duration: 900.ms, curve: Curves.easeInOut),
+                  .scaleXY(
+                    end: 1.35,
+                    duration: 900.ms,
+                    curve: Curves.easeInOut,
+                  ),
           ],
         ),
       ),
@@ -337,9 +349,7 @@ class _KartuUndanganState extends ConsumerState<_KartuUndangan> {
               const SizedBox(width: 8),
               Text(
                 '${widget.u.dari} mengajakmu',
-                style: text.labelLarge?.copyWith(
-                  color: NapakColors.textOnDeep,
-                ),
+                style: text.labelLarge?.copyWith(color: NapakColors.textOnDeep),
               ),
             ],
           ),

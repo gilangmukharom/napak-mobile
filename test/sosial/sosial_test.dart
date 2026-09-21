@@ -15,7 +15,10 @@ String _token(Map<String, dynamic> muatan) {
 void main() {
   group('id dari token', () {
     test('mengambil sub', () {
-      expect(idDariToken(_token({'sub': 'abc-123', 'name': 'Rina'})), 'abc-123');
+      expect(
+        idDariToken(_token({'sub': 'abc-123', 'name': 'Rina'})),
+        'abc-123',
+      );
     });
 
     test('nama berhuruf non-ASCII tidak merusak pembacaan', () {
@@ -33,9 +36,18 @@ void main() {
     final kini = DateTime(2026, 9, 21, 14, 0);
 
     test('baru saja, menit, jam', () {
-      expect(waktuSantai(kini.subtract(const Duration(seconds: 20)), sekarang: kini), 'baru saja');
-      expect(waktuSantai(kini.subtract(const Duration(minutes: 5)), sekarang: kini), '5 mnt');
-      expect(waktuSantai(kini.subtract(const Duration(hours: 3)), sekarang: kini), '3 jam');
+      expect(
+        waktuSantai(kini.subtract(const Duration(seconds: 20)), sekarang: kini),
+        'baru saja',
+      );
+      expect(
+        waktuSantai(kini.subtract(const Duration(minutes: 5)), sekarang: kini),
+        '5 mnt',
+      );
+      expect(
+        waktuSantai(kini.subtract(const Duration(hours: 3)), sekarang: kini),
+        '3 jam',
+      );
     });
 
     test('kemarin tetap kemarin walau kurang dari 24 jam', () {
@@ -46,7 +58,10 @@ void main() {
 
     test('tanggal Indonesia, tahun hanya kalau beda', () {
       expect(waktuSantai(DateTime(2026, 8, 17), sekarang: kini), '17 Agu');
-      expect(waktuSantai(DateTime(2025, 12, 31), sekarang: kini), '31 Des 2025');
+      expect(
+        waktuSantai(DateTime(2025, 12, 31), sekarang: kini),
+        '31 Des 2025',
+      );
     });
   });
 
@@ -68,12 +83,31 @@ void main() {
     test('membaca kabar dari server', () {
       final k = KabarKonvoi.fromJson({
         'barisan': [
-          {'userId': 'a', 'nama': 'Andi', 'urutan': 1, 'selisihM': 0, 'tertinggal': false, 'hilangKontak': false},
-          {'userId': 'b', 'nama': 'Budi', 'urutan': 2, 'selisihM': 2400, 'tertinggal': true, 'hilangKontak': false},
+          {
+            'userId': 'a',
+            'nama': 'Andi',
+            'urutan': 1,
+            'selisihM': 0,
+            'tertinggal': false,
+            'hilangKontak': false,
+          },
+          {
+            'userId': 'b',
+            'nama': 'Budi',
+            'urutan': 2,
+            'selisihM': 2400,
+            'tertinggal': true,
+            'hilangKontak': false,
+          },
         ],
         'rentangM': 2400,
         'pengumuman': [
-          {'userId': 'b', 'nama': 'Budi', 'selisihM': 2400, 'pesan': 'Budi tertinggal 2,4 km di belakang.'},
+          {
+            'userId': 'b',
+            'nama': 'Budi',
+            'selisihM': 2400,
+            'pesan': 'Budi tertinggal 2,4 km di belakang.',
+          },
         ],
       });
 

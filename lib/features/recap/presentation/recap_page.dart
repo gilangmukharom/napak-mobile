@@ -6,6 +6,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
@@ -54,81 +56,101 @@ class _RecapPageState extends ConsumerState<RecapPage> {
     final tahunIni = DateTime.now().year;
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Napak Tilas', style: text.displaySmall),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Menyusuri kembali setahun yang sudah lewat.',
-                            style: text.bodyMedium?.copyWith(
-                              color: NapakColors.textSecondary,
-                            ),
+      backgroundColor: NapakColors.malam,
+      body: PendengarGulir(
+        builder: (geser) => LatarEkspedisi(
+          gunung: true,
+          geser: geser,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 16, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const LabelKapital(
+                                'Setahun ke belakang',
+                                warna: NapakColors.emberRedup,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Napak Tilas',
+                                style: text.displaySmall?.copyWith(
+                                  color: NapakColors.base,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Menyusuri kembali setahun yang sudah lewat.',
+                                style: text.bodyMedium?.copyWith(
+                                  color: NapakColors.base.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        IconButton(
+                          tooltip: 'Hitung ulang',
+                          onPressed: _menghitungUlang ? null : _hitungUlang,
+                          color: NapakColors.emberRedup,
+                          icon: AnimatedRotation(
+                            // Ikonnya ikut berputar selagi menghitung — satu
+                            // isyarat, tanpa perlu menumpuk spinner terpisah.
+                            turns: _menghitungUlang ? 1 : 0,
+                            duration: const Duration(milliseconds: 900),
+                            child: const Icon(Icons.refresh_rounded),
+                          ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: 'Hitung ulang',
-                      onPressed: _menghitungUlang ? null : _hitungUlang,
-                      color: NapakColors.deepAccent,
-                      icon: AnimatedRotation(
-                        // Ikonnya ikut berputar selagi menghitung — satu
-                        // isyarat, tanpa perlu menumpuk spinner terpisah.
-                        turns: _menghitungUlang ? 1 : 0,
-                        duration: const Duration(milliseconds: 900),
-                        child: const Icon(Icons.refresh_rounded),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
 
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 22, 24, 0),
-              child: _PemilihTahun(
-                tahun: _tahun,
-                tahunTerbaru: tahunIni,
-                onPilih: (t) => setState(() => _tahun = t),
-              ),
-            ),
-          ),
-
-          recap.when(
-            loading: () => const SliverToBoxAdapter(child: _MemuatRecap()),
-            error: (error, _) => SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Text(
-                  error.toString(),
-                  textAlign: TextAlign.center,
-                  style: text.bodyMedium,
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 22, 24, 0),
+                  child: _PemilihTahun(
+                    tahun: _tahun,
+                    tahunTerbaru: tahunIni,
+                    onPilih: (t) => setState(() => _tahun = t),
+                  ),
                 ),
               ),
-            ),
-            // Key berdasarkan tahun: berganti tahun berarti seluruh isinya
-            // dibangun ulang, jadi angkanya berjalan naik lagi dari nol.
-            data: (data) => SliverToBoxAdapter(
-              key: ValueKey(data.year),
-              child: _IsiRecap(recap: data),
-            ),
+
+              recap.when(
+                loading: () => const SliverToBoxAdapter(child: _MemuatRecap()),
+                error: (error, _) => SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Text(
+                      error.toString(),
+                      textAlign: TextAlign.center,
+                      style: text.bodyMedium?.copyWith(
+                        color: NapakColors.base.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                ),
+                // Key berdasarkan tahun: berganti tahun berarti seluruh isinya
+                // dibangun ulang, jadi angkanya berjalan naik lagi dari nol.
+                data: (data) => SliverToBoxAdapter(
+                  key: ValueKey(data.year),
+                  child: _IsiRecap(recap: data),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -152,7 +174,10 @@ class _IsiRecap extends StatelessWidget {
             indeks: 0,
             child: Text(
               recap.caption,
-              style: text.headlineSmall?.copyWith(height: 1.45),
+              style: text.headlineSmall?.copyWith(
+                height: 1.45,
+                color: NapakColors.base,
+              ),
             ),
           ),
           const SizedBox(height: 22),
@@ -201,7 +226,11 @@ class _IsiRecap extends StatelessWidget {
             const SizedBox(height: 36),
             MunculBertahap(
               indeks: 3,
-              child: Text('Kota yang kamu lewati', style: text.titleLarge),
+              child: const LabelKapital(
+                'Kota yang kamu lewati',
+                warna: NapakColors.emberRedup,
+                ukuran: 12,
+              ),
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -224,17 +253,19 @@ class _IsiRecap extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.lock_outline_rounded,
                     size: 14,
-                    color: NapakColors.textSecondary,
+                    color: NapakColors.base.withValues(alpha: 0.45),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Dihitung di dalam Napak sendiri, tanpa mengirim '
                       'koordinatmu ke layanan peta mana pun.',
-                      style: text.bodySmall,
+                      style: text.bodySmall?.copyWith(
+                        color: NapakColors.base.withValues(alpha: 0.45),
+                      ),
                     ),
                   ),
                 ],
@@ -246,6 +277,11 @@ class _IsiRecap extends StatelessWidget {
           MunculBertahap(
             indeks: 6 + recap.cities.length,
             child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: NapakColors.ember,
+                foregroundColor: NapakColors.malam,
+                minimumSize: const Size(double.infinity, 52),
+              ),
               onPressed: () => SharePlus.instance.share(
                 ShareParams(
                   text: '${recap.caption}\n\n— Napak',
@@ -297,21 +333,23 @@ class _PemilihTahun extends StatelessWidget {
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: terpilih ? NapakColors.deepAccent : Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                color: terpilih
+                    ? NapakColors.ember
+                    : NapakColors.malamNaik.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: terpilih
-                      ? NapakColors.deepAccent
-                      : NapakColors.divider,
+                  color: terpilih ? NapakColors.ember : NapakColors.kontur,
                 ),
               ),
               child: AnimatedDefaultTextStyle(
                 duration: NapakMotion.cepat,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: terpilih
-                      ? NapakColors.textOnDeep
-                      : NapakColors.textSecondary,
-                  fontWeight: terpilih ? FontWeight.w600 : FontWeight.w400,
+                      ? NapakColors.malam
+                      : NapakColors.base.withValues(alpha: 0.6),
+                  fontWeight: terpilih ? FontWeight.w800 : FontWeight.w500,
+                  letterSpacing: 1.2,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
                 child: Text('$t'),
               ),
@@ -348,29 +386,37 @@ class _Kartu extends StatelessWidget {
     return Expanded(
       flex: utama ? 4 : 3,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
-          color: utama ? NapakColors.primary : NapakColors.softSky,
-          borderRadius: BorderRadius.circular(20),
+          color: utama
+              ? NapakColors.ember.withValues(alpha: 0.16)
+              : NapakColors.malamNaik.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: utama ? NapakColors.ember : NapakColors.kontur,
+          ),
         ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           children: [
             FittedBox(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  AngkaBerjalan(
-                    nilai: nilai,
-                    desimal: desimal,
-                    gaya: utama ? text.headlineMedium : text.headlineSmall,
-                  ),
-                  if (satuan.isNotEmpty) Text(' $satuan', style: text.bodySmall),
-                ],
+              child: Odometer(
+                nilai: nilai,
+                desimal: desimal,
+                satuan: satuan.isEmpty ? null : satuan.toUpperCase(),
+                gaya: (utama ? text.headlineMedium : text.headlineSmall)
+                    ?.copyWith(
+                      color: utama ? NapakColors.ember : NapakColors.base,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
             ),
             const SizedBox(height: 6),
-            Text(label, style: text.bodySmall, textAlign: TextAlign.center),
+            LabelKapital(
+              label,
+              warna: NapakColors.base.withValues(alpha: 0.55),
+              ukuran: 10,
+            ),
           ],
         ),
       ),
@@ -391,8 +437,9 @@ class _TripTerjauh extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NapakColors.warmNeutral,
-        borderRadius: BorderRadius.circular(20),
+        color: NapakColors.malamNaik.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: NapakColors.kontur),
       ),
       child: Row(
         children: [
@@ -400,13 +447,13 @@ class _TripTerjauh extends StatelessWidget {
             height: 44,
             width: 44,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(14),
+              color: NapakColors.ember.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.flag_outlined,
               size: 21,
-              color: NapakColors.deepAccent,
+              color: NapakColors.ember,
             ),
           ),
           const SizedBox(width: 16),
@@ -414,16 +461,21 @@ class _TripTerjauh extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Yang paling jauh', style: text.bodySmall),
+                const LabelKapital('Yang paling jauh', ukuran: 10),
                 const SizedBox(height: 3),
                 Text(
                   judul,
-                  style: text.titleMedium,
+                  style: text.titleMedium?.copyWith(color: NapakColors.base),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text('${km.toStringAsFixed(1)} km', style: text.bodySmall),
+                Text(
+                  '${km.toStringAsFixed(1)} km',
+                  style: text.bodySmall?.copyWith(
+                    color: NapakColors.emberRedup,
+                  ),
+                ),
               ],
             ),
           ),
@@ -443,11 +495,16 @@ class _KepingKota extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: NapakColors.divider),
+        color: NapakColors.malamNaik.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: NapakColors.kontur),
       ),
-      child: Text(nama, style: Theme.of(context).textTheme.bodySmall),
+      child: Text(
+        nama,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: NapakColors.base.withValues(alpha: 0.8),
+        ),
+      ),
     );
   }
 }
@@ -462,19 +519,18 @@ class _MemuatRecap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          NapakSkeleton.teks(lebar: 260),
+          NapakSkeleton.teks(lebar: 260, gelap: true),
           SizedBox(height: 10),
-          NapakSkeleton.teks(lebar: 180),
+          NapakSkeleton.teks(lebar: 180, gelap: true),
           SizedBox(height: 34),
-          NapakSkeleton(tinggi: 104, radius: 20),
+          NapakSkeleton(tinggi: 104, radius: 16, gelap: true),
           SizedBox(height: 28),
-          NapakSkeleton(tinggi: 84, radius: 20),
+          NapakSkeleton(tinggi: 84, radius: 16, gelap: true),
         ],
       ),
     );
   }
 }
-
 
 /// Pintu ke Jejak Nusantara: peta seumur hidup, bukan per tahun.
 class _PintuNusantara extends StatelessWidget {
@@ -489,12 +545,18 @@ class _PintuNusantara extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
-          color: NapakColors.textPrimary,
-          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            colors: [
+              NapakColors.ember.withValues(alpha: 0.2),
+              NapakColors.malamNaik.withValues(alpha: 0.6),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.auto_awesome, color: NapakColors.primary),
+            const Icon(Icons.auto_awesome, color: NapakColors.ember),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -503,13 +565,14 @@ class _PintuNusantara extends StatelessWidget {
                   Text(
                     'Jejak Nusantara',
                     style: text.titleMedium?.copyWith(
-                      color: NapakColors.textOnDeep,
+                      color: NapakColors.base,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
                     'Lihat kota-kota yang pernah kamu lewati menyala di peta.',
                     style: text.bodySmall?.copyWith(
-                      color: NapakColors.textOnDeep.withValues(alpha: 0.7),
+                      color: NapakColors.base.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -517,7 +580,7 @@ class _PintuNusantara extends StatelessWidget {
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              color: NapakColors.textOnDeep,
+              color: NapakColors.emberRedup,
             ),
           ],
         ),

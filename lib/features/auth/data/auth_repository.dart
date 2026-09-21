@@ -62,8 +62,7 @@ class AuthRepository {
     );
   }
 
-  Future<bool> hasSession() async =>
-      (await _tokens.readAccessToken()) != null;
+  Future<bool> hasSession() async => (await _tokens.readAccessToken()) != null;
 
   Future<String?> savedName() => _tokens.readName();
 

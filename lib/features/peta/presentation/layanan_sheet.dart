@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' show LatLng;
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
@@ -387,7 +388,7 @@ class _BarisLayanan extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: terdekat
-                ? Border.all(color: NapakColors.deepAccent, width: 1.4)
+                ? Border.all(color: NapakColors.ember, width: 1.4)
                 : null,
           ),
           child: Row(
@@ -424,10 +425,12 @@ class _BarisLayanan extends StatelessWidget {
                         angle: a * math.pi / 180,
                         child: anak,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.navigation_rounded,
                         size: 22,
-                        color: NapakColors.deepAccent,
+                        color: terdekat
+                            ? NapakColors.ember
+                            : NapakColors.deepAccent,
                       ),
                     ),
                   ],
@@ -456,12 +459,10 @@ class _BarisLayanan extends StatelessWidget {
                     if (terdekat)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(
+                        child: const LabelKapital(
                           'Paling dekat',
-                          style: text.labelSmall?.copyWith(
-                            color: NapakColors.deepAccent,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          warna: NapakColors.ember,
+                          ukuran: 9,
                         ),
                       ),
                   ],
@@ -491,7 +492,12 @@ class _PetaTempat extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l.nama, overflow: TextOverflow.ellipsis)),
+      appBar: BilahEkspedisi(
+        judul: l.nama,
+        keterangan: l.jarakM == null
+            ? null
+            : '${teksJarak(l.jarakM!)} ke ${namaArah(l.arah ?? 0)}',
+      ),
       body: Column(
         children: [
           Expanded(

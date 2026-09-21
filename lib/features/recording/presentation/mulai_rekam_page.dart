@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/theme/napak_theme.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
@@ -65,133 +68,203 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
+    // Menekan tombol bara di bilah bawah membawa ke sini, dan dari sini ke
+    // layar rekam yang juga gelap. Halaman terang di tengahnya akan terasa
+    // seperti keluar sebentar lalu masuk lagi.
+    return Theme(
+      data: NapakTheme.gelap(),
+      child: Scaffold(
+        backgroundColor: NapakColors.malam,
+        body: Stack(
+          fit: StackFit.expand,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.close_rounded),
-                    color: NapakColors.textSecondary,
-                  ),
-                ],
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: NapakColors.kanvasMalam,
+                ),
               ),
             ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(28, 12, 28, 28),
+            const IgnorePointer(
+              child: KonturTopografi(opasitas: 0.22, benih: 17),
+            ),
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                heightFactor: 0.3,
+                child: SiluetGunung(
+                  warna: [NapakColors.malamNaik, NapakColors.malam],
+                ),
+              ),
+            ),
+            const ButiranKertas(opasitas: 0.045),
+
+            SafeArea(
+              child: Column(
                 children: [
-                  const MunculBertahap(
-                    indeks: 0,
-                    child: SizedBox(
-                      height: 64,
-                      child: _GarisPembuka(),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  MunculBertahap(
-                    indeks: 1,
-                    child: Text('Mau ke mana?', style: text.displaySmall),
-                  ),
-                  const SizedBox(height: 10),
-                  MunculBertahap(
-                    indeks: 2,
-                    child: Text(
-                      'Napak akan merekam diam-diam sampai kamu bilang selesai. '
-                      'Layar boleh dimatikan.',
-                      style: text.bodyLarge?.copyWith(
-                        color: NapakColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  MunculBertahap(
-                    indeks: 3,
-                    child: TextField(
-                      controller: _judul,
-                      autofocus: true,
-                      textCapitalization: TextCapitalization.sentences,
-                      style: text.titleLarge,
-                      decoration: const InputDecoration(
-                        hintText: 'Mudik ke Solo',
-                      ),
-                      onSubmitted: (_) => _mulai(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  MunculBertahap(
-                    indeks: 4,
-                    child: Text(
-                      'Boleh dikosongkan — nanti dinamai dengan tanggal hari ini.',
-                      style: text.bodySmall,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  MunculBertahap(
-                    indeks: 5,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: _PilihanMode(
-                            ikon: Icons.person_outline_rounded,
-                            judul: 'Sendiri',
-                            keterangan: 'Cuma jejakmu',
-                            terpilih: _mode == TripMode.solo,
-                            onTap: () => setState(() => _mode = TripMode.solo),
+                        IconButton(
+                          onPressed: () => context.pop(),
+                          icon: const Icon(Icons.close_rounded),
+                          color: NapakColors.base.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: 4),
+                        const LabelKapital(
+                          'Perjalanan baru',
+                          warna: NapakColors.emberRedup,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(28, 12, 28, 28),
+                      children: [
+                        const MunculBertahap(
+                          indeks: 0,
+                          child: SizedBox(height: 64, child: _GarisPembuka()),
+                        ),
+                        const SizedBox(height: 28),
+                        MunculBertahap(
+                          indeks: 1,
+                          child: Text(
+                            'Mau ke mana?',
+                            style: text.displaySmall?.copyWith(
+                              color: NapakColors.base,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _PilihanMode(
-                            ikon: Icons.group_outlined,
-                            judul: 'Bareng',
-                            keterangan: 'Teman bisa gabung',
-                            terpilih: _mode == TripMode.group,
-                            onTap: () => setState(() => _mode = TripMode.group),
+                        const SizedBox(height: 10),
+                        MunculBertahap(
+                          indeks: 2,
+                          child: Text(
+                            'Napak akan merekam diam-diam sampai kamu bilang selesai. '
+                            'Layar boleh dimatikan.',
+                            style: text.bodyLarge?.copyWith(
+                              color: NapakColors.base.withValues(alpha: 0.65),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        MunculBertahap(
+                          indeks: 3,
+                          child: TextField(
+                            controller: _judul,
+                            autofocus: true,
+                            textCapitalization: TextCapitalization.sentences,
+                            style: text.titleLarge?.copyWith(
+                              color: NapakColors.base,
+                            ),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: NapakColors.malamNaik.withValues(
+                                alpha: 0.8,
+                              ),
+                              hintText: 'Mudik ke Solo',
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: NapakColors.kontur,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: const BorderSide(
+                                  color: NapakColors.ember,
+                                  width: 1.6,
+                                ),
+                              ),
+                            ),
+                            onSubmitted: (_) => _mulai(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        MunculBertahap(
+                          indeks: 4,
+                          child: Text(
+                            'Boleh dikosongkan — nanti dinamai dengan tanggal hari ini.',
+                            style: text.bodySmall?.copyWith(
+                              color: NapakColors.base.withValues(alpha: 0.45),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        MunculBertahap(
+                          indeks: 5,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _PilihanMode(
+                                  ikon: Icons.person_outline_rounded,
+                                  judul: 'Sendiri',
+                                  keterangan: 'Cuma jejakmu',
+                                  terpilih: _mode == TripMode.solo,
+                                  onTap: () =>
+                                      setState(() => _mode = TripMode.solo),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _PilihanMode(
+                                  ikon: Icons.group_outlined,
+                                  judul: 'Bareng',
+                                  keterangan: 'Teman bisa gabung',
+                                  terpilih: _mode == TripMode.group,
+                                  onTap: () =>
+                                      setState(() => _mode = TripMode.group),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        MunculBertahap(
+                          indeks: 6,
+                          child: _PilihTapakTilas(
+                            terpilih: _tapakTilas,
+                            onPilih: (t) => setState(() => _tapakTilas = t),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  MunculBertahap(
-                    indeks: 6,
-                    child: _PilihTapakTilas(
-                      terpilih: _tapakTilas,
-                      onPilih: (t) => setState(() => _tapakTilas = t),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(28, 0, 28, 20),
+                    child: MunculBertahap(
+                      indeks: 7,
+                      child: FilledButton.icon(
+                        onPressed: _memulai ? null : _mulai,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: NapakColors.ember,
+                          foregroundColor: NapakColors.malam,
+                          minimumSize: const Size(double.infinity, 54),
+                        ),
+                        icon: _memulai
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: NapakColors.malam,
+                                ),
+                              )
+                            : const Icon(Icons.play_arrow_rounded),
+                        label: Text(
+                          _memulai
+                              ? 'Menyiapkan...'
+                              : _tapakTilas == null
+                              ? 'Mulai merekam'
+                              : 'Mulai napak tilas',
+                        ),
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(28, 0, 28, 20),
-              child: MunculBertahap(
-                indeks: 7,
-                child: FilledButton.icon(
-                  onPressed: _memulai ? null : _mulai,
-                  icon: _memulai
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: NapakColors.textOnDeep,
-                          ),
-                        )
-                      : const Icon(Icons.play_arrow_rounded),
-                  label: Text(
-                    _memulai
-                        ? 'Menyiapkan...'
-                        : _tapakTilas == null
-                        ? 'Mulai merekam'
-                        : 'Mulai napak tilas',
-                  ),
-                ),
               ),
             ),
           ],
@@ -227,7 +300,7 @@ class _GarisPembukaState extends State<_GarisPembuka>
       animation: _kendali,
       builder: (context, _) => JejakMenggambar(
         progres: Curves.easeInOutCubic.transform(_kendali.value),
-        gradasi: NapakColors.routeGradient,
+        gradasi: const [NapakColors.ember, NapakColors.emberRedup],
         tebal: 3,
       ),
     );
@@ -261,10 +334,12 @@ class _PilihanMode extends StatelessWidget {
         curve: NapakMotion.mengalir,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: terpilih ? NapakColors.softSky : Colors.white,
-          borderRadius: BorderRadius.circular(18),
+          color: terpilih
+              ? NapakColors.ember.withValues(alpha: 0.14)
+              : NapakColors.malamNaik.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: terpilih ? NapakColors.deepAccent : NapakColors.divider,
+            color: terpilih ? NapakColors.ember : NapakColors.kontur,
             width: terpilih ? 1.6 : 1,
           ),
         ),
@@ -275,13 +350,23 @@ class _PilihanMode extends StatelessWidget {
               ikon,
               size: 22,
               color: terpilih
-                  ? NapakColors.deepAccent
-                  : NapakColors.textSecondary,
+                  ? NapakColors.ember
+                  : NapakColors.base.withValues(alpha: 0.55),
             ),
             const SizedBox(height: 12),
-            Text(judul, style: text.titleMedium),
-            const SizedBox(height: 2),
-            Text(keterangan, style: text.bodySmall),
+            Text(
+              judul,
+              style: text.titleMedium?.copyWith(
+                color: NapakColors.base,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 3),
+            LabelKapital(
+              keterangan,
+              warna: NapakColors.base.withValues(alpha: 0.5),
+              ukuran: 9,
+            ),
           ],
         ),
       ),
@@ -320,37 +405,40 @@ class _PilihTapakTilas extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: NapakColors.softSky,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: NapakColors.deepAccent, width: 1.6),
+            color: NapakColors.ember.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: NapakColors.ember, width: 1.6),
           ),
           child: Row(
             children: [
               const Icon(
                 Icons.history_rounded,
                 size: 20,
-                color: NapakColors.deepAccent,
+                color: NapakColors.ember,
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Menapak tilas', style: text.bodySmall),
-                    const SizedBox(height: 2),
+                    const LabelKapital('Menapak tilas', ukuran: 9),
+                    const SizedBox(height: 3),
                     Text(
                       terpilih!.title,
-                      style: text.titleMedium,
+                      style: text.titleMedium?.copyWith(
+                        color: NapakColors.base,
+                        fontWeight: FontWeight.w800,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: NapakColors.textSecondary,
+                color: NapakColors.base.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -364,26 +452,35 @@ class _PilihTapakTilas extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
-          borderRadius: BorderRadius.circular(18),
+          color: NapakColors.malamNaik.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: NapakColors.kontur),
         ),
         child: Row(
           children: [
             const Icon(
               Icons.history_rounded,
               size: 20,
-              color: NapakColors.deepAccent,
+              color: NapakColors.emberRedup,
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Napak tilas perjalanan lama', style: text.titleMedium),
-                  const SizedBox(height: 2),
+                  Text(
+                    'Napak tilas perjalanan lama',
+                    style: text.titleMedium?.copyWith(
+                      color: NapakColors.base,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
                   Text(
                     'Ulangi rute yang pernah kamu tempuh, lihat bedanya.',
-                    style: text.bodySmall,
+                    style: text.bodySmall?.copyWith(
+                      color: NapakColors.base.withValues(alpha: 0.55),
+                    ),
                   ),
                 ],
               ),
@@ -391,7 +488,7 @@ class _PilihTapakTilas extends ConsumerWidget {
             const Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: NapakColors.deepAccent,
+              color: NapakColors.emberRedup,
             ),
           ],
         ),
@@ -442,9 +539,9 @@ class _PilihTapakTilas extends ConsumerWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: NapakColors.divider),
+                    color: NapakColors.malamNaik.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: NapakColors.kontur),
                   ),
                   child: Row(
                     children: [
@@ -470,7 +567,7 @@ class _PilihTapakTilas extends ConsumerWidget {
                       const Icon(
                         Icons.history_rounded,
                         size: 18,
-                        color: NapakColors.deepAccent,
+                        color: NapakColors.emberRedup,
                       ),
                     ],
                   ),

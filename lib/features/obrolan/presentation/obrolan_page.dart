@@ -76,7 +76,9 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
       }),
       _socket.galat.listen((g) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(g)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(g)));
         }
       }),
     ]);
@@ -359,9 +361,9 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
 
         // Gelembung berturut-turut dari orang yang sama dirapatkan dan
         // namanya tidak diulang, seperti obrolan di aplikasi mana pun.
-        final awalRentetan =
-            hariBaru || lebihLama.pengirimId != p.pengirimId;
-        final akhirRentetan = lebihBaru == null ||
+        final awalRentetan = hariBaru || lebihLama.pengirimId != p.pengirimId;
+        final akhirRentetan =
+            lebihBaru == null ||
             lebihBaru.pengirimId != p.pengirimId ||
             !_hariSama(lebihBaru.dibuat, p.dibuat);
 
@@ -556,8 +558,9 @@ class _Gelembung extends StatelessWidget {
     final baris = Padding(
       padding: EdgeInsets.only(top: awalRentetan ? 8 : 2),
       child: Row(
-        mainAxisAlignment:
-            milikSaya ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: milikSaya
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           AnimatedOpacity(
@@ -583,8 +586,7 @@ class _Gelembung extends StatelessWidget {
           offset: Offset((1 - t) * (milikSaya ? 28 : -28), (1 - t) * 10),
           child: Transform.scale(
             scale: 0.9 + 0.1 * t,
-            alignment:
-                milikSaya ? Alignment.bottomRight : Alignment.bottomLeft,
+            alignment: milikSaya ? Alignment.bottomRight : Alignment.bottomLeft,
             child: anak,
           ),
         ),
@@ -671,7 +673,11 @@ class _TitikMengetikState extends State<_TitikMengetik>
                 child: Transform.translate(
                   offset: Offset(
                     0,
-                    -4 * math.max(0, math.sin((_c.value - i * 0.18) * 2 * math.pi)),
+                    -4 *
+                        math.max(
+                          0,
+                          math.sin((_c.value - i * 0.18) * 2 * math.pi),
+                        ),
                   ),
                   child: Container(
                     width: 7,
@@ -761,7 +767,7 @@ class _BilahTulis extends StatelessWidget {
               height: 46,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: adaIsi ? NapakColors.deepAccent : NapakColors.softSky,
+                color: adaIsi ? NapakColors.ember : NapakColors.softSky,
               ),
               child: IconButton(
                 onPressed: adaIsi ? onKirim : null,
@@ -772,9 +778,7 @@ class _BilahTulis extends StatelessWidget {
                   child: Icon(
                     Icons.send_rounded,
                     size: 20,
-                    color: adaIsi
-                        ? NapakColors.textOnDeep
-                        : NapakColors.primary,
+                    color: adaIsi ? NapakColors.malam : NapakColors.primary,
                   ),
                 ),
               ),

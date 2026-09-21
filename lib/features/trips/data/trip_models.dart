@@ -16,11 +16,8 @@ enum TripVisibility {
   final String wire;
   final String label;
 
-  static TripVisibility fromWire(String value) =>
-      TripVisibility.values.firstWhere(
-        (v) => v.wire == value,
-        orElse: () => TripVisibility.private,
-      );
+  static TripVisibility fromWire(String value) => TripVisibility.values
+      .firstWhere((v) => v.wire == value, orElse: () => TripVisibility.private);
 }
 
 enum TripMode {

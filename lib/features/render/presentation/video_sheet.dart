@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
@@ -210,7 +211,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
           ),
           const SizedBox(height: 24),
 
-          Text('Ukuran', style: text.titleMedium),
+          const LabelKapital('Ukuran'),
           const SizedBox(height: 10),
           SegmentedButton<FormatRender>(
             segments: [
@@ -229,7 +230,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
           ),
           const SizedBox(height: 20),
 
-          Text('Suasana', style: text.titleMedium),
+          const LabelKapital('Suasana'),
           const SizedBox(height: 10),
           SegmentedButton<TemplateRender>(
             segments: [

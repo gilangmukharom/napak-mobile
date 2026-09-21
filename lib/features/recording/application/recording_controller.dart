@@ -253,9 +253,7 @@ class RecordingController extends Notifier<RecordingState> {
     if (foto != null) {
       state = state.copyWith(mengunggahFoto: true, clearMessage: true);
       try {
-        kunciFoto = await ref
-            .read(photoUploaderProvider)
-            .unggah(tripId, foto);
+        kunciFoto = await ref.read(photoUploaderProvider).unggah(tripId, foto);
       } catch (error) {
         state = state.copyWith(message: error.toString());
       } finally {
@@ -272,16 +270,17 @@ class RecordingController extends Notifier<RecordingState> {
   }
 
   void _listenToPosition(String tripId) {
-    _positionSub = Geolocator.getPositionStream(
-      locationSettings: _locationSettings(),
-    ).listen(
-      (position) => _record(tripId, position),
-      onError: (Object error) {
-        state = state.copyWith(
-          message: 'Sinyal lokasi sedang sulit. Napak tetap menunggu.',
+    _positionSub =
+        Geolocator.getPositionStream(
+          locationSettings: _locationSettings(),
+        ).listen(
+          (position) => _record(tripId, position),
+          onError: (Object error) {
+            state = state.copyWith(
+              message: 'Sinyal lokasi sedang sulit. Napak tetap menunggu.',
+            );
+          },
         );
-      },
-    );
   }
 
   /// Penyaring jarak inilah yang membuat perekaman tidak menguras baterai:
@@ -330,11 +329,7 @@ class RecordingController extends Notifier<RecordingState> {
     state = state.copyWith(
       recordedCount: state.recordedCount + 1,
       jarakM: state.jarakM + tambahan,
-      latest: (
-        lat: position.latitude,
-        lng: position.longitude,
-        at: recordedAt,
-      ),
+      latest: (lat: position.latitude, lng: position.longitude, at: recordedAt),
       jejak: [
         ...state.jejak,
         (lat: position.latitude, lng: position.longitude),

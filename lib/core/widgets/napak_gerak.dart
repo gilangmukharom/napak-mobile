@@ -168,11 +168,7 @@ class JejakMenggambar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-      painter: _PelukisJejak(
-        progres: progres,
-        gradasi: gradasi,
-        tebal: tebal,
-      ),
+      painter: _PelukisJejak(progres: progres, gradasi: gradasi, tebal: tebal),
       size: Size.infinite,
     );
   }
@@ -220,9 +216,9 @@ class _PelukisJejak extends CustomPainter {
     canvas.drawPath(
       potongan,
       Paint()
-        ..shader = LinearGradient(colors: gradasi).createShader(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-        )
+        ..shader = LinearGradient(
+          colors: gradasi,
+        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
         ..style = PaintingStyle.stroke
         ..strokeWidth = tebal
         ..strokeCap = StrokeCap.round
@@ -232,11 +228,7 @@ class _PelukisJejak extends CustomPainter {
     // Titik di ujung yang sedang menggambar, seperti pena yang berjalan.
     final ujung = ukur.getTangentForOffset(ukur.length * progres)?.position;
     if (ujung != null) {
-      canvas.drawCircle(
-        ujung,
-        tebal * 1.5,
-        Paint()..color = gradasi.last,
-      );
+      canvas.drawCircle(ujung, tebal * 1.5, Paint()..color = gradasi.last);
     }
   }
 

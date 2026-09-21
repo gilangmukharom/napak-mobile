@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
@@ -142,11 +143,15 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(
-        title: const Text('Edit profil'),
-        actions: [
+      appBar: BilahEkspedisi(
+        judul: 'Edit profil',
+        keterangan: 'Yang dilihat teman',
+        aksi: [
           TextButton(
             onPressed: _menyimpan || p == null ? null : _simpan,
+            style: TextButton.styleFrom(
+              foregroundColor: NapakColors.emberRedup,
+            ),
             child: _menyimpan
                 ? const SizedBox(
                     width: 18,

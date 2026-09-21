@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
@@ -17,12 +18,14 @@ class DaftarObrolanPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(
-        title: const Text('Obrolan'),
-        actions: [
+      appBar: BilahEkspedisi(
+        judul: 'Obrolan',
+        keterangan: '${daftar.value?.length ?? 0} percakapan',
+        aksi: [
           IconButton(
             tooltip: 'Mulai obrolan dengan teman',
             onPressed: () => context.push('/teman'),
+            color: NapakColors.base,
             icon: const Icon(Icons.edit_square),
           ),
         ],

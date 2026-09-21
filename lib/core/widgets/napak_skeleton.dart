@@ -17,17 +17,22 @@ class NapakSkeleton extends StatefulWidget {
     required this.tinggi,
     this.lebar = double.infinity,
     this.radius = 12,
+    this.gelap = false,
     super.key,
   });
 
   /// Kerangka berbentuk baris teks.
-  const NapakSkeleton.teks({this.lebar = 160, super.key})
+  const NapakSkeleton.teks({this.lebar = 160, this.gelap = false, super.key})
     : tinggi = 13,
       radius = 6;
 
   final double tinggi;
   final double lebar;
   final double radius;
+
+  /// Dipakai di atas kanvas malam. Kerangka terang di sana terbaca seperti
+  /// balok putih menyala, bukan seperti isi yang sedang datang.
+  final bool gelap;
 
   @override
   State<NapakSkeleton> createState() => _NapakSkeletonState();
@@ -63,11 +68,17 @@ class _NapakSkeletonState extends State<NapakSkeleton>
             gradient: LinearGradient(
               begin: Alignment(posisi - 0.6, 0),
               end: Alignment(posisi + 0.6, 0),
-              colors: const [
-                NapakColors.softSky,
-                NapakColors.base,
-                NapakColors.softSky,
-              ],
+              colors: widget.gelap
+                  ? const [
+                      NapakColors.malamNaik,
+                      NapakColors.kontur,
+                      NapakColors.malamNaik,
+                    ]
+                  : const [
+                      NapakColors.softSky,
+                      NapakColors.base,
+                      NapakColors.softSky,
+                    ],
               stops: const [0.0, 0.5, 1.0],
             ),
           ),

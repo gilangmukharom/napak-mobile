@@ -18,7 +18,10 @@ import 'pratinjau_rute.dart';
 final _ceritaProvider = FutureProvider.autoDispose
     .family<({Trip trip, List<TripPoint> titik}), String>((ref, tripId) async {
       final repo = ref.watch(tripRepositoryProvider);
-      final (trip, titik) = await (repo.detail(tripId), repo.points(tripId)).wait;
+      final (trip, titik) = await (
+        repo.detail(tripId),
+        repo.points(tripId),
+      ).wait;
       return (trip: trip, titik: titik);
     });
 
@@ -108,10 +111,10 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
       // Kanvasnya gelap, bukan base. Latar terang akan berkedip putih tiap
       // kali foto berganti — dan di layar penuh kedipan itu terbaca seperti
       // aplikasinya tersendat.
-      backgroundColor: NapakColors.textPrimary,
+      backgroundColor: NapakColors.malam,
       body: cerita.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: NapakColors.primary),
+          child: CircularProgressIndicator(color: NapakColors.ember),
         ),
         error: (error, _) => _Galat(pesan: error.toString()),
         data: (data) {
@@ -314,7 +317,7 @@ class _LatarFoto extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [NapakColors.deepAccent, NapakColors.textPrimary],
+              colors: [NapakColors.deepAccent, NapakColors.malam],
             ),
           ),
         ),
@@ -472,9 +475,9 @@ class _BilahRuas extends StatelessWidget {
                   value: i < indeks ? 1 : (i == indeks ? progres : 0),
                   minHeight: 3,
                   backgroundColor: Colors.white24,
-                  valueColor: const AlwaysStoppedAnimation(
-                    NapakColors.textOnDeep,
-                  ),
+                  // Ruas yang sudah lewat dan yang sedang berjalan ditandai
+                  // bara, seperti sisa jejak yang masih hangat.
+                  valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
                 ),
               ),
             ),

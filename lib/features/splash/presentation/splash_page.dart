@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/widgets/napak_gerak.dart';
 
 /// Layar pembuka.
@@ -88,45 +90,103 @@ class _SplashPageState extends ConsumerState<SplashPage>
 
     ref.listen(sessionProvider, (_, next) => _pindahKalauSiap(next.value));
 
+    // Langit sebelum berangkat: gelap di atas, bara di kaki langit, dan
+    // punggungan gunung yang naik perlahan seperti dilihat dari jok motor.
     return Scaffold(
-      backgroundColor: NapakColors.base,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 48),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 96,
-                width: double.infinity,
-                child: AnimatedBuilder(
-                  animation: _jejak,
-                  builder: (context, _) => JejakMenggambar(
-                    progres: _jejak.value,
-                    gradasi: NapakColors.routeGradient,
-                    tebal: 4,
-                  ),
-                ),
+      backgroundColor: NapakColors.malam,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: NapakColors.langitSubuh,
+                stops: [0, 0.6, 1.25],
               ),
-              const SizedBox(height: 36),
-              _Memudar(
-                animasi: _nama,
-                child: Text('Napak', style: text.displaySmall),
-              ),
-              const SizedBox(height: 12),
-              _Memudar(
-                animasi: _kalimat,
-                child: Text(
-                  'Setiap perjalanan meninggalkan jejak.',
-                  style: text.bodyLarge?.copyWith(
-                    color: NapakColors.textSecondary,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const IgnorePointer(child: KonturTopografi(opasitas: 0.16)),
+
+          // Gunung naik pelan sepanjang pembukaan.
+          AnimatedBuilder(
+            animation: _kendali,
+            builder: (context, _) => SiluetGunung(
+              geser: 42 * (1 - Curves.easeOutCubic.transform(_kendali.value)),
+              warna: const [
+                Color(0xFF2E3B4E),
+                NapakColors.malamNaik,
+                NapakColors.malam,
+              ],
+            ),
+          ),
+          const ButiranKertas(opasitas: 0.05),
+
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 44),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 96,
+                    width: double.infinity,
+                    child: AnimatedBuilder(
+                      animation: _jejak,
+                      builder: (context, _) => JejakMenggambar(
+                        progres: _jejak.value,
+                        // Jejak digambar dengan bara, bukan biru: di atas
+                        // langit malam, birunya hilang ditelan latar.
+                        gradasi: const [
+                          NapakColors.ember,
+                          NapakColors.emberRedup,
+                        ],
+                        tebal: 4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  _Memudar(
+                    animasi: _nama,
+                    child: Text(
+                      'Napak',
+                      style: text.displaySmall?.copyWith(
+                        color: NapakColors.base,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _Memudar(
+                    animasi: _kalimat,
+                    child: Text(
+                      'Setiap perjalanan meninggalkan jejak.',
+                      style: text.bodyLarge?.copyWith(
+                        color: NapakColors.base.withValues(alpha: 0.72),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 36,
+            child: Center(
+              child: _Memudar(
+                animasi: _kalimat,
+                child: LabelKapital(
+                  'Napak tilas · Indonesia',
+                  warna: NapakColors.base.withValues(alpha: 0.4),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

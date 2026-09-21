@@ -45,38 +45,43 @@ class PratinjauRute extends StatelessWidget {
       return _PratinjauKosong(tinggi: tinggi);
     }
 
-    final lukisan = CustomPaint(
-      painter: _PelukisPratinjau(titik: titik, warna: warna),
-      size: Size.infinite,
-    );
-
     return Container(
       height: tinggi,
       width: double.infinity,
       color: latar ?? NapakColors.softSky,
       child: animasikan
+          // Rutenya menggambar dirinya sendiri dari titik berangkat ke titik
+          // sampai, bukan sekadar memudar masuk. Gerakan itu yang membuat
+          // kartunya terbaca sebagai perjalanan, bukan sebagai gambar.
           ? TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
-              duration: NapakMotion.lambat,
+              duration: NapakMotion.lambat + NapakMotion.sedang,
               curve: NapakMotion.mengalir,
-              builder: (context, t, anak) => Opacity(
-                opacity: t,
-                // Membesar sangat sedikit saat muncul — cukup untuk terasa
-                // seperti gambar yang mendarat, bukan yang ditempelkan.
-                child: Transform.scale(scale: 0.96 + t * 0.04, child: anak),
+              builder: (context, t, _) => CustomPaint(
+                painter: _PelukisPratinjau(
+                  titik: titik,
+                  warna: warna,
+                  progres: t,
+                ),
+                size: Size.infinite,
               ),
-              child: lukisan,
             )
-          : lukisan,
+          : CustomPaint(
+              painter: _PelukisPratinjau(titik: titik, warna: warna),
+              size: Size.infinite,
+            ),
     );
   }
 }
 
 class _PelukisPratinjau extends CustomPainter {
-  _PelukisPratinjau({required this.titik, this.warna});
+  _PelukisPratinjau({required this.titik, this.warna, this.progres = 1});
 
   final List<({double lat, double lng})> titik;
   final Color? warna;
+
+  /// Seberapa jauh garisnya sudah tergambar, 0..1.
+  final double progres;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -115,16 +120,24 @@ class _PelukisPratinjau extends CustomPainter {
       geserY + (maxLat - t.lat) * skala,
     );
 
-    final jalur = Path()..moveTo(keLayar(titik.first).dx, keLayar(titik.first).dy);
+    final jalur = Path()
+      ..moveTo(keLayar(titik.first).dx, keLayar(titik.first).dy);
     for (final t in titik.skip(1)) {
       final p = keLayar(t);
       jalur.lineTo(p.dx, p.dy);
     }
 
+    // Garis dipotong sesuai progres, dan ujungnya diambil dari potongan itu
+    // supaya titik sampainya ikut berjalan bersama garisnya.
+    final ukur = jalur.computeMetrics().first;
+    final panjang = ukur.length * progres.clamp(0.0, 1.0);
+    final tergambar = panjang <= 0 ? Path() : ukur.extractPath(0, panjang);
+    final ujung = ukur.getTangentForOffset(panjang)?.position;
+
     // Bayangan tipis di bawah garis memberi kedalaman tanpa menambah warna
     // baru ke palet.
     canvas.drawPath(
-      jalur.shift(const Offset(0, 1.5)),
+      tergambar.shift(const Offset(0, 1.5)),
       Paint()
         ..color = NapakColors.deepAccent.withValues(alpha: 0.12)
         ..style = PaintingStyle.stroke
@@ -134,7 +147,7 @@ class _PelukisPratinjau extends CustomPainter {
     );
 
     canvas.drawPath(
-      jalur,
+      tergambar,
       Paint()
         ..shader = warna != null
             ? null
@@ -149,10 +162,22 @@ class _PelukisPratinjau extends CustomPainter {
     );
 
     _titikUjung(canvas, keLayar(titik.first), isAwal: true);
-    _titikUjung(canvas, keLayar(titik.last), isAwal: false);
+    if (ujung != null) _titikUjung(canvas, ujung, isAwal: false);
   }
 
   void _titikUjung(Canvas canvas, Offset posisi, {required bool isAwal}) {
+    // Titik sampai diberi bara: di ujung sanalah perjalanannya berhenti,
+    // dan itu yang dicari mata lebih dulu daripada titik berangkatnya.
+    final warnaTitik =
+        warna ?? (isAwal ? NapakColors.deepAccent : NapakColors.ember);
+
+    if (!isAwal) {
+      canvas.drawCircle(
+        posisi,
+        10,
+        Paint()..color = warnaTitik.withValues(alpha: 0.18),
+      );
+    }
     canvas.drawCircle(
       posisi,
       isAwal ? 4.5 : 5,
@@ -162,7 +187,7 @@ class _PelukisPratinjau extends CustomPainter {
       posisi,
       isAwal ? 4.5 : 5,
       Paint()
-        ..color = warna ?? NapakColors.deepAccent
+        ..color = warnaTitik
         ..style = isAwal ? PaintingStyle.stroke : PaintingStyle.fill
         ..strokeWidth = 2.5,
     );
@@ -170,7 +195,9 @@ class _PelukisPratinjau extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PelukisPratinjau oldDelegate) =>
-      oldDelegate.titik != titik || oldDelegate.warna != warna;
+      oldDelegate.titik != titik ||
+      oldDelegate.warna != warna ||
+      oldDelegate.progres != progres;
 }
 
 class _PratinjauKosong extends StatelessWidget {

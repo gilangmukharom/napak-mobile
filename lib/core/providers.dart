@@ -30,22 +30,25 @@ final Provider<ApiClient> apiClientProvider = Provider<ApiClient>((ref) {
   );
 });
 
-final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
-  (ref) => AuthRepository(
-    ref.watch(apiClientProvider),
-    ref.watch(tokenStoreProvider),
-  ),
-);
+final Provider<AuthRepository> authRepositoryProvider =
+    Provider<AuthRepository>(
+      (ref) => AuthRepository(
+        ref.watch(apiClientProvider),
+        ref.watch(tokenStoreProvider),
+      ),
+    );
 
-final Provider<TripRepository> tripRepositoryProvider = Provider<TripRepository>(
-  (ref) => TripRepository(ref.watch(apiClientProvider)),
-);
+final Provider<TripRepository> tripRepositoryProvider =
+    Provider<TripRepository>(
+      (ref) => TripRepository(ref.watch(apiClientProvider)),
+    );
 
-final Provider<NapakLocalDatabase> localDatabaseProvider = Provider<NapakLocalDatabase>((ref) {
-  final db = NapakLocalDatabase();
-  ref.onDispose(db.close);
-  return db;
-});
+final Provider<NapakLocalDatabase> localDatabaseProvider =
+    Provider<NapakLocalDatabase>((ref) {
+      final db = NapakLocalDatabase();
+      ref.onDispose(db.close);
+      return db;
+    });
 
 /// Apakah ada sesi yang masih tersimpan di perangkat.
 final FutureProvider<bool> sessionProvider = FutureProvider<bool>(

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_pressable.dart';
@@ -388,10 +389,7 @@ class _Perangko extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: 0.05,
-      child: CustomPaint(
-        size: const Size(50, 60),
-        painter: _PelukisPerangko(),
-      ),
+      child: CustomPaint(size: const Size(50, 60), painter: _PelukisPerangko()),
     );
   }
 }
@@ -406,7 +404,9 @@ class _PelukisPerangko extends CustomPainter {
     for (var x = jarak / 2; x < size.width; x += jarak) {
       tepi
         ..addOval(Rect.fromCircle(center: Offset(x, 0), radius: jari))
-        ..addOval(Rect.fromCircle(center: Offset(x, size.height), radius: jari));
+        ..addOval(
+          Rect.fromCircle(center: Offset(x, size.height), radius: jari),
+        );
     }
     for (var y = jarak / 2; y < size.height; y += jarak) {
       tepi
@@ -531,7 +531,10 @@ class _KotakPosPageState extends ConsumerState<KotakPosPage> {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(title: const Text('Kotak pos')),
+      appBar: const BilahEkspedisi(
+        judul: 'Kotak pos',
+        keterangan: 'Kabar dari jalan',
+      ),
       body: Column(
         children: [
           Padding(

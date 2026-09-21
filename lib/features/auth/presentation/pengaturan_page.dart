@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/widgets/napak_gerak.dart';
@@ -28,73 +30,101 @@ class PengaturanPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: NapakColors.base,
       // Sekarang dibuka dari menu di profil, jadi punya jalan kembali.
-      appBar: AppBar(title: const Text('Pengaturan & privasi')),
+      appBar: const BilahEkspedisi(
+        judul: 'Pengaturan & privasi',
+        keterangan: 'Jejakmu, kendalimu',
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(24, 8, 24, 60),
         children: [
-
           MunculBertahap(
             indeks: 0,
             child: Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [NapakColors.softSky, NapakColors.primary],
+                  colors: NapakColors.kanvasMalam,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: NapakColors.kontur),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        height: 54,
-                        width: 54,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: NapakColors.base,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Text(
-                          (nama ?? 'P').characters.first.toUpperCase(),
-                          style: text.headlineSmall,
-                        ),
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      child: KonturTopografi(
+                        opasitas: 0.2,
+                        jumlahGaris: 4,
+                        benih: 23,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              nama ?? 'Penjejak',
-                              style: text.titleLarge,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 2),
-                            Text('Akun Napak', style: text.bodySmall),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 22),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _AngkaRingkas(
-                        nilai: totalKm,
-                        desimal: 1,
-                        satuan: 'km',
-                        label: 'Total ditempuh',
+                      Row(
+                        children: [
+                          Container(
+                            height: 54,
+                            width: 54,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: NapakColors.ember.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: NapakColors.ember),
+                            ),
+                            child: Text(
+                              (nama ?? 'P').characters.first.toUpperCase(),
+                              style: text.headlineSmall?.copyWith(
+                                color: NapakColors.ember,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  nama ?? 'Penjejak',
+                                  style: text.titleLarge?.copyWith(
+                                    color: NapakColors.base,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 3),
+                                const LabelKapital(
+                                  'Akun Napak',
+                                  warna: NapakColors.emberRedup,
+                                  ukuran: 9,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 24),
-                      _AngkaRingkas(
-                        nilai: trips.length.toDouble(),
-                        satuan: '',
-                        label: 'Perjalanan',
+                      const SizedBox(height: 22),
+                      Row(
+                        children: [
+                          _AngkaRingkas(
+                            nilai: totalKm,
+                            desimal: 1,
+                            satuan: 'km',
+                            label: 'Total ditempuh',
+                          ),
+                          const SizedBox(width: 24),
+                          _AngkaRingkas(
+                            nilai: trips.length.toDouble(),
+                            satuan: '',
+                            label: 'Perjalanan',
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -104,15 +134,16 @@ class PengaturanPage extends ConsumerWidget {
           ),
 
           const SizedBox(height: 26),
-          const MunculBertahap(
-            indeks: 1,
-            child: _PintuSosial(),
-          ),
+          const MunculBertahap(indeks: 1, child: _PintuSosial()),
 
           const SizedBox(height: 34),
           MunculBertahap(
             indeks: 1,
-            child: Text('Jejakmu, kendalimu', style: text.titleLarge),
+            child: const LabelKapital(
+              'Jejakmu, kendalimu',
+              warna: NapakColors.deepAccent,
+              ukuran: 12,
+            ),
           ),
           const SizedBox(height: 14),
 
@@ -286,7 +317,9 @@ class PengaturanPage extends ConsumerWidget {
       ref.invalidate(sessionProvider);
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(pesan)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(pesan)));
       context.go('/masuk');
     } catch (error) {
       if (!context.mounted) return;
@@ -321,16 +354,23 @@ class _AngkaRingkas extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
           children: [
-            AngkaBerjalan(
+            Odometer(
               nilai: nilai,
               desimal: desimal,
-              gaya: text.headlineSmall,
+              satuan: satuan.isEmpty ? null : satuan.toUpperCase(),
+              gaya: text.headlineSmall?.copyWith(
+                color: NapakColors.ember,
+                fontWeight: FontWeight.w800,
+              ),
             ),
-            if (satuan.isNotEmpty) Text(' $satuan', style: text.bodySmall),
           ],
         ),
-        const SizedBox(height: 2),
-        Text(label, style: text.bodySmall),
+        const SizedBox(height: 3),
+        LabelKapital(
+          label,
+          warna: NapakColors.base.withValues(alpha: 0.55),
+          ukuran: 9,
+        ),
       ],
     );
   }
@@ -381,7 +421,6 @@ class _ButirPrivasi extends StatelessWidget {
     );
   }
 }
-
 
 /// Pintu ke teman, kotak pos, dan Jejak Nusantara.
 class _PintuSosial extends StatelessWidget {

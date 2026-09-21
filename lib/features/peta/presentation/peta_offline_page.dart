@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_pressable.dart';
@@ -112,7 +113,10 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(title: const Text('Peta offline')),
+      appBar: const BilahEkspedisi(
+        judul: 'Peta offline',
+        keterangan: 'Bekal sebelum sinyal habis',
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
         children: [
@@ -288,7 +292,7 @@ class _KartuWilayah extends StatelessWidget {
                             minHeight: 5,
                             backgroundColor: NapakColors.softSky,
                             valueColor: const AlwaysStoppedAnimation(
-                              NapakColors.deepAccent,
+                              NapakColors.ember,
                             ),
                           ),
                         ),
@@ -365,7 +369,7 @@ class _MiniKotak extends StatelessWidget {
         width: math.max(lebar * skala, 8),
         height: math.max(tinggi * skala, 8),
         decoration: BoxDecoration(
-          border: Border.all(color: NapakColors.deepAccent, width: 1.6),
+          border: Border.all(color: NapakColors.ember, width: 1.6),
           borderRadius: BorderRadius.circular(3),
         ),
       ),

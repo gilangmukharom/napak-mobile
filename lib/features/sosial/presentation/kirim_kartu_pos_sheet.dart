@@ -254,7 +254,11 @@ class _Terkirim extends StatelessWidget {
                     color: NapakColors.deepAccent,
                   )
                   .animate()
-                  .scaleXY(begin: 0.4, duration: 500.ms, curve: Curves.easeOutBack)
+                  .scaleXY(
+                    begin: 0.4,
+                    duration: 500.ms,
+                    curve: Curves.easeOutBack,
+                  )
                   .then(delay: 500.ms)
                   .shake(hz: 4, rotation: 0.05, duration: 400.ms),
               const SizedBox(height: 16),
@@ -274,7 +278,12 @@ class _Terkirim extends StatelessWidget {
                 ),
               )
               .animate()
-              .moveY(begin: -120, end: -30, duration: 450.ms, curve: Curves.easeIn)
+              .moveY(
+                begin: -120,
+                end: -30,
+                duration: 450.ms,
+                curve: Curves.easeIn,
+              )
               .scaleXY(end: 0.1, delay: 250.ms, duration: 300.ms)
               .fadeOut(delay: 450.ms, duration: 150.ms),
         ],

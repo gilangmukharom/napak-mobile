@@ -6,6 +6,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
@@ -32,7 +34,7 @@ class JejakNusantaraPage extends ConsumerWidget {
     final jejak = ref.watch(jejakNusantaraProvider);
 
     return Scaffold(
-      backgroundColor: NapakColors.textPrimary,
+      backgroundColor: NapakColors.malam,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: NapakColors.textOnDeep,
@@ -56,24 +58,28 @@ class JejakNusantaraPage extends ConsumerWidget {
             ),
         ],
       ),
-      body: jejak.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: NapakColors.primary),
-        ),
-        error: (galat, _) => KosongHangat(
-          ikon: Icons.map_outlined,
-          judul: 'Petanya belum bisa digambar',
-          isi: galat.toString(),
-        ),
-        data: (j) => ListView(
-          padding: const EdgeInsets.only(bottom: 40),
-          children: [
-            _Angka(j: j),
-            const SizedBox(height: 8),
-            _PetaRasi(titik: j.titik),
-            const SizedBox(height: 8),
-            _DaftarProvinsi(j: j),
-          ],
+      body: LatarEkspedisi(
+        child: jejak.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: NapakColors.ember),
+          ),
+          error: (galat, _) => KosongHangat(
+            ikon: Icons.map_outlined,
+            judul: 'Petanya belum bisa digambar',
+            isi: galat.toString(),
+          ),
+          data: (j) => ListView(
+            padding: const EdgeInsets.only(bottom: 40),
+            children: [
+              _Angka(j: j),
+              const SizedBox(height: 8),
+              _PetaRasi(titik: j.titik),
+              const SizedBox(height: 10),
+              _Stempel(j: j),
+              const SizedBox(height: 12),
+              _DaftarProvinsi(j: j),
+            ],
+          ),
         ),
       ),
     );
@@ -89,8 +95,8 @@ class _Angka extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final gayaBesar = text.displayMedium?.copyWith(
-      color: NapakColors.textOnDeep,
-      fontWeight: FontWeight.w700,
+      color: NapakColors.ember,
+      fontWeight: FontWeight.w800,
     );
 
     return Padding(
@@ -102,23 +108,18 @@ class _Angka extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              AngkaBerjalan(
-                nilai: j.provinsiTerjejak.toDouble(),
-                desimal: 0,
-                gaya: gayaBesar,
-              ),
+              Odometer(nilai: j.provinsiTerjejak.toDouble(), gaya: gayaBesar),
               Text(
                 ' / ${j.totalProvinsi}',
                 style: text.headlineSmall?.copyWith(
-                  color: NapakColors.primary,
+                  color: NapakColors.emberRedup.withValues(alpha: 0.8),
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                'provinsi',
-                style: text.titleMedium?.copyWith(
-                  color: NapakColors.textOnDeep.withValues(alpha: 0.8),
-                ),
+              LabelKapital(
+                'Provinsi',
+                warna: NapakColors.base.withValues(alpha: 0.75),
+                ukuran: 12,
               ),
             ],
           ),
@@ -144,11 +145,66 @@ class _Angka extends StatelessWidget {
               builder: (context, t, _) => LinearProgressIndicator(
                 value: t,
                 minHeight: 6,
-                backgroundColor: NapakColors.textOnDeep.withValues(alpha: 0.1),
-                valueColor: const AlwaysStoppedAnimation(NapakColors.primary),
+                backgroundColor: NapakColors.kontur,
+                valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Stempel pencapaian, mendarat satu per satu seperti cap di halaman paspor.
+///
+/// Hanya yang benar-benar sudah dilewati yang dicap. Stempel untuk target
+/// yang belum tercapai akan berbohong tentang apa arti stempel.
+class _Stempel extends StatelessWidget {
+  const _Stempel({required this.j});
+
+  final JejakNusantara j;
+
+  /// Tahun perjalanan paling awal yang pernah menjejak sebuah provinsi.
+  static int? _tahunPertama(JejakNusantara j) {
+    int? paling;
+    for (final p in j.sudah) {
+      final t = p.pertama?.year;
+      if (t != null && (paling == null || t < paling)) paling = t;
+    }
+    return paling;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cap = <({String teks, String? bawah})>[
+      if (j.provinsiTerjejak > 0)
+        (
+          teks: '${j.provinsiTerjejak} provinsi',
+          bawah: j.provinsiTerjejak >= j.totalProvinsi
+              ? 'Nusantara tuntas'
+              : 'terjejak',
+        ),
+      if (j.kotaTerjejak > 0)
+        (teks: '${j.kotaTerjejak} kota', bawah: 'dilewati'),
+      if (_tahunPertama(j) != null)
+        (teks: 'Sejak ${_tahunPertama(j)}', bawah: 'menjejak'),
+    ];
+    if (cap.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 12,
+        children: [
+          for (var i = 0; i < cap.length; i++)
+            StempelPencapaian(
+              teks: cap[i].teks,
+              keterangan: cap[i].bawah,
+              miring: i.isEven ? -0.06 : 0.05,
+              tunda: Duration(milliseconds: 220 * i),
+            ),
         ],
       ),
     );
@@ -414,13 +470,17 @@ class _DaftarProvinsi extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 22),
       decoration: BoxDecoration(
-        color: NapakColors.base,
-        borderRadius: BorderRadius.circular(26),
+        color: NapakColors.malamNaik.withValues(alpha: 0.86),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: NapakColors.kontur),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Provinsi yang pernah kamu injak', style: text.titleMedium),
+          const LabelKapital(
+            'Provinsi yang pernah kamu injak',
+            warna: NapakColors.emberRedup,
+          ),
           const SizedBox(height: 14),
           for (var i = 0; i < j.sudah.length; i++)
             MunculBertahap(
@@ -429,12 +489,16 @@ class _DaftarProvinsi extends StatelessWidget {
             ),
           if (j.belum.isNotEmpty) ...[
             const SizedBox(height: 22),
-            Text('Masih menunggu', style: text.titleMedium),
-            const SizedBox(height: 4),
+            const PemisahJalur(warna: NapakColors.kontur),
+            const SizedBox(height: 18),
+            LabelKapital('Masih menunggu', warna: putih.withValues(alpha: 0.6)),
+            const SizedBox(height: 6),
             Text(
               'Bukan daftar tugas. Sekadar pengingat bahwa Nusantara masih '
               'luas.',
-              style: text.bodySmall,
+              style: text.bodySmall?.copyWith(
+                color: putih.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -444,12 +508,10 @@ class _DaftarProvinsi extends StatelessWidget {
                 for (var i = 0; i < j.belum.length; i++)
                   Chip(
                         label: Text(j.belum[i]),
-                        backgroundColor: NapakColors.softSky.withValues(
-                          alpha: 0.6,
-                        ),
-                        side: BorderSide.none,
+                        backgroundColor: Colors.transparent,
+                        side: const BorderSide(color: NapakColors.kontur),
                         labelStyle: text.labelMedium?.copyWith(
-                          color: NapakColors.textSecondary,
+                          color: putih.withValues(alpha: 0.55),
                         ),
                       )
                       .animate(delay: (25 * i).ms)
@@ -487,11 +549,17 @@ class _BarisProvinsi extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(p.nama, style: text.titleSmall)),
+              Expanded(
+                child: Text(
+                  p.nama,
+                  style: text.titleSmall?.copyWith(color: NapakColors.base),
+                ),
+              ),
               Text(
                 '${p.kota.length}/${p.totalKota}',
                 style: text.labelLarge?.copyWith(
-                  color: NapakColors.deepAccent,
+                  color: NapakColors.emberRedup,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ],
@@ -506,10 +574,8 @@ class _BarisProvinsi extends StatelessWidget {
               builder: (context, t, _) => LinearProgressIndicator(
                 value: t,
                 minHeight: 8,
-                backgroundColor: NapakColors.softSky,
-                valueColor: const AlwaysStoppedAnimation(
-                  NapakColors.deepAccent,
-                ),
+                backgroundColor: NapakColors.kontur,
+                valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
               ),
             ),
           ),
@@ -520,7 +586,9 @@ class _BarisProvinsi extends StatelessWidget {
               if (p.kota.length > 4) '+${p.kota.length - 4} lagi',
               if (p.pertama != null) 'sejak ${p.pertama!.year}',
             ].join(' · '),
-            style: text.bodySmall,
+            style: text.bodySmall?.copyWith(
+              color: NapakColors.base.withValues(alpha: 0.5),
+            ),
           ),
         ],
       ),

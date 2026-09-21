@@ -15,10 +15,8 @@ import '../../trips/data/trip_models.dart';
 /// begitu layarnya ditinggalkan. Membiarkan socket terbuka sepanjang aplikasi
 /// hidup berarti radio HP menyala tanpa alasan.
 class LiveLocationService {
-  LiveLocationService({
-    required String alamatDasar,
-    required this.ambilToken,
-  }) : _alamatSocket = _keAlamatSocket(alamatDasar);
+  LiveLocationService({required String alamatDasar, required this.ambilToken})
+    : _alamatSocket = _keAlamatSocket(alamatDasar);
 
   final String _alamatSocket;
 

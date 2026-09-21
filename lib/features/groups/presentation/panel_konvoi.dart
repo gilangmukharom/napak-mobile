@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
@@ -36,58 +38,73 @@ class PanelKonvoi extends StatelessWidget {
       duration: NapakMotion.sedang,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        color: adaTertinggal
-            ? NapakColors.attention.withValues(alpha: 0.10)
-            : NapakColors.softSky.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(22),
+        color: NapakColors.malam,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: adaTertinggal ? NapakColors.attention : NapakColors.kontur,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Icon(
-                adaTertinggal
-                    ? Icons.warning_amber_rounded
-                    : Icons.route_rounded,
-                size: 18,
-                color: adaTertinggal
-                    ? NapakColors.attention
-                    : NapakColors.deepAccent,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  adaTertinggal
-                      ? 'Ada yang tertinggal'
-                      : 'Rombongan rapat',
-                  style: text.titleSmall,
-                ),
-              ),
-              Text(
-                'rentang ${_jarak(kabar.rentangM)}',
-                style: text.bodySmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            height: 64,
-            child: LayoutBuilder(
-              builder: (context, batas) =>
-                  _Jalan(kabar: kabar, lebar: batas.maxWidth),
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.2, jumlahGaris: 3, benih: 29),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            [
-              '${depan.nama.split(' ').first} paling depan',
-              for (final b in kabar.barisan.skip(1))
-                b.hilangKontak
-                    ? '${b.nama.split(' ').first} belum terdengar kabarnya'
-                    : '${b.nama.split(' ').first} ${_jarak(b.selisihM)} di belakang',
-            ].join(' · '),
-            style: text.bodySmall,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    adaTertinggal
+                        ? Icons.warning_amber_rounded
+                        : Icons.route_rounded,
+                    size: 18,
+                    color: adaTertinggal
+                        ? NapakColors.attention
+                        : NapakColors.ember,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      adaTertinggal ? 'Ada yang tertinggal' : 'Rombongan rapat',
+                      style: text.titleSmall?.copyWith(
+                        color: NapakColors.base,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  LabelKapital(
+                    'rentang ${_jarak(kabar.rentangM)}',
+                    warna: NapakColors.emberRedup,
+                    ukuran: 10,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                height: 64,
+                child: LayoutBuilder(
+                  builder: (context, batas) =>
+                      _Jalan(kabar: kabar, lebar: batas.maxWidth),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                [
+                  '${depan.nama.split(' ').first} paling depan',
+                  for (final b in kabar.barisan.skip(1))
+                    b.hilangKontak
+                        ? '${b.nama.split(' ').first} belum terdengar kabarnya'
+                        : '${b.nama.split(' ').first} ${_jarak(b.selisihM)} di belakang',
+                ].join(' · '),
+                style: text.bodySmall?.copyWith(
+                  color: NapakColors.base.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -134,9 +151,8 @@ class _JalanState extends State<_Jalan> with SingleTickerProviderStateMixin {
           height: 12,
           child: AnimatedBuilder(
             animation: _marka,
-            builder: (context, _) => CustomPaint(
-              painter: _PelukisJalan(geser: _marka.value),
-            ),
+            builder: (context, _) =>
+                CustomPaint(painter: _PelukisJalan(geser: _marka.value)),
           ),
         ),
         for (final b in widget.kabar.barisan)
@@ -205,7 +221,10 @@ class _PelukisJalan extends CustomPainter {
       Offset.zero & size,
       const Radius.circular(6),
     );
-    canvas.drawRRect(aspal, Paint()..color = NapakColors.textPrimary.withValues(alpha: 0.12));
+    canvas.drawRRect(
+      aspal,
+      Paint()..color = NapakColors.kontur.withValues(alpha: 0.55),
+    );
 
     // Marka putus-putus bergerak ke kiri: rombongan melaju ke kanan.
     const panjang = 14.0;
@@ -216,7 +235,11 @@ class _PelukisJalan extends CustomPainter {
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
     final y = size.height / 2;
-    for (var x = -langkah + (1 - geser) * langkah; x < size.width; x += langkah) {
+    for (
+      var x = -langkah + (1 - geser) * langkah;
+      x < size.width;
+      x += langkah
+    ) {
       canvas.drawLine(
         Offset(math.max(0, x), y),
         Offset(math.min(size.width, x + panjang), y),

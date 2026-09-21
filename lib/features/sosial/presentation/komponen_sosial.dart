@@ -126,6 +126,7 @@ class IkonBerlencana extends StatelessWidget {
     required this.jumlah,
     required this.onTap,
     required this.label,
+    this.warna,
     super.key,
   });
 
@@ -133,6 +134,9 @@ class IkonBerlencana extends StatelessWidget {
   final int jumlah;
   final VoidCallback onTap;
   final String label;
+
+  /// Warna ikonnya. Di atas panorama malam beranda, ikon gelap hilang.
+  final Color? warna;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +146,7 @@ class IkonBerlencana extends StatelessWidget {
       icon: Stack(
         clipBehavior: Clip.none,
         children: [
-          Icon(ikon, color: NapakColors.textPrimary),
+          Icon(ikon, color: warna ?? NapakColors.textPrimary),
           Positioned(
             right: -8,
             top: -6,
@@ -273,8 +277,18 @@ String waktuSantai(DateTime waktu, {DateTime? sekarang}) {
   }
 
   const bulan = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-    'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
   ];
   final teks = '${waktu.day} ${bulan[waktu.month - 1]}';
   return waktu.year == kini.year ? teks : '$teks ${waktu.year}';

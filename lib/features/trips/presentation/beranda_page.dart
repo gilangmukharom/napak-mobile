@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
@@ -39,7 +42,7 @@ class BerandaPage extends ConsumerWidget {
         onRefresh: () async => ref.invalidate(tripListProvider),
         child: CustomScrollView(
           slivers: [
-            _Sapaan(nama: nama),
+            _Sapaan(nama: nama, trips: trips.value ?? const []),
             const SliverToBoxAdapter(child: _AntreanJejak()),
             const SliverToBoxAdapter(child: _Kenangan()),
             if (merekam.isRecording)
@@ -112,24 +115,47 @@ class BerandaPage extends ConsumerWidget {
 ///
 /// Judul besar memberi ruang bernapas saat halaman baru dibuka, lalu
 /// menyingkir sendiri begitu orang mulai membaca isinya.
-class _Sapaan extends ConsumerWidget {
-  const _Sapaan({required this.nama});
+/// Kepala beranda: panorama malam dengan punggungan gunung.
+///
+/// Versi pertama cuma sapaan dan nama di atas latar putih — rapi, dan tidak
+/// memberi tahu apa pun tentang aplikasi apa ini. Sekarang yang pertama
+/// terlihat adalah langit sebelum berangkat, jarak yang sudah ditempuh, dan
+/// gunung yang bergeser pelan saat daftar digulir.
+class _Sapaan extends ConsumerStatefulWidget {
+  const _Sapaan({required this.nama, required this.trips});
 
   final String? nama;
+  final List<Trip> trips;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_Sapaan> createState() => _SapaanState();
+}
+
+class _SapaanState extends ConsumerState<_Sapaan> {
+  @override
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final kabar = ref.watch(jumlahKabarProvider).value ?? 0;
     final pesan = (ref.watch(daftarObrolanProvider).value ?? const [])
         .fold<int>(0, (n, p) => n + p.belumDibaca);
+    final totalKm = widget.trips.fold<double>(0, (j, t) => j + t.distanceKm);
 
     return SliverAppBar(
+      pinned: true,
+      expandedHeight: 232,
+      backgroundColor: NapakColors.malam,
+      surfaceTintColor: Colors.transparent,
+      foregroundColor: NapakColors.base,
+      title: Text(
+        'Jejakmu',
+        style: text.titleLarge?.copyWith(color: NapakColors.base),
+      ),
       actions: [
         IkonBerlencana(
           ikon: Icons.forum_outlined,
           jumlah: pesan,
           label: 'Obrolan',
+          warna: NapakColors.base,
           onTap: () async {
             await context.push('/obrolan');
             ref.invalidate(daftarObrolanProvider);
@@ -139,6 +165,7 @@ class _Sapaan extends ConsumerWidget {
           ikon: Icons.notifications_none_rounded,
           jumlah: kabar,
           label: 'Kabar',
+          warna: NapakColors.base,
           onTap: () async {
             await context.push('/inbox');
             ref.invalidate(jumlahKabarProvider);
@@ -146,56 +173,132 @@ class _Sapaan extends ConsumerWidget {
         ),
         const SizedBox(width: 8),
       ],
-      backgroundColor: NapakColors.base,
-      surfaceTintColor: Colors.transparent,
-      pinned: true,
-      expandedHeight: 116,
-      elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-        title: Text(
-          'Jejakmu',
-          style: text.titleLarge?.copyWith(color: NapakColors.textPrimary),
+        collapseMode: CollapseMode.parallax,
+        background: _PanoramaMalam(
+          nama: widget.nama,
+          totalKm: totalKm,
+          jumlahPerjalanan: widget.trips.length,
         ),
-        background: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  _salam(),
-                  style: text.bodyMedium?.copyWith(
-                    color: NapakColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  nama ?? 'Penjejak',
-                  style: text.displaySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+      ),
+    );
+  }
+}
+
+class _PanoramaMalam extends StatelessWidget {
+  const _PanoramaMalam({
+    required this.nama,
+    required this.totalKm,
+    required this.jumlahPerjalanan,
+  });
+
+  final String? nama;
+  final double totalKm;
+  final int jumlahPerjalanan;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: NapakColors.langitSubuh,
+              stops: [0, 0.55, 1.35],
             ),
           ),
         ),
-      ),
+        // Matahari yang baru naik, di balik punggungan.
+        Positioned(
+          right: 44,
+          bottom: 52,
+          child:
+              Container(
+                    width: 74,
+                    height: 74,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: NapakColors.ember.withValues(alpha: 0.85),
+                      boxShadow: [
+                        BoxShadow(
+                          color: NapakColors.ember.withValues(alpha: 0.45),
+                          blurRadius: 60,
+                          spreadRadius: 18,
+                        ),
+                      ],
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .moveY(begin: 6, end: -6, duration: 6.seconds)
+                  .fade(begin: 0.82, end: 1, duration: 6.seconds),
+        ),
+        const IgnorePointer(child: KonturTopografi(opasitas: 0.18)),
+        const SiluetGunung(
+          warna: [Color(0xFF2E3B4E), NapakColors.malamNaik, NapakColors.malam],
+        ),
+        const ButiranKertas(opasitas: 0.04),
+
+        // Sapaan dan odometer, menempel di dasar panorama.
+        Positioned(
+          left: 20,
+          right: 20,
+          bottom: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LabelKapital(
+                _salam(),
+                warna: NapakColors.base.withValues(alpha: 0.7),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                nama ?? 'Penjejak',
+                style: text.headlineMedium?.copyWith(color: NapakColors.base),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Odometer(
+                    nilai: totalKm,
+                    desimal: totalKm < 100 ? 1 : 0,
+                    satuan: 'KM DITEMPUH',
+                    gaya: text.headlineSmall?.copyWith(
+                      color: NapakColors.ember,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Spacer(),
+                  LabelKapital(
+                    '$jumlahPerjalanan perjalanan',
+                    warna: NapakColors.base.withValues(alpha: 0.65),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
   static String _salam() {
     final jam = DateTime.now().hour;
-    if (jam < 11) return 'Selamat pagi,';
-    if (jam < 15) return 'Selamat siang,';
-    if (jam < 19) return 'Selamat sore,';
-    return 'Selamat malam,';
+    if (jam < 11) return 'Selamat pagi';
+    if (jam < 15) return 'Selamat siang';
+    if (jam < 19) return 'Selamat sore';
+    return 'Selamat malam';
   }
 }
 
-/// Pemberitahuan tenang saat ada jejak yang belum sempat terkirim.
 class _AntreanJejak extends ConsumerWidget {
   const _AntreanJejak();
 
@@ -352,7 +455,11 @@ class _SampulTrip extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0x40000000), Color(0x00000000), Color(0x59000000)],
+                colors: [
+                  Color(0x40000000),
+                  Color(0x00000000),
+                  Color(0x59000000),
+                ],
                 stops: [0, 0.45, 1],
               ),
             ),
@@ -411,10 +518,7 @@ class _KartuTrip extends StatelessWidget {
                   const Positioned(
                     top: 12,
                     left: 12,
-                    child: _Lencana(
-                      ikon: Icons.group_rounded,
-                      teks: 'Bareng',
-                    ),
+                    child: _Lencana(ikon: Icons.group_rounded, teks: 'Bareng'),
                   ),
               ],
             ),

@@ -5,9 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
 import '../../obrolan/data/obrolan_data.dart';
@@ -102,24 +103,28 @@ class _BilahAtas extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: NapakColors.base,
+      backgroundColor: NapakColors.malam,
       surfaceTintColor: Colors.transparent,
+      foregroundColor: NapakColors.base,
       automaticallyImplyLeading: bisaKembali,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (profil.diriSendiri)
-            const Icon(
+            Icon(
               Icons.lock_outline_rounded,
               size: 16,
-              color: NapakColors.textSecondary,
+              color: NapakColors.base.withValues(alpha: 0.6),
             ),
           if (profil.diriSendiri) const SizedBox(width: 6),
           Flexible(
             child: Text(
               profil.nama,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: NapakColors.base,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -157,51 +162,99 @@ class _Kepala extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final s = profil.statistik;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    // Halaman paspor: kanvas malam berkontur, stempel foto di kiri, angka
+    // perjalanan di kanan. Yang di bawahnya — kisi foto — tetap terang,
+    // jadi fotonya yang bersuara, bukan latarnya.
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: NapakColors.kanvasMalam,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              FotoProfil(
-                nama: profil.nama,
-                url: profil.fotoUrl,
-                ukuran: 88,
-                cincin: true,
-              ).animate().scaleXY(
-                begin: 0.8,
-                duration: NapakMotion.lambat,
-                curve: NapakMotion.memantul,
-              ),
-              const SizedBox(width: 18),
-              Expanded(
-                child: s == null
-                    ? const SizedBox.shrink()
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _Angka(nilai: s.perjalanan.toDouble(), label: 'perjalanan'),
-                          _Angka(nilai: s.km, label: 'km', desimal: s.km < 100 ? 1 : 0),
-                          _Angka(nilai: s.provinsi.toDouble(), label: 'provinsi'),
-                          _Angka(nilai: s.teman.toDouble(), label: 'teman'),
-                        ],
-                      ),
-              ),
-            ],
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.2, jumlahGaris: 4, benih: 9),
+            ),
           ),
-          const SizedBox(height: 14),
-          Text(profil.nama, style: text.titleMedium),
-          if (profil.bio != null) ...[
-            const SizedBox(height: 4),
-            Text(profil.bio!, style: text.bodyMedium?.copyWith(height: 1.4)),
-          ],
-          if (profil.kodeNapak != null) ...[
-            const SizedBox(height: 8),
-            _KepingKode(kode: profil.kodeNapak!),
-          ],
-          const SizedBox(height: 16),
-          _TombolAksi(profil: profil),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    FotoProfil(
+                      nama: profil.nama,
+                      url: profil.fotoUrl,
+                      ukuran: 88,
+                      cincin: true,
+                    ).animate().scaleXY(
+                      begin: 0.8,
+                      duration: NapakMotion.lambat,
+                      curve: NapakMotion.memantul,
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: s == null
+                          ? const SizedBox.shrink()
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                _Angka(
+                                  nilai: s.perjalanan.toDouble(),
+                                  label: 'perjalanan',
+                                ),
+                                _Angka(
+                                  nilai: s.km,
+                                  label: 'km',
+                                  desimal: s.km < 100 ? 1 : 0,
+                                ),
+                                _Angka(
+                                  nilai: s.provinsi.toDouble(),
+                                  label: 'provinsi',
+                                ),
+                                _Angka(
+                                  nilai: s.teman.toDouble(),
+                                  label: 'teman',
+                                ),
+                              ],
+                            ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  profil.nama,
+                  style: text.titleMedium?.copyWith(
+                    color: NapakColors.base,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (profil.bio != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    profil.bio!,
+                    style: text.bodyMedium?.copyWith(
+                      height: 1.4,
+                      color: NapakColors.base.withValues(alpha: 0.72),
+                    ),
+                  ),
+                ],
+                if (profil.kodeNapak != null) ...[
+                  const SizedBox(height: 10),
+                  _KepingKode(kode: profil.kodeNapak!),
+                ],
+                const SizedBox(height: 18),
+                _TombolAksi(profil: profil),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -220,12 +273,20 @@ class _Angka extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Column(
       children: [
-        AngkaBerjalan(
+        Odometer(
           nilai: nilai,
           desimal: desimal,
-          gaya: text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          gaya: text.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: NapakColors.ember,
+          ),
         ),
-        Text(label, style: text.bodySmall),
+        const SizedBox(height: 2),
+        LabelKapital(
+          label,
+          warna: NapakColors.base.withValues(alpha: 0.55),
+          ukuran: 9,
+        ),
       ],
     );
   }
@@ -249,20 +310,21 @@ class _KepingKode extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(999),
+          color: NapakColors.ember.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.45)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.tag_rounded, size: 14, color: NapakColors.deepAccent),
+            const Icon(Icons.tag_rounded, size: 14, color: NapakColors.ember),
             const SizedBox(width: 4),
             Text(
               kode,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: NapakColors.deepAccent,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w700,
+                color: NapakColors.ember,
+                letterSpacing: 2,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -377,7 +439,10 @@ class _TombolAksiState extends ConsumerState<_TombolAksi> {
     return Row(
       children: [
         Expanded(child: kiri),
-        if (kanan != null) ...[const SizedBox(width: 8), Expanded(child: kanan)],
+        if (kanan != null) ...[
+          const SizedBox(width: 8),
+          Expanded(child: kanan),
+        ],
       ],
     );
   }
@@ -406,6 +471,9 @@ class _Tombol extends StatelessWidget {
         Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
       ],
     );
+    // Tombolnya duduk di atas panel paspor yang gelap: yang utama diisi
+    // bara, sisanya cuma garis. Tombol tonal pastel di sana terbaca seperti
+    // tambalan terang di tengah malam.
     final gaya = ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size.fromHeight(40)),
       padding: const WidgetStatePropertyAll(
@@ -416,8 +484,24 @@ class _Tombol extends StatelessWidget {
       ),
     );
     return utama
-        ? FilledButton(onPressed: onTap, style: gaya, child: anak)
-        : FilledButton.tonal(onPressed: onTap, style: gaya, child: anak);
+        ? FilledButton(
+            onPressed: onTap,
+            style: gaya.copyWith(
+              backgroundColor: const WidgetStatePropertyAll(NapakColors.ember),
+              foregroundColor: const WidgetStatePropertyAll(NapakColors.malam),
+            ),
+            child: anak,
+          )
+        : OutlinedButton(
+            onPressed: onTap,
+            style: gaya.copyWith(
+              foregroundColor: const WidgetStatePropertyAll(NapakColors.base),
+              side: const WidgetStatePropertyAll(
+                BorderSide(color: NapakColors.kontur),
+              ),
+            ),
+            child: anak,
+          );
   }
 }
 
@@ -622,7 +706,9 @@ class _KisiDokumentasi extends ConsumerWidget {
           return SliverToBoxAdapter(
             child: KosongHangat(
               ikon: Icons.photo_camera_back_outlined,
-              judul: diriSendiri ? 'Belum ada dokumentasi' : 'Belum ada yang dipajang',
+              judul: diriSendiri
+                  ? 'Belum ada dokumentasi'
+                  : 'Belum ada yang dipajang',
               isi: diriSendiri
                   ? 'Foto dan video yang kamu ambil saat singgah akan tersusun di sini.'
                   : 'Perjalanan yang dia pajang akan muncul di sini.',
@@ -640,14 +726,15 @@ class _KisiDokumentasi extends ConsumerWidget {
             childAspectRatio: 3 / 4,
           ),
           itemCount: daftar.length,
-          itemBuilder: (context, i) => _Petak(
-            d: daftar[i],
-            diriSendiri: diriSendiri,
-            onTap: () => PenampilMedia.buka(context, media, i),
-          )
-              .animate(delay: (30 * (i % 12)).ms)
-              .fadeIn(duration: NapakMotion.sedang)
-              .scaleXY(begin: 0.92, curve: NapakMotion.mengalir),
+          itemBuilder: (context, i) =>
+              _Petak(
+                    d: daftar[i],
+                    diriSendiri: diriSendiri,
+                    onTap: () => PenampilMedia.buka(context, media, i),
+                  )
+                  .animate(delay: (30 * (i % 12)).ms)
+                  .fadeIn(duration: NapakMotion.sedang)
+                  .scaleXY(begin: 0.92, curve: NapakMotion.mengalir),
         );
       },
     );
@@ -655,7 +742,11 @@ class _KisiDokumentasi extends ConsumerWidget {
 }
 
 class _Petak extends StatelessWidget {
-  const _Petak({required this.d, required this.diriSendiri, required this.onTap});
+  const _Petak({
+    required this.d,
+    required this.diriSendiri,
+    required this.onTap,
+  });
 
   final Dokumentasi d;
   final bool diriSendiri;
@@ -780,7 +871,10 @@ class _DaftarPerjalanan extends ConsumerWidget {
                                   gradient: LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
-                                    colors: [Color(0x00000000), Color(0xB3000000)],
+                                    colors: [
+                                      Color(0x00000000),
+                                      Color(0xB3000000),
+                                    ],
                                     stops: [0.45, 1],
                                   ),
                                 ),
@@ -804,7 +898,8 @@ class _DaftarPerjalanan extends ConsumerWidget {
                                     Text(
                                       '${t.distanceKm.toStringAsFixed(t.distanceKm < 100 ? 1 : 0)} km',
                                       style: text.labelSmall?.copyWith(
-                                        color: NapakColors.textOnDeep.withValues(alpha: 0.85),
+                                        color: NapakColors.textOnDeep
+                                            .withValues(alpha: 0.85),
                                       ),
                                     ),
                                   ],
@@ -925,7 +1020,8 @@ class FotoProfil extends StatelessWidget {
               width: ukuran,
               height: ukuran,
               fit: BoxFit.cover,
-              errorBuilder: (c, e, s) => LingkaranNama(nama: nama, ukuran: ukuran),
+              errorBuilder: (c, e, s) =>
+                  LingkaranNama(nama: nama, ukuran: ukuran),
             ),
           );
 

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
@@ -41,7 +42,10 @@ class TemanPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: NapakColors.base,
-      appBar: AppBar(title: const Text('Teman')),
+      appBar: BilahEkspedisi(
+        judul: 'Teman',
+        keterangan: '${teman.value?.length ?? 0} seperjalanan',
+      ),
       body: RefreshIndicator(
         onRefresh: () => _segarkan(ref),
         child: ListView(
@@ -155,15 +159,23 @@ class _Judul extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(teks, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(width: 8),
+          LabelKapital(teks),
+          const SizedBox(width: 10),
           if (jumlah > 0)
-            Text(
-              '$jumlah',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: NapakColors.primary,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: NapakColors.ember.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: LabelKapital(
+                '$jumlah',
+                warna: NapakColors.ember,
+                ukuran: 10,
               ),
             ),
+          const SizedBox(width: 12),
+          const Expanded(child: PemisahJalur()),
         ],
       ),
     );
@@ -176,9 +188,8 @@ class _KartuKodeSaya extends ConsumerWidget {
 
   /// `ABCD2345` → `ABCD 2345`. Dua kelompok empat lebih mudah dibacakan
   /// lewat telepon daripada delapan huruf beruntun.
-  static String _berkelompok(String kode) => kode.length == 8
-      ? '${kode.substring(0, 4)} ${kode.substring(4)}'
-      : kode;
+  static String _berkelompok(String kode) =>
+      kode.length == 8 ? '${kode.substring(0, 4)} ${kode.substring(4)}' : kode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,114 +197,119 @@ class _KartuKodeSaya extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(22, 20, 14, 18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          colors: NapakColors.routeGradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: NapakColors.deepAccent.withValues(alpha: 0.25),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'KODE NAPAKMU',
-            style: text.labelSmall?.copyWith(
-              color: NapakColors.textOnDeep.withValues(alpha: 0.8),
-              letterSpacing: 2,
-              fontWeight: FontWeight.w700,
+          padding: const EdgeInsets.fromLTRB(22, 20, 14, 18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: const LinearGradient(
+              colors: NapakColors.routeGradient,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: kode.when(
-                  loading: () => Text(
-                    '···· ····',
-                    style: text.headlineMedium?.copyWith(
-                      color: NapakColors.textOnDeep,
-                    ),
-                  ),
-                  error: (e, _) => Text(
-                    'Belum bisa dimuat',
-                    style: text.bodyLarge?.copyWith(
-                      color: NapakColors.textOnDeep,
-                    ),
-                  ),
-                  // Hurufnya mendarat satu per satu, seperti papan jadwal
-                  // di stasiun.
-                  data: (k) => Row(
-                    children: [
-                      for (final (i, huruf) in _berkelompok(k).split('').indexed)
-                        Text(
-                              huruf,
-                              style: text.headlineMedium?.copyWith(
-                                color: NapakColors.textOnDeep,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 3,
-                              ),
-                            )
-                            .animate(delay: (45 * i).ms)
-                            .fadeIn(duration: 200.ms)
-                            .slideY(begin: -0.6, curve: NapakMotion.memantul),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Salin',
-                color: NapakColors.textOnDeep,
-                onPressed: kode.value == null
-                    ? null
-                    : () {
-                        Clipboard.setData(ClipboardData(text: kode.value!));
-                        HapticFeedback.lightImpact();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Kodemu tersalin.')),
-                        );
-                      },
-                icon: const Icon(Icons.copy_rounded),
-              ),
-              IconButton(
-                tooltip: 'Bagikan',
-                color: NapakColors.textOnDeep,
-                onPressed: kode.value == null
-                    ? null
-                    : () => SharePlus.instance.share(
-                        ShareParams(
-                          text:
-                              'Tambahkan aku di Napak biar bisa jalan bareng. '
-                              'Kodeku: ${_berkelompok(kode.value!)}',
-                        ),
-                      ),
-                icon: const Icon(Icons.ios_share_rounded),
+            boxShadow: [
+              BoxShadow(
+                color: NapakColors.deepAccent.withValues(alpha: 0.25),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Bagikan ke orang yang memang kamu kenal. Kode ini cuma '
-            'memperlihatkan namamu, bukan nomormu.',
-            style: text.bodySmall?.copyWith(
-              color: NapakColors.textOnDeep.withValues(alpha: 0.85),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'KODE NAPAKMU',
+                style: text.labelSmall?.copyWith(
+                  color: NapakColors.textOnDeep.withValues(alpha: 0.8),
+                  letterSpacing: 2,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: kode.when(
+                      loading: () => Text(
+                        '···· ····',
+                        style: text.headlineMedium?.copyWith(
+                          color: NapakColors.textOnDeep,
+                        ),
+                      ),
+                      error: (e, _) => Text(
+                        'Belum bisa dimuat',
+                        style: text.bodyLarge?.copyWith(
+                          color: NapakColors.textOnDeep,
+                        ),
+                      ),
+                      // Hurufnya mendarat satu per satu, seperti papan jadwal
+                      // di stasiun.
+                      data: (k) => Row(
+                        children: [
+                          for (final (i, huruf) in _berkelompok(
+                            k,
+                          ).split('').indexed)
+                            Text(
+                                  huruf,
+                                  style: text.headlineMedium?.copyWith(
+                                    color: NapakColors.textOnDeep,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 3,
+                                  ),
+                                )
+                                .animate(delay: (45 * i).ms)
+                                .fadeIn(duration: 200.ms)
+                                .slideY(
+                                  begin: -0.6,
+                                  curve: NapakMotion.memantul,
+                                ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Salin',
+                    color: NapakColors.textOnDeep,
+                    onPressed: kode.value == null
+                        ? null
+                        : () {
+                            Clipboard.setData(ClipboardData(text: kode.value!));
+                            HapticFeedback.lightImpact();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Kodemu tersalin.')),
+                            );
+                          },
+                    icon: const Icon(Icons.copy_rounded),
+                  ),
+                  IconButton(
+                    tooltip: 'Bagikan',
+                    color: NapakColors.textOnDeep,
+                    onPressed: kode.value == null
+                        ? null
+                        : () => SharePlus.instance.share(
+                            ShareParams(
+                              text:
+                                  'Tambahkan aku di Napak biar bisa jalan bareng. '
+                                  'Kodeku: ${_berkelompok(kode.value!)}',
+                            ),
+                          ),
+                    icon: const Icon(Icons.ios_share_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Bagikan ke orang yang memang kamu kenal. Kode ini cuma '
+                'memperlihatkan namamu, bukan nomormu.',
+                style: text.bodySmall?.copyWith(
+                  color: NapakColors.textOnDeep.withValues(alpha: 0.85),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ).animate().fadeIn(duration: NapakMotion.sedang).scaleXY(
-      begin: 0.96,
-      curve: NapakMotion.mengalir,
-    );
+        )
+        .animate()
+        .fadeIn(duration: NapakMotion.sedang)
+        .scaleXY(begin: 0.96, curve: NapakMotion.mengalir);
   }
 }
 
@@ -522,9 +538,9 @@ class _BarisPermintaanState extends ConsumerState<_BarisPermintaan> {
     } catch (error) {
       if (!mounted) return;
       setState(() => _jawaban = null);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -749,7 +765,11 @@ class _BarisTeman extends ConsumerWidget {
           children: [
             Hero(
               tag: 'foto-${teman.id}',
-              child: FotoProfil(nama: teman.nama, url: teman.fotoUrl, ukuran: 48),
+              child: FotoProfil(
+                nama: teman.nama,
+                url: teman.fotoUrl,
+                ukuran: 48,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(

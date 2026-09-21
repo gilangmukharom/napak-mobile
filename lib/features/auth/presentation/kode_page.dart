@@ -7,6 +7,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/theme/napak_theme.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 
 /// Layar kode OTP.
 ///
@@ -63,9 +66,9 @@ class _KodePageState extends ConsumerState<KodePage> {
       await ref.read(authRepositoryProvider).requestCode(widget.phoneNumber);
       _mulaiHitungMundur();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kode baru sudah dikirim.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Kode baru sudah dikirim.')));
     } catch (error) {
       if (!mounted) return;
       setState(() => _kesalahan = error.toString());
@@ -118,85 +121,169 @@ class _KodePageState extends ConsumerState<KodePage> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(leading: const BackButton()),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Cek SMS-mu', style: text.headlineMedium),
-              const SizedBox(height: 12),
-              Text(
-                'Kode enam angka sudah meluncur ke ${widget.phoneNumber}.',
-                style: text.bodyLarge?.copyWith(
-                  color: NapakColors.textSecondary,
+    const bingkai = OutlineInputBorder(
+      borderRadius: BorderRadius.all(Radius.circular(14)),
+      borderSide: BorderSide(color: NapakColors.kontur),
+    );
+
+    return Theme(
+      data: NapakTheme.gelap(),
+      child: Scaffold(
+        backgroundColor: NapakColors.malam,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: NapakColors.base,
+          leading: const BackButton(),
+        ),
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: NapakColors.langitSubuh,
+                  stops: [0, 0.5, 1.4],
                 ),
               ),
-              const SizedBox(height: 36),
-              TextField(
-                controller: _kodeController,
-                keyboardType: TextInputType.number,
-                autofocus: true,
-                textAlign: TextAlign.center,
-                maxLength: 6,
-                autofillHints: const [AutofillHints.oneTimeCode],
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: text.headlineMedium?.copyWith(letterSpacing: 14),
-                decoration: InputDecoration(
-                  counterText: '',
-                  hintText: '······',
-                  hintStyle: text.headlineMedium?.copyWith(
-                    letterSpacing: 14,
-                    color: NapakColors.divider,
-                  ),
-                  errorText: _kesalahan,
+            ),
+            const IgnorePointer(child: KonturTopografi(opasitas: 0.14)),
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                heightFactor: 0.34,
+                child: SiluetGunung(
+                  warna: [NapakColors.malamNaik, NapakColors.malam],
                 ),
-                onChanged: (value) {
-                  if (value.length == 6) _periksa();
-                },
               ),
-              const SizedBox(height: 20),
-              Text('Namamu', style: text.titleMedium),
-              const SizedBox(height: 8),
-              Text(
-                'Dipakai kalau ini pertama kalinya kamu di Napak. '
-                'Bisa diganti kapan saja.',
-                style: text.bodySmall,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _namaController,
-                textCapitalization: TextCapitalization.words,
-                style: text.bodyLarge,
-                decoration: const InputDecoration(hintText: 'Nama panggilan'),
-              ),
-              const SizedBox(height: 28),
-              FilledButton(
-                onPressed: _memeriksa ? null : _periksa,
-                child: _memeriksa
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: NapakColors.textOnDeep,
-                        ),
-                      )
-                    : const Text('Masuk'),
-              ),
-              const SizedBox(height: 16),
-              Center(
-                child: _detikTersisa > 0
-                    ? Text('Bisa minta kode baru dalam $_waktu', style: text.bodySmall)
-                    : TextButton(
-                        onPressed: _kirimUlang,
-                        child: const Text('Kirim ulang kode'),
+            ),
+            const ButiranKertas(opasitas: 0.045),
+
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const LabelKapital(
+                      'Satu langkah lagi',
+                      warna: NapakColors.ember,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Cek SMS-mu',
+                      style: text.headlineMedium?.copyWith(
+                        color: NapakColors.base,
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Kode enam angka sudah meluncur ke '
+                      '${widget.phoneNumber}.',
+                      style: text.bodyLarge?.copyWith(
+                        color: NapakColors.base.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    TextField(
+                      controller: _kodeController,
+                      keyboardType: TextInputType.number,
+                      autofocus: true,
+                      textAlign: TextAlign.center,
+                      maxLength: 6,
+                      autofillHints: const [AutofillHints.oneTimeCode],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      style: text.headlineMedium?.copyWith(
+                        letterSpacing: 14,
+                        color: NapakColors.ember,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      decoration: InputDecoration(
+                        counterText: '',
+                        filled: true,
+                        fillColor: NapakColors.malamNaik.withValues(alpha: 0.8),
+                        hintText: '······',
+                        hintStyle: text.headlineMedium?.copyWith(
+                          letterSpacing: 14,
+                          color: NapakColors.kontur,
+                        ),
+                        errorText: _kesalahan,
+                        enabledBorder: bingkai,
+                        focusedBorder: bingkai.copyWith(
+                          borderSide: const BorderSide(
+                            color: NapakColors.ember,
+                            width: 1.6,
+                          ),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        if (value.length == 6) _periksa();
+                      },
+                    ),
+                    const SizedBox(height: 22),
+                    const LabelKapital('Namamu'),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Dipakai kalau ini pertama kalinya kamu di Napak. '
+                      'Bisa diganti kapan saja.',
+                      style: text.bodySmall?.copyWith(
+                        color: NapakColors.base.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _namaController,
+                      textCapitalization: TextCapitalization.words,
+                      style: text.bodyLarge?.copyWith(color: NapakColors.base),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: NapakColors.malamNaik.withValues(alpha: 0.8),
+                        hintText: 'Nama panggilan',
+                        enabledBorder: bingkai,
+                        focusedBorder: bingkai.copyWith(
+                          borderSide: const BorderSide(
+                            color: NapakColors.ember,
+                            width: 1.6,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 26),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _memeriksa ? null : _periksa,
+                        child: _memeriksa
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: NapakColors.malam,
+                                ),
+                              )
+                            : const Text('Masuk'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: _detikTersisa > 0
+                          ? LabelKapital(
+                              'Kode baru dalam $_waktu',
+                              warna: NapakColors.base.withValues(alpha: 0.45),
+                            )
+                          : TextButton(
+                              onPressed: _kirimUlang,
+                              child: const Text('Kirim ulang kode'),
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

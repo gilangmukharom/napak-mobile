@@ -85,11 +85,7 @@ class TripRepository {
   }) async {
     final data = await _api.post<Map<String, dynamic>>(
       '/trips',
-      body: {
-        'title': title,
-        'mode': mode.wire,
-        'retraceOf': ?retraceOf,
-      },
+      body: {'title': title, 'mode': mode.wire, 'retraceOf': ?retraceOf},
     );
     return Trip.fromJson(data);
   }

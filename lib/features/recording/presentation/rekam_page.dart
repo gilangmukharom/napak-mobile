@@ -10,6 +10,9 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
 import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/theme/napak_theme.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../peta/presentation/layanan_sheet.dart';
@@ -294,63 +297,75 @@ class _RekamPageState extends ConsumerState<RekamPage> {
       return const _TidakSedangMerekam();
     }
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: PetaRute(
-              controller: _peta,
-              jalur: [
-                // Rute lama digambar lebih dulu supaya berada di bawah, dan
-                // dengan warna pastel muda — ini bayangan masa lalu, bukan
-                // jejak yang sedang kamu buat.
-                if (rekaman.jejakLama.isNotEmpty)
+    // Seluruh layar rekam bertema malam: ini layar yang dibuka saat
+    // berangkat subuh dan dilihat sambil jalan, bukan layar yang dibaca
+    // sambil duduk.
+    return Theme(
+      data: NapakTheme.gelap(),
+      child: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: PetaRute(
+                controller: _peta,
+                jalur: [
+                  // Rute lama digambar lebih dulu supaya berada di bawah, dan
+                  // dengan warna pastel muda — ini bayangan masa lalu, bukan
+                  // jejak yang sedang kamu buat.
+                  if (rekaman.jejakLama.isNotEmpty)
+                    JalurRute(
+                      id: _jalurLama,
+                      warna: '#A8C8E8',
+                      titik: [
+                        for (final t in rekaman.jejakLama) LatLng(t.lat, t.lng),
+                      ],
+                    ),
                   JalurRute(
-                    id: _jalurLama,
-                    warna: '#A8C8E8',
+                    id: _jalurSesi,
                     titik: [
-                      for (final t in rekaman.jejakLama) LatLng(t.lat, t.lng),
+                      for (final t in rekaman.jejak) LatLng(t.lat, t.lng),
                     ],
                   ),
-                JalurRute(
-                  id: _jalurSesi,
-                  titik: [for (final t in rekaman.jejak) LatLng(t.lat, t.lng)],
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          // Peta memenuhi layar, jadi panel dibuat mengambang di atasnya —
-          // bukan memotongnya jadi kotak-kotak.
-          SafeArea(
-            child: Column(
-              children: [
-                _PanelAtas(
-                  judul: rekaman.title ?? 'Perjalanan',
-                  belumTerkirim: belumTerkirim,
-                ),
-                const Spacer(),
-                if (rekaman.menapakTilas != null)
-                  _KartuTilas(
-                    lama: rekaman.jejakLama,
-                    judulLama: rekaman.menapakTilas!.title,
-                    sudahBerjalan: _berjalan,
-                    jarakM: rekaman.jarakM,
-                    posisiSekarang: rekaman.latest == null
-                        ? null
-                        : (lat: rekaman.latest!.lat, lng: rekaman.latest!.lng),
+            // Peta memenuhi layar, jadi panel dibuat mengambang di atasnya —
+            // bukan memotongnya jadi kotak-kotak.
+            SafeArea(
+              child: Column(
+                children: [
+                  _PanelAtas(
+                    judul: rekaman.title ?? 'Perjalanan',
+                    belumTerkirim: belumTerkirim,
                   ),
-                _PanelBawah(
-                  berjalan: _berjalan,
-                  jejak: rekaman.recordedCount,
-                  onCatat: _catat,
-                  onSelesai: _selesai,
-                  onLayanan: () => LayananSheet.tampilkan(context),
-                ),
-              ],
+                  const Spacer(),
+                  if (rekaman.menapakTilas != null)
+                    _KartuTilas(
+                      lama: rekaman.jejakLama,
+                      judulLama: rekaman.menapakTilas!.title,
+                      sudahBerjalan: _berjalan,
+                      jarakM: rekaman.jarakM,
+                      posisiSekarang: rekaman.latest == null
+                          ? null
+                          : (
+                              lat: rekaman.latest!.lat,
+                              lng: rekaman.latest!.lng,
+                            ),
+                    ),
+                  _PanelBawah(
+                    berjalan: _berjalan,
+                    jejak: rekaman.recordedCount,
+                    jarakM: rekaman.jarakM,
+                    onCatat: _catat,
+                    onSelesai: _selesai,
+                    onLayanan: () => LayananSheet.tampilkan(context),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -465,6 +480,7 @@ class _PanelBawah extends StatelessWidget {
   const _PanelBawah({
     required this.berjalan,
     required this.jejak,
+    required this.jarakM,
     required this.onCatat,
     required this.onSelesai,
     required this.onLayanan,
@@ -472,6 +488,7 @@ class _PanelBawah extends StatelessWidget {
 
   final Duration berjalan;
   final int jejak;
+  final double jarakM;
   final VoidCallback onCatat;
   final VoidCallback onSelesai;
   final VoidCallback onLayanan;
@@ -480,69 +497,121 @@ class _PanelBawah extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: NapakColors.base.withValues(alpha: 0.96),
+        color: NapakColors.malam.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: NapakColors.kontur.withValues(alpha: 0.7)),
         boxShadow: [
           BoxShadow(
-            color: NapakColors.textPrimary.withValues(alpha: 0.1),
-            blurRadius: 26,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _Angka(
-                  nilai: _jam(berjalan),
-                  label: 'Berjalan',
-                  besar: true,
-                ),
-              ),
-              Container(width: 1, height: 42, color: NapakColors.divider),
-              Expanded(
-                child: _Angka(nilai: '$jejak', label: 'Jejak terekam'),
-              ),
-            ],
+          // Kontur di latar panel: permukaan gelap polos terbaca seperti
+          // kotak hitam; kontur membuatnya terbaca sebagai peta.
+          Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.22, jumlahGaris: 5, benih: 11),
+            ),
           ),
-          const SizedBox(height: 22),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onCatat,
-                  icon: const Icon(Icons.edit_note_rounded, size: 20),
-                  label: const Text('Catatan'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 20),
+            child: Column(
+              children: [
+                // Jarak diberi tempat paling besar dan diputar seperti odometer.
+                // Inilah angka yang sebenarnya ditunggu orang saat merekam.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Odometer(
+                      nilai: jarakM / 1000,
+                      desimal: 1,
+                      satuan: 'KM',
+                      gaya: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: NapakColors.ember,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Spacer(),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const LabelKapital('Berjalan'),
+                        const SizedBox(height: 2),
+                        Text(
+                          _jam(berjalan),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 18),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const LabelKapital('Jejak'),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$jejak',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 10),
-              // SPBU dan bengkel terdekat — satu ketukan, karena yang
-              // membutuhkannya biasanya sedang menepi dengan tergesa.
-              IconButton.filledTonal(
-                tooltip: 'Bensin & bengkel terdekat',
-                onPressed: onLayanan,
-                style: IconButton.styleFrom(
-                  backgroundColor: NapakColors.softSky,
-                  minimumSize: const Size(48, 48),
+                const SizedBox(height: 14),
+                const PemisahJalur(warna: NapakColors.kontur),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onCatat,
+                        icon: const Icon(Icons.edit_note_rounded, size: 20),
+                        label: const Text('Catatan'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // SPBU dan bengkel terdekat — satu ketukan, karena yang
+                    // membutuhkannya biasanya sedang menepi dengan tergesa.
+                    IconButton.filledTonal(
+                      tooltip: 'Bensin & bengkel terdekat',
+                      onPressed: onLayanan,
+                      style: IconButton.styleFrom(
+                        backgroundColor: NapakColors.softSky,
+                        minimumSize: const Size(48, 48),
+                      ),
+                      icon: const Icon(
+                        Icons.local_gas_station_rounded,
+                        color: NapakColors.deepAccent,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: onSelesai,
+                        icon: const Icon(Icons.stop_rounded, size: 20),
+                        label: const Text('Selesai'),
+                      ),
+                    ),
+                  ],
                 ),
-                icon: const Icon(
-                  Icons.local_gas_station_rounded,
-                  color: NapakColors.deepAccent,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onSelesai,
-                  icon: const Icon(Icons.stop_rounded, size: 20),
-                  label: const Text('Selesai'),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -554,34 +623,6 @@ class _PanelBawah extends StatelessWidget {
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     final dt = (d.inSeconds % 60).toString().padLeft(2, '0');
     return d.inHours > 0 ? '$j:$m:$dt' : '$m:$dt';
-  }
-}
-
-class _Angka extends StatelessWidget {
-  const _Angka({required this.nilai, required this.label, this.besar = false});
-
-  final String nilai;
-  final String label;
-  final bool besar;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Column(
-      children: [
-        Text(
-          nilai,
-          style: (besar ? text.displaySmall : text.headlineMedium)?.copyWith(
-            // Angka yang berubah tiap detik tidak boleh menggeser lebarnya
-            // sendiri — mata langsung menangkap kedutan seperti itu.
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: text.bodySmall),
-      ],
-    );
   }
 }
 

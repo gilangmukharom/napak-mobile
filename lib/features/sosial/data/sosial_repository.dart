@@ -161,9 +161,7 @@ class SosialRepository {
   // --- Jejak Nusantara ---
 
   Future<JejakNusantara> jejakNusantara() async {
-    final data = await _api.get<Map<String, dynamic>>(
-      '/recap/jejak-nusantara',
-    );
+    final data = await _api.get<Map<String, dynamic>>('/recap/jejak-nusantara');
     return JejakNusantara.fromJson(data);
   }
 }

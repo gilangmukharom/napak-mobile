@@ -71,8 +71,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: 'kode',
-            pageBuilder: (context, state) =>
-                GeserMasuk(child: KodePage(phoneNumber: state.extra! as String)),
+            pageBuilder: (context, state) => GeserMasuk(
+              child: KodePage(phoneNumber: state.extra! as String),
+            ),
           ),
         ],
       ),
@@ -121,16 +122,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/orang/:id',
-        pageBuilder: (context, state) => GeserMasuk(
-          child: ProfilPage(id: state.pathParameters['id']!),
-        ),
+        pageBuilder: (context, state) =>
+            GeserMasuk(child: ProfilPage(id: state.pathParameters['id']!)),
       ),
 
       // --- Halaman yang ditumpuk di atas tab ---
       GoRoute(
         path: '/trip/:id',
-        pageBuilder: (context, state) =>
-            GeserMasuk(child: TripDetailPage(tripId: state.pathParameters['id']!)),
+        pageBuilder: (context, state) => GeserMasuk(
+          child: TripDetailPage(tripId: state.pathParameters['id']!),
+        ),
         routes: [
           GoRoute(
             path: 'bareng',
@@ -167,10 +168,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               // Dibuka dari daftar membawa judulnya; dibuka dari tautan di
               // inbox tidak — halamannya tetap jalan, judulnya menyusul.
               final ekstra = state.extra;
-              final (judul, rombongan) = ekstra is ({
-                    String judul,
-                    bool rombongan,
-                  })
+              final (
+                judul,
+                rombongan,
+              ) = ekstra is ({String judul, bool rombongan})
                   ? (ekstra.judul, ekstra.rombongan)
                   : (null, false);
               return GeserMasuk(
@@ -191,9 +192,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: ':id',
-            pageBuilder: (context, state) => NaikMasuk(
-              child: KartuPosPage(id: state.pathParameters['id']!),
-            ),
+            pageBuilder: (context, state) =>
+                NaikMasuk(child: KartuPosPage(id: state.pathParameters['id']!)),
           ),
         ],
       ),

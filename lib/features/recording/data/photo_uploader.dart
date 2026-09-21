@@ -44,11 +44,8 @@ class PhotoUploader {
   );
 
   /// Foto atau video dari galeri.
-  Future<XFile?> dariGaleri() => _pemilih.pickMedia(
-    maxWidth: 2048,
-    maxHeight: 2048,
-    imageQuality: 82,
-  );
+  Future<XFile?> dariGaleri() =>
+      _pemilih.pickMedia(maxWidth: 2048, maxHeight: 2048, imageQuality: 82);
 
   /// Video pendek dari kamera.
   ///

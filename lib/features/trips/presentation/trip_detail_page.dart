@@ -10,6 +10,8 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/theme/napak_colors.dart';
+import '../../../core/theme/napak_tekstur.dart';
+import '../../../core/widgets/napak_ekspedisi.dart';
 import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
@@ -320,29 +322,56 @@ class _KepalaPeta extends StatelessWidget {
         const SizedBox(width: 8),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: titik.when(
-          loading: () => const PetaKosong(),
-          error: (_, _) => const PetaKosong(),
-          data: (daftar) => daftar.isEmpty
-              ? const PetaKosong()
-              // Peta muncul memudar, bukan berkedip masuk — tile-nya butuh
-              // waktu, dan kedipan itu yang paling terasa murah.
-              : TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: 1),
-                  duration: NapakMotion.lambat,
-                  curve: NapakMotion.mengalir,
-                  builder: (context, t, anak) =>
-                      Opacity(opacity: t, child: anak),
-                  child: PetaRute(
-                    controller: peta,
-                    jalur: [
-                      JalurRute(
-                        id: jalurId,
-                        titik: [for (final t in daftar) LatLng(t.lat, t.lng)],
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            titik.when(
+              loading: () => const PetaKosong(),
+              error: (_, _) => const PetaKosong(),
+              data: (daftar) => daftar.isEmpty
+                  ? const PetaKosong()
+                  // Peta muncul memudar, bukan berkedip masuk — tile-nya butuh
+                  // waktu, dan kedipan itu yang paling terasa murah.
+                  : TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: 1),
+                      duration: NapakMotion.lambat,
+                      curve: NapakMotion.mengalir,
+                      builder: (context, t, anak) =>
+                          Opacity(opacity: t, child: anak),
+                      child: PetaRute(
+                        controller: peta,
+                        jalur: [
+                          JalurRute(
+                            id: jalurId,
+                            titik: [
+                              for (final t in daftar) LatLng(t.lat, t.lng),
+                            ],
+                          ),
+                        ],
                       ),
+                    ),
+            ),
+
+            // Kerudung gelap di dua ujung: tombol di atas tetap terbaca di
+            // atas warna peta apa pun, dan bawahnya menyambung ke panel.
+            IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      NapakColors.malam.withValues(alpha: 0.45),
+                      Colors.transparent,
+                      Colors.transparent,
+                      NapakColors.malam.withValues(alpha: 0.5),
                     ],
+                    stops: const [0, 0.24, 0.62, 1],
                   ),
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -355,7 +384,7 @@ class _TombolBulat extends StatelessWidget {
   const _TombolBulat({
     required this.ikon,
     this.onTap,
-    this.warna = NapakColors.deepAccent,
+    this.warna = NapakColors.base,
   });
 
   final IconData ikon;
@@ -373,8 +402,9 @@ class _TombolBulat extends StatelessWidget {
           width: 36,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
-            color: NapakColors.base.withValues(alpha: 0.9),
+            color: NapakColors.malam.withValues(alpha: 0.72),
             shape: BoxShape.circle,
+            border: Border.all(color: NapakColors.base.withValues(alpha: 0.18)),
           ),
           child: Icon(ikon, size: 19, color: warna),
         ),
@@ -422,27 +452,7 @@ class _Ringkasan extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 22),
-          MunculBertahap(
-            indeks: 2,
-            child: Row(
-              children: [
-                _Angka(
-                  nilai: trip.distanceKm,
-                  desimal: 1,
-                  satuan: 'km',
-                  label: 'Ditempuh',
-                ),
-                const SizedBox(width: 12),
-                _Angka(
-                  nilai: trip.pointCount.toDouble(),
-                  satuan: '',
-                  label: 'Jejak',
-                ),
-                const SizedBox(width: 12),
-                _Teks(nilai: _durasi(trip), label: 'Lama'),
-              ],
-            ),
-          ),
+          MunculBertahap(indeks: 2, child: _PanelJarak(trip: trip)),
         ],
       ),
     );
@@ -459,86 +469,112 @@ class _Ringkasan extends StatelessWidget {
   }
 }
 
-class _Angka extends StatelessWidget {
-  const _Angka({
-    required this.nilai,
-    required this.satuan,
-    required this.label,
-    this.desimal = 0,
-  });
+/// Panel instrumen perjalanan: jarak, lama, jumlah jejak.
+///
+/// Sebelumnya tiga kartu biru pastel sejajar — terbaca sebagai tiga kotak
+/// informasi, bukan sebagai catatan perjalanan. Satu panel gelap berkontur
+/// membuat angkanya terbaca seperti odometer di dasbor, dan jaraknya —
+/// satu-satunya angka yang benar-benar ditunggu orang — dapat tempat
+/// terbesar.
+class _PanelJarak extends StatelessWidget {
+  const _PanelJarak({required this.trip});
 
-  final double nilai;
-  final String satuan;
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: NapakColors.malam,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: NapakColors.kontur),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.2, jumlahGaris: 4, benih: 7),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const LabelKapital('Ditempuh', warna: NapakColors.emberRedup),
+                const SizedBox(height: 4),
+                Odometer(
+                  nilai: trip.distanceKm,
+                  desimal: 1,
+                  satuan: 'KM',
+                  gaya: text.displaySmall?.copyWith(
+                    color: NapakColors.ember,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const PemisahJalur(warna: NapakColors.kontur),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    _Sel(label: 'Lama', nilai: _Ringkasan._durasi(trip)),
+                    Container(width: 1, height: 30, color: NapakColors.kontur),
+                    _Sel(label: 'Jejak', nilai: '${trip.pointCount}'),
+                    Container(width: 1, height: 30, color: NapakColors.kontur),
+                    _Sel(
+                      label: 'Berangkat',
+                      nilai: trip.startedAt == null
+                          ? '—'
+                          : DateFormat('HH.mm').format(trip.startedAt!),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Sel extends StatelessWidget {
+  const _Sel({required this.label, required this.nilai});
+
   final String label;
-  final int desimal;
+  final String nilai;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-        decoration: BoxDecoration(
-          color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            FittedBox(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  AngkaBerjalan(
-                    nilai: nilai,
-                    desimal: desimal,
-                    gaya: text.titleLarge,
-                  ),
-                  if (satuan.isNotEmpty)
-                    Text(' $satuan', style: text.bodySmall),
-                ],
+      child: Column(
+        children: [
+          LabelKapital(
+            label,
+            warna: NapakColors.base.withValues(alpha: 0.5),
+            ukuran: 10,
+          ),
+          const SizedBox(height: 4),
+          FittedBox(
+            child: Text(
+              nilai,
+              style: text.titleLarge?.copyWith(
+                color: NapakColors.base,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(label, style: text.bodySmall),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Teks extends StatelessWidget {
-  const _Teks({required this.nilai, required this.label});
-
-  final String nilai;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
-        decoration: BoxDecoration(
-          color: NapakColors.softSky,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            FittedBox(child: Text(nilai, style: text.titleLarge)),
-            const SizedBox(height: 4),
-            Text(label, style: text.bodySmall),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Dua hal yang bisa dilakukan dengan perjalanan yang sudah terekam.
 class _BarisAksi extends StatelessWidget {
   const _BarisAksi({required this.trip});
 

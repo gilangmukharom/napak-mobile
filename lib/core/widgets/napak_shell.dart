@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/napak_colors.dart';
 import '../theme/napak_motion.dart';
+import '../theme/napak_tekstur.dart';
 import '../../features/recording/application/recording_controller.dart';
+
 import 'napak_pressable.dart';
 
 /// Rangka utama aplikasi: isi halaman di atas, navigasi di bawah.
@@ -14,15 +16,21 @@ import 'napak_pressable.dart';
 /// Menaruh tombol "Mulai merekam" di pojok kanan atas berarti meminta orang
 /// memindahkan genggaman di atas motor.
 ///
-/// Yang diambil hanya mekanikanya. Warnanya tetap Napak: latar nyaris putih,
-/// aksen biru pastel, tanpa satu pun titik merah pemberitahuan.
+/// Yang diambil hanya mekanikanya. Bilahnya sendiri gelap seperti panel
+/// instrumen: layar di atasnya boleh terang, tapi kemudi aplikasi ini duduk
+/// di atas kanvas malam dengan satu titik bara sebagai penanda aktif.
 class NapakShell extends ConsumerWidget {
   const NapakShell({required this.child, super.key});
 
   final Widget child;
 
   static const _tab = [
-    (jalur: '/', ikon: Icons.route_outlined, aktif: Icons.route, label: 'Jejak'),
+    (
+      jalur: '/',
+      ikon: Icons.route_outlined,
+      aktif: Icons.route,
+      label: 'Jejak',
+    ),
     (
       jalur: '/bareng',
       ikon: Icons.group_outlined,
@@ -87,24 +95,43 @@ class _BilahBawah extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: NapakColors.base,
-        border: Border(top: BorderSide(color: NapakColors.divider)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 62,
-          child: Row(
-            children: [
-              _TombolTab(tab: tab[0], terpilih: terpilih == 0),
-              _TombolTab(tab: tab[1], terpilih: terpilih == 1),
-              _TombolRekam(merekam: merekam),
-              _TombolTab(tab: tab[2], terpilih: terpilih == 2),
-              _TombolTab(tab: tab[3], terpilih: terpilih == 3),
-            ],
+      decoration: BoxDecoration(
+        color: NapakColors.malam,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: const Border(top: BorderSide(color: NapakColors.kontur)),
+        boxShadow: [
+          BoxShadow(
+            color: NapakColors.malam.withValues(alpha: 0.28),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
-        ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // Kontur tipis di balik bilah: bahkan panel kemudinya pun peta.
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: KonturTopografi(opasitas: 0.16, jumlahGaris: 3, benih: 21),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: SizedBox(
+              height: 62,
+              child: Row(
+                children: [
+                  _TombolTab(tab: tab[0], terpilih: terpilih == 0),
+                  _TombolTab(tab: tab[1], terpilih: terpilih == 1),
+                  _TombolRekam(merekam: merekam),
+                  _TombolTab(tab: tab[2], terpilih: terpilih == 2),
+                  _TombolTab(tab: tab[3], terpilih: terpilih == 3),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -118,7 +145,9 @@ class _TombolTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final warna = terpilih ? NapakColors.deepAccent : NapakColors.textSecondary;
+    final warna = terpilih
+        ? NapakColors.ember
+        : NapakColors.base.withValues(alpha: 0.55);
 
     return Expanded(
       child: NapakPressable(
@@ -144,10 +173,24 @@ class _TombolTab extends StatelessWidget {
               duration: NapakMotion.cepat,
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                 color: warna,
-                fontWeight: terpilih ? FontWeight.w600 : FontWeight.w400,
-                fontSize: 11,
+                fontWeight: terpilih ? FontWeight.w800 : FontWeight.w500,
+                fontSize: 10,
+                letterSpacing: terpilih ? 1.4 : 0.8,
               ),
-              child: Text(tab.label),
+              child: Text(tab.label.toUpperCase()),
+            ),
+            const SizedBox(height: 3),
+            // Titik bara di bawah tab aktif: penanda posisi di peta, bukan
+            // bilah tebal yang menekan tata letaknya.
+            AnimatedContainer(
+              duration: NapakMotion.sedang,
+              curve: NapakMotion.memantul,
+              height: 3,
+              width: terpilih ? 14 : 0,
+              decoration: BoxDecoration(
+                color: NapakColors.ember,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ],
         ),
@@ -156,7 +199,7 @@ class _TombolTab extends StatelessWidget {
   }
 }
 
-/// Tombol tengah. Satu-satunya yang berwarna penuh di bilah ini.
+/// Tombol tengah. Satu-satunya yang berwarna bara penuh di bilah ini.
 ///
 /// Saat sedang merekam, ia berubah jadi penanda berdenyut yang membawa
 /// kembali ke perjalanan yang sedang berjalan — bukan tombol mulai lagi.
@@ -178,12 +221,21 @@ class _TombolRekam extends StatelessWidget {
             height: 46,
             width: 46,
             decoration: BoxDecoration(
-              color: merekam ? NapakColors.primary : NapakColors.deepAccent,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: merekam
+                    ? const [NapakColors.emberRedup, NapakColors.ember]
+                    : const [NapakColors.ember, Color(0xFFB96F38)],
+              ),
               borderRadius: BorderRadius.circular(merekam ? 23 : 16),
               boxShadow: [
                 BoxShadow(
-                  color: NapakColors.deepAccent.withValues(alpha: 0.22),
-                  blurRadius: 14,
+                  color: NapakColors.ember.withValues(
+                    alpha: merekam ? 0.55 : 0.32,
+                  ),
+                  blurRadius: merekam ? 22 : 14,
+                  spreadRadius: merekam ? 2 : 0,
                   offset: const Offset(0, 5),
                 ),
               ],
@@ -192,7 +244,7 @@ class _TombolRekam extends StatelessWidget {
                 ? const _DenyutRekam()
                 : const Icon(
                     Icons.add_rounded,
-                    color: NapakColors.textOnDeep,
+                    color: NapakColors.malam,
                     size: 26,
                   ),
           ),
@@ -227,15 +279,16 @@ class _DenyutRekamState extends State<_DenyutRekam>
     return Center(
       child: ScaleTransition(
         scale: _kendali.drive(
-          Tween(begin: 0.72, end: 1.0).chain(
-            CurveTween(curve: NapakMotion.masukKeluar),
-          ),
+          Tween(
+            begin: 0.72,
+            end: 1.0,
+          ).chain(CurveTween(curve: NapakMotion.masukKeluar)),
         ),
         child: Container(
           height: 16,
           width: 16,
           decoration: const BoxDecoration(
-            color: NapakColors.deepAccent,
+            color: NapakColors.malam,
             shape: BoxShape.circle,
           ),
         ),
