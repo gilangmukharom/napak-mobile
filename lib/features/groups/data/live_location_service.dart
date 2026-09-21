@@ -33,6 +33,7 @@ class LiveLocationService {
   final _galat = StreamController<String>.broadcast();
   final _tersambung = StreamController<bool>.broadcast();
   final _sinyal = StreamController<SinyalMasuk>.broadcast();
+  final _konvoi = StreamController<KabarKonvoi>.broadcast();
 
   /// Posisi teman seperjalanan yang masuk satu per satu.
   Stream<PosisiLangsung> get posisi => _posisi.stream;
@@ -44,6 +45,9 @@ class LiveLocationService {
 
   /// Sinyal satu ketuk dari teman seperjalanan.
   Stream<SinyalMasuk> get sinyal => _sinyal.stream;
+
+  /// Susunan barisan rombongan, dari server.
+  Stream<KabarKonvoi> get konvoi => _konvoi.stream;
 
   /// Buka sambungan dan mulai menonton peta bersama satu perjalanan.
   Future<void> tonton(String tripId) async {
@@ -84,6 +88,15 @@ class LiveLocationService {
       if (masuk != null) _sinyal.add(masuk);
     });
 
+    socket.on('konvoi:kabar', (data) {
+      if (data is! Map) return;
+      try {
+        _konvoi.add(KabarKonvoi.fromJson(Map<String, dynamic>.from(data)));
+      } catch (error) {
+        debugPrint('Kabar konvoi tidak terbaca: $error');
+      }
+    });
+
     socket.on('napak:error', (data) {
       if (data is Map && data['message'] is String) {
         _galat.add(data['message'] as String);
@@ -111,6 +124,7 @@ class LiveLocationService {
     required double lat,
     required double lng,
     double? speedMps,
+    double? jarakM,
   }) {
     _socket?.emit('position:share', {
       'tripId': tripId,
@@ -118,6 +132,9 @@ class LiveLocationService {
       'lng': lng,
       'at': DateTime.now().toUtc().toIso8601String(),
       'speedMps': ?speedMps,
+      // Jarak tempuh sejak berangkat. Barisan konvoi diukur dengan ini,
+      // bukan garis lurus — jalan tidak pernah lurus.
+      'jarakM': ?jarakM,
     });
   }
 
@@ -142,6 +159,7 @@ class LiveLocationService {
   Future<void> tutup() async {
     await putus();
     await _sinyal.close();
+    await _konvoi.close();
     await _posisi.close();
     await _galat.close();
     await _tersambung.close();

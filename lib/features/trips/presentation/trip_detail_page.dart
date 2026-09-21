@@ -15,7 +15,10 @@ import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
+import '../../obrolan/data/obrolan_data.dart';
 import '../../render/presentation/video_sheet.dart';
+import '../../sosial/presentation/kirim_kartu_pos_sheet.dart';
+import '../../sosial/presentation/undang_teman_sheet.dart';
 import '../data/trip_models.dart';
 import 'peta_rute.dart';
 
@@ -102,7 +105,10 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               ),
               error: (error, _) =>
                   SliverToBoxAdapter(child: _Galat(pesan: error.toString())),
-              data: (daftar) => _DaftarSinggahan(titik: daftar),
+              data: (daftar) => _DaftarSinggahan(
+                titik: daftar,
+                bolehKirim: data.isOwner,
+              ),
             ),
           ],
         ),
@@ -570,9 +576,78 @@ class _BarisAksi extends StatelessWidget {
                 ],
               ],
             ),
+            if (trip.mode == TripMode.group) ...[
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _TombolObrolanRombongan(trip: trip),
+                  ),
+                  if (trip.isOwner) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () =>
+                            UndangTemanSheet.tampilkan(context, trip.id),
+                        icon: const Icon(
+                          Icons.person_add_alt_1_outlined,
+                          size: 20,
+                        ),
+                        label: const Text('Undang'),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TombolObrolanRombongan extends ConsumerStatefulWidget {
+  const _TombolObrolanRombongan({required this.trip});
+
+  final Trip trip;
+
+  @override
+  ConsumerState<_TombolObrolanRombongan> createState() =>
+      _TombolObrolanRombonganState();
+}
+
+class _TombolObrolanRombonganState
+    extends ConsumerState<_TombolObrolanRombongan> {
+  bool _membuka = false;
+
+  Future<void> _buka() async {
+    setState(() => _membuka = true);
+    try {
+      final id = await ref
+          .read(obrolanRepositoryProvider)
+          .ruangPerjalanan(widget.trip.id);
+      if (!mounted) return;
+      await context.push(
+        '/obrolan/$id',
+        extra: (judul: widget.trip.title, rombongan: true),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) setState(() => _membuka = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: _membuka ? null : _buka,
+      icon: const Icon(Icons.forum_outlined, size: 20),
+      label: const Text('Obrolan'),
     );
   }
 }
@@ -582,9 +657,12 @@ class _BarisAksi extends StatelessWidget {
 /// Sisanya tidak ditampilkan satu per satu — perjalanan itu cerita, bukan
 /// daftar koordinat.
 class _DaftarSinggahan extends StatelessWidget {
-  const _DaftarSinggahan({required this.titik});
+  const _DaftarSinggahan({required this.titik, required this.bolehKirim});
 
   final List<TripPoint> titik;
+
+  /// Kartu pos hanya bisa dikirim dari perjalanan sendiri.
+  final bool bolehKirim;
 
   @override
   Widget build(BuildContext context) {
@@ -691,6 +769,25 @@ class _DaftarSinggahan extends StatelessWidget {
                             if (t.photoUrl != null) ...[
                               const SizedBox(height: 12),
                               _FotoSinggahan(url: t.photoUrl!),
+                              if (bolehKirim)
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton.icon(
+                                    onPressed: () =>
+                                        KirimKartuPosSheet.tampilkan(
+                                          context,
+                                          titikId: t.id,
+                                          fotoUrl: t.photoUrl!,
+                                        ),
+                                    icon: const Icon(
+                                      Icons.local_post_office_outlined,
+                                      size: 18,
+                                    ),
+                                    label: const Text(
+                                      'Kirim sebagai kartu pos',
+                                    ),
+                                  ),
+                                ),
                             ],
                             if (t.note != null) ...[
                               const SizedBox(height: 10),

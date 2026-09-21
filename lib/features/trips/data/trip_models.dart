@@ -366,6 +366,66 @@ class RenderJob {
 /// Tidak pernah disimpan — hanya dipakai menggambar penanda di peta selama
 /// aplikasinya terbuka, lalu hilang.
 @immutable
+/// Satu orang dalam barisan konvoi.
+class BarisKonvoi {
+  const BarisKonvoi({
+    required this.userId,
+    required this.nama,
+    required this.urutan,
+    required this.selisihM,
+    required this.tertinggal,
+    required this.hilangKontak,
+  });
+
+  factory BarisKonvoi.fromJson(Map<String, dynamic> json) => BarisKonvoi(
+    userId: json['userId'] as String,
+    nama: json['nama'] as String,
+    urutan: json['urutan'] as int,
+    selisihM: (json['selisihM'] as num).toDouble(),
+    tertinggal: json['tertinggal'] as bool? ?? false,
+    hilangKontak: json['hilangKontak'] as bool? ?? false,
+  );
+
+  final String userId;
+  final String nama;
+
+  /// 1 = paling depan.
+  final int urutan;
+
+  /// Jarak ke yang paling depan, diukur sepanjang jalan yang ditempuh.
+  final double selisihM;
+  final bool tertinggal;
+  final bool hilangKontak;
+}
+
+/// Susunan rombongan saat ini, dikirim server hanya saat ada yang berarti
+/// berubah — bukan tiap posisi masuk.
+class KabarKonvoi {
+  const KabarKonvoi({
+    required this.barisan,
+    required this.rentangM,
+    required this.pengumuman,
+  });
+
+  factory KabarKonvoi.fromJson(Map<String, dynamic> json) => KabarKonvoi(
+    barisan: [
+      for (final b in json['barisan'] as List<dynamic>)
+        BarisKonvoi.fromJson(b as Map<String, dynamic>),
+    ],
+    rentangM: (json['rentangM'] as num?)?.toDouble() ?? 0,
+    pengumuman: [
+      for (final p in (json['pengumuman'] as List<dynamic>? ?? const []))
+        (p as Map<String, dynamic>)['pesan'] as String,
+    ],
+  );
+
+  final List<BarisKonvoi> barisan;
+  final double rentangM;
+
+  /// Kalimat siap tampil untuk yang baru saja mulai tertinggal.
+  final List<String> pengumuman;
+}
+
 class PosisiLangsung {
   const PosisiLangsung({
     required this.userId,

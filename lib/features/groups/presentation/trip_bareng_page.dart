@@ -13,6 +13,7 @@ import '../../../core/widgets/napak_pressable.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
+import 'panel_konvoi.dart';
 
 final _tripProvider = FutureProvider.autoDispose.family<Trip, String>(
   (ref, tripId) => ref.watch(tripRepositoryProvider).detail(tripId),
@@ -106,6 +107,19 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
               children: [
+                // Barisan konvoi muncul begitu ada dua orang yang berbagi
+                // posisi — sebelum itu memang belum ada barisan.
+                AnimatedSize(
+                  duration: NapakMotion.sedang,
+                  curve: NapakMotion.mengalir,
+                  child: live.konvoi == null ||
+                          live.konvoi!.barisan.length < 2
+                      ? const SizedBox(width: double.infinity)
+                      : Padding(
+                          padding: const EdgeInsets.only(bottom: 22),
+                          child: PanelKonvoi(kabar: live.konvoi!),
+                        ),
+                ),
                 _PanelSinyal(tripId: widget.tripId, live: live),
                 const SizedBox(height: 22),
                 _KartuBerbagiPosisi(tripId: widget.tripId, live: live),

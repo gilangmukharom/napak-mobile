@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/providers.dart';
@@ -154,7 +155,9 @@ class _IsiRecap extends StatelessWidget {
               style: text.headlineSmall?.copyWith(height: 1.45),
             ),
           ),
-          const SizedBox(height: 34),
+          const SizedBox(height: 22),
+          const MunculBertahap(indeks: 0, child: _PintuNusantara()),
+          const SizedBox(height: 30),
 
           MunculBertahap(
             indeks: 1,
@@ -467,6 +470,57 @@ class _MemuatRecap extends StatelessWidget {
           SizedBox(height: 28),
           NapakSkeleton(tinggi: 84, radius: 20),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Pintu ke Jejak Nusantara: peta seumur hidup, bukan per tahun.
+class _PintuNusantara extends StatelessWidget {
+  const _PintuNusantara();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return NapakPressable(
+      onTap: () => context.push('/jejak-nusantara'),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
+        decoration: BoxDecoration(
+          color: NapakColors.textPrimary,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.auto_awesome, color: NapakColors.primary),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Jejak Nusantara',
+                    style: text.titleMedium?.copyWith(
+                      color: NapakColors.textOnDeep,
+                    ),
+                  ),
+                  Text(
+                    'Lihat kota-kota yang pernah kamu lewati menyala di peta.',
+                    style: text.bodySmall?.copyWith(
+                      color: NapakColors.textOnDeep.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: NapakColors.textOnDeep,
+            ),
+          ],
+        ),
       ),
     );
   }

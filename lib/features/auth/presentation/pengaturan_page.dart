@@ -109,6 +109,12 @@ class PengaturanPage extends ConsumerWidget {
             ),
           ),
 
+          const SizedBox(height: 26),
+          const MunculBertahap(
+            indeks: 1,
+            child: _PintuSosial(),
+          ),
+
           const SizedBox(height: 34),
           MunculBertahap(
             indeks: 1,
@@ -377,6 +383,81 @@ class _ButirPrivasi extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+/// Pintu ke teman, kotak pos, dan Jejak Nusantara.
+class _PintuSosial extends StatelessWidget {
+  const _PintuSosial();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _Pintu(
+            ikon: Icons.group_outlined,
+            label: 'Teman',
+            onTap: () => context.push('/teman'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _Pintu(
+            ikon: Icons.local_post_office_outlined,
+            label: 'Kotak pos',
+            onTap: () => context.push('/kartu-pos'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _Pintu(
+            ikon: Icons.auto_awesome_outlined,
+            label: 'Nusantara',
+            onTap: () => context.push('/jejak-nusantara'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Pintu extends StatelessWidget {
+  const _Pintu({required this.ikon, required this.label, required this.onTap});
+
+  final IconData ikon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: Column(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: NapakColors.softSky,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(ikon, color: NapakColors.deepAccent),
+              ),
+              const SizedBox(height: 8),
+              Text(label, style: Theme.of(context).textTheme.labelLarge),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -7,7 +7,13 @@ import '../../features/auth/presentation/masuk_page.dart';
 import '../../features/auth/presentation/pengaturan_page.dart';
 import '../../features/groups/presentation/bareng_page.dart';
 import '../../features/groups/presentation/trip_bareng_page.dart';
+import '../../features/obrolan/presentation/daftar_obrolan_page.dart';
+import '../../features/obrolan/presentation/obrolan_page.dart';
+import '../../features/recap/presentation/jejak_nusantara_page.dart';
 import '../../features/recap/presentation/recap_page.dart';
+import '../../features/sosial/presentation/inbox_page.dart';
+import '../../features/sosial/presentation/kartu_pos_page.dart';
+import '../../features/sosial/presentation/teman_page.dart';
 import '../../features/recording/presentation/mulai_rekam_page.dart';
 import '../../features/recording/presentation/rekam_page.dart';
 import '../../features/splash/presentation/splash_page.dart';
@@ -118,6 +124,62 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
         ],
+      ),
+
+      // --- Sisi sosial ---
+      GoRoute(
+        path: '/teman',
+        pageBuilder: (context, state) => GeserMasuk(child: const TemanPage()),
+      ),
+      GoRoute(
+        path: '/inbox',
+        pageBuilder: (context, state) => GeserMasuk(child: const InboxPage()),
+      ),
+      GoRoute(
+        path: '/obrolan',
+        pageBuilder: (context, state) =>
+            GeserMasuk(child: const DaftarObrolanPage()),
+        routes: [
+          GoRoute(
+            path: ':id',
+            pageBuilder: (context, state) {
+              // Dibuka dari daftar membawa judulnya; dibuka dari tautan di
+              // inbox tidak — halamannya tetap jalan, judulnya menyusul.
+              final ekstra = state.extra;
+              final (judul, rombongan) = ekstra is ({
+                    String judul,
+                    bool rombongan,
+                  })
+                  ? (ekstra.judul, ekstra.rombongan)
+                  : (null, false);
+              return GeserMasuk(
+                child: ObrolanPage(
+                  percakapanId: state.pathParameters['id']!,
+                  judul: judul,
+                  rombongan: rombongan,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/kartu-pos',
+        pageBuilder: (context, state) =>
+            GeserMasuk(child: const KotakPosPage()),
+        routes: [
+          GoRoute(
+            path: ':id',
+            pageBuilder: (context, state) => NaikMasuk(
+              child: KartuPosPage(id: state.pathParameters['id']!),
+            ),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/jejak-nusantara',
+        pageBuilder: (context, state) =>
+            NaikMasuk(child: const JejakNusantaraPage()),
       ),
 
       GoRoute(

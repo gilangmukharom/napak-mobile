@@ -9,7 +9,10 @@ import '../../../core/theme/napak_motion.dart';
 import '../../../core/widgets/napak_gerak.dart';
 import '../../../core/widgets/napak_pressable.dart';
 import '../../../core/widgets/napak_skeleton.dart';
+import '../../obrolan/data/obrolan_data.dart';
 import '../../recording/application/recording_controller.dart';
+import '../../sosial/data/sosial_repository.dart';
+import '../../sosial/presentation/komponen_sosial.dart';
 import '../data/trip_models.dart';
 import 'pratinjau_rute.dart';
 
@@ -109,16 +112,40 @@ class BerandaPage extends ConsumerWidget {
 ///
 /// Judul besar memberi ruang bernapas saat halaman baru dibuka, lalu
 /// menyingkir sendiri begitu orang mulai membaca isinya.
-class _Sapaan extends StatelessWidget {
+class _Sapaan extends ConsumerWidget {
   const _Sapaan({required this.nama});
 
   final String? nama;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
+    final kabar = ref.watch(jumlahKabarProvider).value ?? 0;
+    final pesan = (ref.watch(daftarObrolanProvider).value ?? const [])
+        .fold<int>(0, (n, p) => n + p.belumDibaca);
 
     return SliverAppBar(
+      actions: [
+        IkonBerlencana(
+          ikon: Icons.forum_outlined,
+          jumlah: pesan,
+          label: 'Obrolan',
+          onTap: () async {
+            await context.push('/obrolan');
+            ref.invalidate(daftarObrolanProvider);
+          },
+        ),
+        IkonBerlencana(
+          ikon: Icons.notifications_none_rounded,
+          jumlah: kabar,
+          label: 'Kabar',
+          onTap: () async {
+            await context.push('/inbox');
+            ref.invalidate(jumlahKabarProvider);
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
       backgroundColor: NapakColors.base,
       surfaceTintColor: Colors.transparent,
       pinned: true,

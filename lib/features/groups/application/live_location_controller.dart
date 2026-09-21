@@ -30,6 +30,7 @@ class LiveState {
     this.tersambung = false,
     this.berbagiSendiri = false,
     this.sinyal = const [],
+    this.konvoi,
     this.pesan,
   });
 
@@ -49,6 +50,9 @@ class LiveState {
   /// pintu belakang, lengkap dengan kewajiban retensi dan penghapusannya.
   final List<SinyalMasuk> sinyal;
 
+  /// Barisan rombongan terakhir. null sampai minimal dua orang berbagi posisi.
+  final KabarKonvoi? konvoi;
+
   final String? pesan;
 
   LiveState copyWith({
@@ -56,6 +60,7 @@ class LiveState {
     bool? tersambung,
     bool? berbagiSendiri,
     List<SinyalMasuk>? sinyal,
+    KabarKonvoi? konvoi,
     String? pesan,
     bool hapusPesan = false,
   }) => LiveState(
@@ -63,6 +68,7 @@ class LiveState {
     tersambung: tersambung ?? this.tersambung,
     berbagiSendiri: berbagiSendiri ?? this.berbagiSendiri,
     sinyal: sinyal ?? this.sinyal,
+    konvoi: konvoi ?? this.konvoi,
     pesan: hapusPesan ? null : (pesan ?? this.pesan),
   );
 }
@@ -93,6 +99,14 @@ class LiveLocationController extends Notifier<LiveState> {
       }),
       service.galat.listen((g) {
         state = state.copyWith(pesan: g);
+      }),
+      service.konvoi.listen((k) {
+        // Pengumuman tertinggal dimunculkan sebagai pesan, sekali — server
+        // sudah memastikan nama yang sama tidak disebut berulang.
+        state = state.copyWith(
+          konvoi: k,
+          pesan: k.pengumuman.isEmpty ? null : k.pengumuman.join(' '),
+        );
       }),
       service.sinyal.listen((m) {
         // Delapan terakhir saja. Yang lebih lama sudah tidak berguna untuk
@@ -173,6 +187,7 @@ class LiveLocationController extends Notifier<LiveState> {
             tripId: tripId,
             lat: terakhir.lat,
             lng: terakhir.lng,
+            jarakM: rekaman.jarakM,
           );
     });
   }
