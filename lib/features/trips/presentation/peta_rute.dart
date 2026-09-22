@@ -4,6 +4,9 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../../../core/config/tourvella_config.dart';
 import '../../../core/theme/tourvella_colors.dart';
 import '../data/trip_models.dart';
+import 'penanda_kendaraan.dart';
+
+export 'penanda_kendaraan.dart' show ModaPenanda;
 
 /// Satu garis rute di peta.
 ///
@@ -44,12 +47,20 @@ class PetaRute extends StatefulWidget {
     required this.jalur,
     this.interaktif = true,
     this.controller,
+    this.kendaraan = const {},
     super.key,
   });
 
   final List<JalurRute> jalur;
   final bool interaktif;
   final PetaRuteController? controller;
+
+  /// Jalur yang ujungnya sedang bergerak, dengan kendaraannya.
+  ///
+  /// Hanya untuk perjalanan yang sedang direkam. Ujung perjalanan yang sudah
+  /// selesai adalah tempat tujuan, bukan motor yang masih jalan — di sana
+  /// tetap titik biasa.
+  final Map<String, ModaPenanda> kendaraan;
 
   @override
   State<PetaRute> createState() => _PetaRuteState();
@@ -82,11 +93,20 @@ class PetaRuteController {
 class _PetaRuteState extends State<PetaRute> {
   static const _sumberUjung = 'tourvella-ujung';
   static const _lapisanUjung = 'tourvella-ujung-titik';
-  static const _sumberLangsung = 'tourvella-langsung';
-  static const _lapisanLangsung = 'tourvella-langsung-titik';
-  static const _lapisanNamaLangsung = 'tourvella-langsung-nama';
+  static const _sumberKendaraan = 'tourvella-kendaraan';
+  static const _lapisanRiak = 'tourvella-kendaraan-riak';
+  static const _lapisanKendaraan = 'tourvella-kendaraan-ikon';
+
+  /// Kendaraan sendiri memakai Deep Accent — biru yang sama dengan pangkal
+  /// garis rutenya, jadi terbaca sebagai "ujung jejakku".
+  static const _warnaKendaraanSendiri = '#5C87B0';
 
   MapLibreMapController? _map;
+  late final _luncuran = LuncuranKendaraan(gambar: _gambarKendaraan);
+  final _ikonTerdaftar = <String>{};
+  double _rasioPiksel = 3;
+  bool _sedangMenggambar = false;
+  Map<String, dynamic>? _bingkaiTertunda;
   late final Map<String, List<LatLng>> _titikPerJalur = {
     for (final j in widget.jalur) j.id: List.of(j.titik),
   };
@@ -103,10 +123,56 @@ class _PetaRuteState extends State<PetaRute> {
 
   @override
   void dispose() {
+    _luncuran.dispose();
     if (widget.controller?._state == this) {
       widget.controller?._state = null;
     }
     super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _rasioPiksel = MediaQuery.devicePixelRatioOf(context);
+  }
+
+  /// Mengirim satu bingkai kendaraan ke peta.
+  ///
+  /// Kalau bingkai sebelumnya belum selesai menyeberang ke peta native, yang
+  /// baru tidak diantrekan — hanya yang terbaru yang disimpan. Antrean
+  /// bingkai yang menumpuk berarti kendaraan yang tertinggal di belakang
+  /// posisinya sendiri.
+  Future<void> _gambarKendaraan(Map<String, dynamic> isi) async {
+    final map = _map;
+    if (map == null || !_siap) return;
+    if (_sedangMenggambar) {
+      _bingkaiTertunda = isi;
+      return;
+    }
+
+    _sedangMenggambar = true;
+    try {
+      for (final (moda, warna, cermin) in _luncuran.ikonDibutuhkan) {
+        final nama = namaIkonKendaraan(moda, warna, cermin);
+        if (!_ikonTerdaftar.add(nama)) continue;
+        await map.addImage(
+          nama,
+          await gambarPenandaKendaraan(
+            moda: moda,
+            warna: warna,
+            cermin: cermin,
+            rasioPiksel: _rasioPiksel,
+          ),
+        );
+      }
+      await map.setGeoJsonSource(_sumberKendaraan, isi);
+    } finally {
+      _sedangMenggambar = false;
+    }
+
+    final tertunda = _bingkaiTertunda;
+    _bingkaiTertunda = null;
+    if (tertunda != null) await _gambarKendaraan(tertunda);
   }
 
   Iterable<LatLng> get _semuaTitik => _titikPerJalur.values.expand((t) => t);
@@ -158,31 +224,57 @@ class _PetaRuteState extends State<PetaRute> {
       ),
     );
 
-    // Penanda posisi langsung, dipisah dari rute karena umurnya beda:
-    // rute permanen, posisi ini hilang begitu layarnya ditutup.
+    // Kendaraan: ujung jejak yang sedang direkam dan posisi langsung teman.
+    // Dipisah dari rute karena umurnya beda — rute permanen, kendaraan ini
+    // hilang begitu layarnya ditutup.
     await map.addSource(
-      _sumberLangsung,
+      _sumberKendaraan,
       GeojsonSourceProperties(data: _kosongFeatureCollection()),
     );
     await map.addCircleLayer(
-      _sumberLangsung,
-      _lapisanLangsung,
+      _sumberKendaraan,
+      _lapisanRiak,
       const CircleLayerProperties(
-        circleRadius: 9,
-        // Warna diambil dari properti tiap titik, jadi satu lapisan cukup
-        // untuk seluruh rombongan.
+        // Riak melebar dan memudar sekali tiap posisi baru masuk: tanda
+        // "masih jalan" tanpa animasi yang terus menyala.
+        circleRadius: [
+          'interpolate',
+          ['linear'],
+          ['get', 'riak'],
+          0,
+          18,
+          1,
+          38,
+        ],
+        circleOpacity: [
+          'interpolate',
+          ['linear'],
+          ['get', 'riak'],
+          0,
+          0.45,
+          1,
+          0,
+        ],
+        // Warna dari properti tiap kendaraan, jadi satu lapisan cukup untuk
+        // seluruh rombongan.
         circleColor: ['get', 'warna'],
-        circleStrokeWidth: 3,
-        circleStrokeColor: '#F5F9FC',
       ),
     );
     await map.addSymbolLayer(
-      _sumberLangsung,
-      _lapisanNamaLangsung,
+      _sumberKendaraan,
+      _lapisanKendaraan,
       const SymbolLayerProperties(
+        iconImage: ['get', 'ikon'],
+        iconRotate: ['get', 'putar'],
+        // Ikut berputar bersama peta: motor ke utara tetap menghadap utara
+        // saat petanya diputar.
+        iconRotationAlignment: 'map',
+        iconAllowOverlap: true,
+        iconIgnorePlacement: true,
         textField: ['get', 'nama'],
         textSize: 12,
-        textOffset: [0, 1.6],
+        textOffset: [0, 2.3],
+        textAllowOverlap: true,
         textColor: '#2E3B4E',
         textHaloColor: '#F5F9FC',
         textHaloWidth: 1.5,
@@ -190,6 +282,22 @@ class _PetaRuteState extends State<PetaRute> {
     );
 
     _siap = true;
+
+    // Kendaraan sendiri diletakkan di titik kedua terakhir lalu dijalankan ke
+    // ujungnya: arahnya langsung benar, dan layar dibuka dengan kendaraan
+    // yang bergerak, bukan ikon yang tertancap.
+    for (final MapEntry(key: jalurId, value: moda) in widget.kendaraan.entries) {
+      final titik = _titikPerJalur[jalurId] ?? const <LatLng>[];
+      for (final t in titik.skip(titik.length > 1 ? titik.length - 2 : 0)) {
+        _luncuran.atur(
+          'jalur:$jalurId',
+          posisi: t,
+          moda: moda,
+          warna: _warnaPerJalur[jalurId] ?? _warnaKendaraanSendiri,
+        );
+      }
+    }
+
     await _pasSemuaRute();
   }
 
@@ -254,6 +362,16 @@ class _PetaRuteState extends State<PetaRute> {
     await map.setGeoJsonSource('tourvella-rute-$jalurId', _garisGeoJson(jalurId));
     await map.setGeoJsonSource(_sumberUjung, _ujungGeoJson());
 
+    final moda = widget.kendaraan[jalurId];
+    if (moda != null) {
+      _luncuran.atur(
+        'jalur:$jalurId',
+        posisi: titik,
+        moda: moda,
+        warna: _warnaPerJalur[jalurId] ?? _warnaKendaraanSendiri,
+      );
+    }
+
     if (ikutiKamera) {
       await map.animateCamera(CameraUpdate.newLatLng(titik));
     }
@@ -263,26 +381,23 @@ class _PetaRuteState extends State<PetaRute> {
     Iterable<PosisiLangsung> posisi,
     Map<String, String> warnaPerAnggota,
   ) async {
-    final map = _map;
-    if (map == null || !_siap) return;
+    if (_map == null || !_siap) return;
 
-    await map.setGeoJsonSource(_sumberLangsung, {
-      'type': 'FeatureCollection',
-      'features': [
-        for (final p in posisi)
-          {
-            'type': 'Feature',
-            'properties': {
-              'nama': p.nama,
-              'warna': warnaPerAnggota[p.userId] ?? '#5C87B0',
-            },
-            'geometry': {
-              'type': 'Point',
-              'coordinates': [p.lng, p.lat],
-            },
-          },
-      ],
-    });
+    final ada = <String>{
+      for (final id in widget.kendaraan.keys) 'jalur:$id',
+    };
+    for (final p in posisi) {
+      final id = 'orang:${p.userId}';
+      ada.add(id);
+      _luncuran.atur(
+        id,
+        posisi: LatLng(p.lat, p.lng),
+        moda: ModaPenanda.dari(p.moda),
+        warna: warnaPerAnggota[p.userId] ?? _warnaKendaraanSendiri,
+        nama: p.nama,
+      );
+    }
+    _luncuran.sisakan(ada);
   }
 
   Future<void> _pasSemuaRute() async {
@@ -338,7 +453,8 @@ class _PetaRuteState extends State<PetaRute> {
       if (titik.isEmpty) continue;
 
       fitur.add(_titikFitur(titik.first, 'awal'));
-      if (titik.length > 1) {
+      // Ujung yang sedang bergerak sudah digambar sebagai kendaraan.
+      if (titik.length > 1 && !widget.kendaraan.containsKey(entry.key)) {
         fitur.add(_titikFitur(titik.last, 'akhir'));
       }
     }

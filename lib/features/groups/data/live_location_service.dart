@@ -123,6 +123,7 @@ class LiveLocationService {
     required double lng,
     double? speedMps,
     double? jarakM,
+    String? moda,
   }) {
     _socket?.emit('position:share', {
       'tripId': tripId,
@@ -130,6 +131,8 @@ class LiveLocationService {
       'lng': lng,
       'at': DateTime.now().toUtc().toIso8601String(),
       'speedMps': ?speedMps,
+      // Supaya teman melihat motor sebagai motor di petanya.
+      'moda': ?moda,
       // Jarak tempuh sejak berangkat. Barisan konvoi diukur dengan ini,
       // bukan garis lurus — jalan tidak pernah lurus.
       'jarakM': ?jarakM,

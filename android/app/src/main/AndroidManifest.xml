@@ -14,6 +14,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 
+    <!-- Intercom Trip Bareng. Mikrofon baru diminta saat orangnya mengetuk
+         "Gabung" di intercom; suaranya diteruskan ke rombongan dan tidak
+         pernah direkam. MODIFY_AUDIO_SETTINGS untuk mode panggilan (peredam
+         gema) dan headset Bluetooth di helm. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+
     <application
         android:label="Tourvella"
         android:name="${applicationName}"

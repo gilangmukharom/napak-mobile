@@ -49,6 +49,12 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
         ? 'Perjalanan ${DateFormat('d MMMM', 'id_ID').format(DateTime.now())}'
         : _judul.text.trim();
 
+    // Jenisnya ikut, bukan hanya id-nya: peta dan rombongan perlu tahu yang
+    // jalan itu motor atau mobil.
+    final kendaraan = (ref.read(garasiProvider('saya')).value ?? const [])
+        .where((k) => k.id == _kendaraanId)
+        .firstOrNull;
+
     await ref
         .read(recordingControllerProvider.notifier)
         .start(
@@ -56,6 +62,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
           mode: _mode,
           yangDisusuri: _yangDisusuri,
           kendaraanId: _kendaraanId,
+          modaKendaraan: kendaraan?.jenis.wire,
         );
 
     if (!mounted) return;

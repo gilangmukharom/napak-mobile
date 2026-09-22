@@ -28,7 +28,7 @@
 		<key>NSCameraUsageDescription</key>
 		<string>Untuk memotret singgahan perjalanan, foto profilmu, dan kendaraan di garasimu.</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>Untuk merekam suara saat kamu membuat video singgahan.</string>
+		<string>Untuk ngobrol lewat intercom dengan rombongan Trip Bareng, dan merekam suara di video singgahan. Suara intercom tidak pernah direkam.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Untuk memilih foto dan video singgahan dari galerimu.</string>
 		<!-- Perekaman harus tetap jalan saat aplikasi di latar belakang. -->
@@ -60,6 +60,8 @@
 		<array>
 			<string>location</string>
 			<string>fetch</string>
+			<!-- Intercom Trip Bareng tetap jalan saat HP dikunci di saku jaket. -->
+			<string>audio</string>
 		</array>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>

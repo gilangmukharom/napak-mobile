@@ -15,7 +15,11 @@ import '../../../core/theme/tourvella_theme.dart';
 import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/widgets/tourvella_gerak.dart';
 import '../../../core/widgets/tourvella_pressable.dart';
+import '../../groups/application/live_location_controller.dart';
+import '../../intercom/application/intercom_controller.dart';
+import '../../intercom/presentation/panel_intercom.dart';
 import '../../peta/presentation/layanan_sheet.dart';
+import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/susur_ulang.dart';
 import '../application/recording_controller.dart';
@@ -92,6 +96,13 @@ class _RekamPageState extends ConsumerState<RekamPage> {
     );
 
     if (yakin != true) return;
+
+    // Perjalanan yang ditutup tidak punya ruang suara lagi — mikrofon tidak
+    // boleh tetap tersambung ke sesuatu yang sudah selesai.
+    final tripId = ref.read(recordingControllerProvider).tripId;
+    if (ref.read(intercomControllerProvider).tripId == tripId) {
+      await ref.read(intercomControllerProvider.notifier).keluar();
+    }
 
     await ref.read(recordingControllerProvider.notifier).stop();
     if (!mounted) return;
@@ -297,6 +308,25 @@ class _RekamPageState extends ConsumerState<RekamPage> {
       return const _TidakSedangMerekam();
     }
 
+    // Trip Bareng: rombongan ikut tampil di peta yang dilihat sambil jalan,
+    // bukan hanya di layar Trip Bareng yang jarang dibuka di atas motor.
+    final tripId = rekaman.tripId!;
+    if (rekaman.bareng) {
+      ref.watch(liveLocationControllerProvider(tripId));
+      ref.listen(
+        liveLocationControllerProvider(tripId).select((s) => s.posisi),
+        (_, posisi) {
+          final warna = {
+            for (final m in ref.read(memberListProvider(tripId)).value ??
+                const <TripMember>[])
+              m.userId: m.routeColor,
+          };
+          _peta.perbaruiPosisiLangsung(posisi.values, warna);
+        },
+      );
+      ref.watch(memberListProvider(tripId));
+    }
+
     // Seluruh layar rekam bertema malam: ini layar yang dibuka saat
     // berangkat subuh dan dilihat sambil jalan, bukan layar yang dibaca
     // sambil duduk.
@@ -308,6 +338,11 @@ class _RekamPageState extends ConsumerState<RekamPage> {
             Positioned.fill(
               child: PetaRute(
                 controller: _peta,
+                // Tanpa kendaraan dari garasi dan sebelum kecepatannya
+                // terbaca, anggap motor: untuk siapa aplikasi ini dibuat.
+                kendaraan: {
+                  _jalurSesi: ModaPenanda.dari(rekaman.moda ?? 'motor'),
+                },
                 jalur: [
                   // Rute lama digambar lebih dulu supaya berada di bawah, dan
                   // dengan warna pastel muda — ini bayangan masa lalu, bukan
@@ -352,6 +387,11 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                               lat: rekaman.latest!.lat,
                               lng: rekaman.latest!.lng,
                             ),
+                    ),
+                  if (rekaman.bareng)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                      child: PanelIntercom(tripId: tripId),
                     ),
                   _PanelBawah(
                     berjalan: _berjalan,

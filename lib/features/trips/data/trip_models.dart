@@ -229,6 +229,7 @@ class TripMember {
     required this.liveLocationEnabled,
     required this.distanceKm,
     required this.pointCount,
+    this.saya = false,
   });
 
   factory TripMember.fromJson(Map<String, dynamic> json) => TripMember(
@@ -239,7 +240,11 @@ class TripMember {
     liveLocationEnabled: json['liveLocationEnabled'] as bool? ?? false,
     distanceKm: (json['distanceKm'] as num?)?.toDouble() ?? 0,
     pointCount: json['pointCount'] as int? ?? 0,
+    saya: json['saya'] as bool? ?? false,
   );
+
+  /// Baris ini milikmu sendiri.
+  final bool saya;
 
   final String userId;
   final String name;
@@ -454,6 +459,7 @@ class PosisiLangsung {
     required this.lat,
     required this.lng,
     required this.pada,
+    this.moda,
   });
 
   factory PosisiLangsung.fromJson(Map<String, dynamic> json) => PosisiLangsung(
@@ -462,6 +468,7 @@ class PosisiLangsung {
     lat: (json['lat'] as num).toDouble(),
     lng: (json['lng'] as num).toDouble(),
     pada: DateTime.parse(json['at'] as String).toLocal(),
+    moda: json['moda'] as String?,
   );
 
   final String userId;
@@ -469,6 +476,10 @@ class PosisiLangsung {
   final double lat;
   final double lng;
   final DateTime pada;
+
+  /// Kendaraan yang dipakai (`motor`, `mobil`, ...). null dari aplikasi versi
+  /// lama — petanya menggambar panah arah, bukan menebak.
+  final String? moda;
 }
 
 /// Sinyal satu ketuk saat Trip Bareng.

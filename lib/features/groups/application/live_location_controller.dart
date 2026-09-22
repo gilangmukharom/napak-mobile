@@ -124,7 +124,25 @@ class LiveLocationController extends Notifier<LiveState> {
     });
 
     unawaited(service.tonton(tripId));
+    unawaited(_pulihkanBerbagi());
     return const LiveState();
+  }
+
+  /// Izin berbagi posisi disimpan di server per sesi. Kalau sudah menyala,
+  /// pengirimannya dilanjutkan — controller ini hidup selama layarnya
+  /// terbuka, dan pindah dari layar Trip Bareng ke layar rekam tidak boleh
+  /// diam-diam menghentikan posisimu padahal izinnya masih menyala.
+  Future<void> _pulihkanBerbagi() async {
+    try {
+      final anggota = await ref.read(tripRepositoryProvider).members(tripId);
+      final saya = anggota.where((m) => m.saya).firstOrNull;
+      if (!ref.mounted || saya == null || !saya.liveLocationEnabled) return;
+      state = state.copyWith(berbagiSendiri: true);
+      _mulaiMengirim();
+    } catch (_) {
+      // Gagal membaca daftar anggota: biarkan mati. Menyalakan diam-diam
+      // tanpa kepastian izin itu kebalikan dari yang dijanjikan.
+    }
   }
 
   /// Nyalakan atau matikan berbagi posisi.
@@ -188,6 +206,7 @@ class LiveLocationController extends Notifier<LiveState> {
             lat: terakhir.lat,
             lng: terakhir.lng,
             jarakM: rekaman.jarakM,
+            moda: rekaman.moda,
           );
     });
   }

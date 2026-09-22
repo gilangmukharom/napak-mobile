@@ -25,6 +25,8 @@ class RecordingState {
     this.jarakM = 0,
     this.jejakLama = const [],
     this.susurUlang,
+    this.moda,
+    this.bareng = false,
     this.mengunggahFoto = false,
     this.starting = false,
     this.izinDitolak = false,
@@ -63,6 +65,14 @@ class RecordingState {
   /// Judul dan tanggal perjalanan lama itu.
   final RingkasTrip? susurUlang;
 
+  /// Kendaraan yang sedang dipakai (`motor`, `mobil`, ...), untuk penanda di
+  /// peta dan dikirim ke rombongan. Dari garasi kalau dipilih, kalau tidak
+  /// ditebak dari kecepatan.
+  final String? moda;
+
+  /// Perjalanan ini Trip Bareng: layar rekam ikut menampilkan rombongan.
+  final bool bareng;
+
   /// Sedang mengirim foto singgahan. Unggahannya bisa lama di sinyal buruk,
   /// jadi layarnya perlu bisa mengatakan itu.
   final bool mengunggahFoto;
@@ -82,6 +92,8 @@ class RecordingState {
     double? jarakM,
     List<JejakLama>? jejakLama,
     RingkasTrip? susurUlang,
+    String? moda,
+    bool? bareng,
     bool? mengunggahFoto,
     bool? starting,
     bool? izinDitolak,
@@ -98,6 +110,8 @@ class RecordingState {
       jarakM: clearTrip ? 0 : (jarakM ?? this.jarakM),
       jejakLama: clearTrip ? const [] : (jejakLama ?? this.jejakLama),
       susurUlang: clearTrip ? null : (susurUlang ?? this.susurUlang),
+      moda: clearTrip ? null : (moda ?? this.moda),
+      bareng: clearTrip ? false : (bareng ?? this.bareng),
       mengunggahFoto: mengunggahFoto ?? this.mengunggahFoto,
       starting: starting ?? this.starting,
       izinDitolak: izinDitolak ?? this.izinDitolak,
@@ -127,6 +141,10 @@ class RecordingController extends Notifier<RecordingState> {
   Timer? _syncTimer;
   final _uuid = const Uuid();
 
+  /// Kendaraan dari garasi yang dipilih saat berangkat. Kalau ada, tebakan
+  /// dari kecepatan tidak dipakai — motor yang terjebak macet tetap motor.
+  String? _modaDipilih;
+
   @override
   RecordingState build() {
     ref.onDispose(() {
@@ -142,9 +160,11 @@ class RecordingController extends Notifier<RecordingState> {
     TripMode mode = TripMode.solo,
     Trip? yangDisusuri,
     String? kendaraanId,
+    String? modaKendaraan,
   }) async {
     if (state.isRecording || state.starting) return;
     state = state.copyWith(starting: true, clearMessage: true);
+    _modaDipilih = modaKendaraan;
 
     if (!await _ensureLocationPermission()) {
       state = state.copyWith(
@@ -183,6 +203,8 @@ class RecordingController extends Notifier<RecordingState> {
         title: trip.title,
         recordedCount: 0,
         starting: false,
+        moda: modaKendaraan,
+        bareng: mode == TripMode.group,
         jejakLama: lama,
         susurUlang: yangDisusuri == null
             ? null
@@ -206,7 +228,12 @@ class RecordingController extends Notifier<RecordingState> {
       state = state.copyWith(izinDitolak: true);
       return;
     }
-    state = state.copyWith(tripId: trip.id, title: trip.title);
+    _modaDipilih = null;
+    state = state.copyWith(
+      tripId: trip.id,
+      title: trip.title,
+      bareng: trip.mode == TripMode.group,
+    );
     _listenToPosition(trip.id);
     _startPeriodicSync();
   }
@@ -328,9 +355,20 @@ class RecordingController extends Notifier<RecordingState> {
             position.longitude,
           );
 
+    // Titik singgahan (catatan/foto) diambil saat berhenti; kecepatannya nol
+    // dan tidak berkata apa-apa soal kendaraannya.
+    final tebakan = note == null && photoUrl == null
+        ? _guessTransportMode(position.speed)
+        : null;
+
     state = state.copyWith(
       recordedCount: state.recordedCount + 1,
       jarakM: state.jarakM + tambahan,
+      moda:
+          _modaDipilih ??
+          (tebakan == null || tebakan == TransportMode.tidakDiketahui
+              ? null
+              : tebakan.wire),
       latest: (lat: position.latitude, lng: position.longitude, at: recordedAt),
       jejak: [
         ...state.jejak,

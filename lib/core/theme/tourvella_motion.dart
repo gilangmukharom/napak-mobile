@@ -29,6 +29,17 @@ abstract final class TourvellaMotion {
   /// Layar pembuka. Satu-satunya tempat Tourvella boleh menahan orang sebentar.
   static const pembuka = Duration(milliseconds: 2000);
 
+  /// Kendaraan di peta meluncur ke posisi barunya, bukan melompat.
+  ///
+  /// Posisi baru datang tiap belasan detik; sepanjang ini cukup untuk terbaca
+  /// sebagai gerak, dan cukup pendek supaya peta diam lagi — GeoJSON hanya
+  /// diperbarui selama luncuran berlangsung, tidak terus-menerus.
+  static const luncurKendaraan = Duration(milliseconds: 1400);
+
+  /// Jeda antar bingkai luncuran. 24 bingkai per detik: halus di mata, tapi
+  /// separuh beban 60 fps untuk jembatan ke peta native.
+  static const bingkaiPeta = Duration(milliseconds: 42);
+
   /// Jeda antar elemen pada daftar yang muncul bertahap.
   static const antreanDaftar = Duration(milliseconds: 55);
 
