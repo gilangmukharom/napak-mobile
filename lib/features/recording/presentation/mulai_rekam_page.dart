@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +14,10 @@ import '../../../core/theme/tourvella_colors.dart';
 import '../../../core/theme/tourvella_motion.dart';
 import '../../../core/widgets/tourvella_gerak.dart';
 import '../../../core/widgets/tourvella_pressable.dart';
+import '../../groups/data/simulasi_data.dart';
+import '../../navigasi/application/navigasi_controller.dart';
+import '../../navigasi/data/navigasi_data.dart';
+import '../../navigasi/presentation/pilih_tujuan_sheet.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/penanda_kendaraan.dart';
 import '../application/recording_controller.dart';
@@ -47,6 +54,13 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
   /// — untuk siapa aplikasi ini dibuat.
   ModaPenanda _moda = ModaPenanda.motor;
 
+  /// Mulai Trip Bareng sekalian dengan rombongan simulasi (pengembangan).
+  bool _simulasi = false;
+
+  /// Tujuan yang mau dipandu dengan suara. Boleh kosong — merekam jejak
+  /// tidak pernah mewajibkan tahu mau ke mana.
+  Tujuan? _tujuan;
+
   Future<void> _mulai() async {
     setState(() => _memulai = true);
 
@@ -69,6 +83,25 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
     setState(() => _memulai = false);
 
     if (state.isRecording) {
+      // Rombongan simulasi dinyalakan setelah perjalanannya ada, karena
+      // rekan palsunya bergabung ke perjalanan itu.
+      if (_simulasi && _mode == TripMode.group && state.tripId != null) {
+        try {
+          await ref.read(simulasiRepositoryProvider).mulai(state.tripId!);
+        } catch (_) {
+          // Gagal menyalakan simulasi tidak boleh menggagalkan perjalanan
+          // sungguhan yang sudah terlanjur dimulai.
+        }
+        if (!mounted) return;
+      }
+
+      final tujuan = _tujuan;
+      if (tujuan != null) {
+        // Rutenya dihitung dari posisi terakhir yang sudah dibaca perekam,
+        // jadi tidak perlu membangunkan GPS untuk kedua kalinya.
+        unawaited(_mulaiPandu(tujuan));
+      }
+
       // Menggantikan layar ini, bukan menumpuk — menekan kembali dari layar
       // perekaman semestinya pulang ke beranda, bukan kembali ke sini.
       context.pushReplacement('/rekam');
@@ -76,6 +109,31 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(state.message!)));
+    }
+  }
+
+  /// Menghitung rute lalu menyalakan panduan suara.
+  Future<void> _mulaiPandu(Tujuan tujuan) async {
+    try {
+      final posisi = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      final rute = await ref
+          .read(navigasiRepositoryProvider)
+          .hitung(
+            dariLat: posisi.latitude,
+            dariLng: posisi.longitude,
+            ke: tujuan,
+          );
+      await ref.read(navigasiControllerProvider.notifier).mulai(rute);
+    } catch (error) {
+      if (!mounted) return;
+      // Perjalanannya tetap terekam; yang gagal cuma panduannya.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Panduan ke ${tujuan.nama} gagal: $error')),
+      );
     }
   }
 
@@ -239,6 +297,33 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        // Alat pengembangan: muncul hanya kalau servernya
+                        // mengizinkan, dan hanya untuk Trip Bareng.
+                        AnimatedSize(
+                          duration: TourvellaMotion.sedang,
+                          curve: TourvellaMotion.mengalir,
+                          child:
+                              _mode == TripMode.group &&
+                                  (ref.watch(simulasiTersediaProvider).value ??
+                                      false)
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 18),
+                                  child: _SaklarSimulasi(
+                                    nyala: _simulasi,
+                                    onUbah: (v) =>
+                                        setState(() => _simulasi = v),
+                                  ),
+                                )
+                              : const SizedBox(width: double.infinity),
+                        ),
+                        const SizedBox(height: 22),
+                        MunculBertahap(
+                          indeks: 5,
+                          child: _PilihTujuan(
+                            tujuan: _tujuan,
+                            onPilih: (t) => setState(() => _tujuan = t),
                           ),
                         ),
                         const SizedBox(height: 28),
@@ -631,6 +716,153 @@ class _PilihSusurUlang extends ConsumerWidget {
 ///
 /// Tidak tampil sama sekali kalau garasinya kosong — layar ini sudah cukup
 /// berisi, dan orang yang belum punya garasi tidak perlu diingatkan.
+/// Pilih tujuan yang mau dipandu dengan suara.
+///
+/// Opsional, dan tetap opsional: Tourvella merekam cerita perjalanan, dan
+/// banyak perjalanan memang tidak punya tujuan yang diketik dulu.
+class _PilihTujuan extends StatelessWidget {
+  const _PilihTujuan({required this.tujuan, required this.onPilih});
+
+  final Tujuan? tujuan;
+  final ValueChanged<Tujuan?> onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final ada = tujuan != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const LabelKapital('Dipandu ke'),
+        const SizedBox(height: 10),
+        TourvellaPressable(
+          skala: 0.98,
+          onTap: () async {
+            final pilihan = await PilihTujuanSheet.tampilkan(context);
+            if (pilihan != null) onPilih(pilihan);
+          },
+          child: AnimatedContainer(
+            duration: TourvellaMotion.cepat,
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+            decoration: BoxDecoration(
+              color: TourvellaColors.malamNaik.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: ada ? TourvellaColors.ember : TourvellaColors.kontur,
+                width: ada ? 1.6 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  ada ? Icons.navigation_rounded : Icons.explore_outlined,
+                  size: 20,
+                  color: ada
+                      ? TourvellaColors.ember
+                      : TourvellaColors.base.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ada ? tujuan!.nama : 'Belum ditentukan',
+                        style: text.titleSmall?.copyWith(
+                          color: TourvellaColors.base,
+                        ),
+                      ),
+                      Text(
+                        ada
+                            ? 'Tourvella memandu dengan suara sepanjang jalan.'
+                            : 'Opsional — ketuk kalau mau dipandu suara.',
+                        style: text.bodySmall?.copyWith(
+                          color: TourvellaColors.base.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (ada)
+                  IconButton(
+                    tooltip: 'Batalkan tujuan',
+                    onPressed: () => onPilih(null),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: TourvellaColors.base.withValues(alpha: 0.7),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Saklar rombongan simulasi di layar berangkat.
+///
+/// Ditulis apa adanya sebagai alat pengembangan. Lima rekan palsu jauh lebih
+/// berguna daripada lima HP sungguhan saat sedang membangun konvoi, tapi
+/// tidak boleh sedetik pun terbaca sebagai teman betulan.
+class _SaklarSimulasi extends StatelessWidget {
+  const _SaklarSimulasi({required this.nyala, required this.onUbah});
+
+  final bool nyala;
+  final ValueChanged<bool> onUbah;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+      decoration: BoxDecoration(
+        color: TourvellaColors.malamNaik.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: nyala ? TourvellaColors.ember : TourvellaColors.kontur,
+          width: nyala ? 1.6 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.science_outlined,
+            size: 20,
+            color: nyala
+                ? TourvellaColors.ember
+                : TourvellaColors.base.withValues(alpha: 0.6),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Rombongan simulasi',
+                  style: text.titleSmall?.copyWith(
+                    color: TourvellaColors.base,
+                  ),
+                ),
+                Text(
+                  'Lima rekan palsu berjarak 50 m, untuk mencoba sendirian.',
+                  style: text.bodySmall?.copyWith(
+                    color: TourvellaColors.base.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(value: nyala, onChanged: onUbah),
+        ],
+      ),
+    );
+  }
+}
+
 /// Motor, matic, mobil, atau sepeda — selalu tampil, garasi kosong pun.
 ///
 /// Fotonya kendaraan sungguhan, supaya pilihan ini terasa seperti memilih

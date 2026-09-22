@@ -18,6 +18,8 @@ import '../../../core/widgets/tourvella_pressable.dart';
 import '../../groups/application/live_location_controller.dart';
 import '../../intercom/application/intercom_controller.dart';
 import '../../intercom/presentation/telepon_rombongan.dart';
+import '../../navigasi/application/navigasi_controller.dart';
+import '../../navigasi/presentation/panel_navigasi.dart';
 import '../../peta/presentation/layanan_sheet.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
@@ -45,6 +47,7 @@ class RekamPage extends ConsumerStatefulWidget {
 class _RekamPageState extends ConsumerState<RekamPage> {
   static const _jalurSesi = 'sesi';
   static const _jalurLama = 'lama';
+  static const _jalurNavigasi = 'navigasi';
 
   final _peta = PetaRuteController();
   Timer? _detak;
@@ -102,6 +105,12 @@ class _RekamPageState extends ConsumerState<RekamPage> {
     final tripId = ref.read(recordingControllerProvider).tripId;
     if (ref.read(intercomControllerProvider).tripId == tripId) {
       await ref.read(intercomControllerProvider.notifier).keluar();
+    }
+
+    // Begitu juga panduan suaranya: perjalanan selesai, tidak ada lagi yang
+    // perlu dipandu, dan GPS rapat untuk navigasi tidak perlu terus menyala.
+    if (ref.read(navigasiControllerProvider).aktif) {
+      await ref.read(navigasiControllerProvider.notifier).berhenti();
     }
 
     await ref.read(recordingControllerProvider.notifier).stop();
@@ -308,6 +317,16 @@ class _RekamPageState extends ConsumerState<RekamPage> {
       return const _TidakSedangMerekam();
     }
 
+    // Rute navigasi digambar di peta, dan digambar ulang sendiri kalau
+    // rutenya dihitung ulang karena keluar jalur.
+    ref.listen(navigasiControllerProvider.select((s) => s.rute), (_, rute) {
+      _peta.gantiJalur(
+        _jalurNavigasi,
+        [for (final t in rute?.garis ?? const []) LatLng(t.lat, t.lng)],
+        warna: '#A8C8E8',
+      );
+    });
+
     // Trip Bareng: rombongan ikut tampil di peta yang dilihat sambil jalan,
     // bukan hanya di layar Trip Bareng yang jarang dibuka di atas motor.
     final tripId = rekaman.tripId!;
@@ -374,6 +393,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                     judul: rekaman.title ?? 'Perjalanan',
                     belumTerkirim: belumTerkirim,
                   ),
+                  const PanelNavigasi(),
                   const Spacer(),
                   if (rekaman.susurUlang != null)
                     _KartuSusurUlang(

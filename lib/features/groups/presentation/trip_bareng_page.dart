@@ -15,6 +15,7 @@ import '../../intercom/presentation/telepon_rombongan.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
+import 'kartu_simulasi.dart';
 import 'panel_konvoi.dart';
 import '../../peta/presentation/layanan_sheet.dart';
 
@@ -123,6 +124,7 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 ),
                 // Ruang suara hanya ada selama perjalanannya berjalan.
                 if (trip.value?.isRecording ?? false) ...[
+                  KartuSimulasiRombongan(tripId: widget.tripId),
                   PanelTelepon(
                     tripId: widget.tripId,
                     judul: trip.value?.title,

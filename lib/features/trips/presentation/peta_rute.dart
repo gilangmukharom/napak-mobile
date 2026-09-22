@@ -88,6 +88,16 @@ class PetaRuteController {
   }
 
   Future<void> pasSemuaRute() async => _state?._pasSemuaRute();
+
+  /// Mengganti isi satu jalur — dipakai rute navigasi yang dihitung ulang
+  /// saat keluar jalur. Jalur yang belum ada akan dibuat.
+  Future<void> gantiJalur(
+    String jalurId,
+    List<LatLng> titik, {
+    String? warna,
+  }) async {
+    await _state?._gantiJalur(jalurId, titik, warna: warna);
+  }
 }
 
 class _PetaRuteState extends State<PetaRute> {
@@ -112,6 +122,9 @@ class _PetaRuteState extends State<PetaRute> {
   };
   late final Map<String, String?> _warnaPerJalur = {
     for (final j in widget.jalur) j.id: j.warna,
+  };
+  late final Map<String, String?> _namaJalur = {
+    for (final j in widget.jalur) j.id: j.nama,
   };
   bool _siap = false;
 
@@ -294,6 +307,9 @@ class _PetaRuteState extends State<PetaRute> {
           posisi: t,
           moda: moda,
           warna: _warnaPerJalur[jalurId] ?? _warnaKendaraanSendiri,
+          // Namanya ikut di bawah ikon, sama seperti teman seperjalanan —
+          // di peta yang ramai, kendaraan tanpa nama bikin bingung sendiri.
+          nama: _namaJalur[jalurId] ?? 'Kamu',
         );
       }
     }
@@ -304,8 +320,9 @@ class _PetaRuteState extends State<PetaRute> {
   Future<void> _pasangJalur(
     MapLibreMapController map,
     String jalurId,
-    String? warna,
-  ) async {
+    String? warna, {
+    String? diBawah,
+  }) async {
     final sumber = 'tourvella-rute-$jalurId';
 
     await map.addSource(
@@ -320,6 +337,7 @@ class _PetaRuteState extends State<PetaRute> {
     await map.addLineLayer(
       sumber,
       'tourvella-garis-$jalurId',
+      belowLayerId: diBawah,
       warna == null
           ? const LineLayerProperties(
               lineWidth: 4.5,
@@ -369,11 +387,42 @@ class _PetaRuteState extends State<PetaRute> {
         posisi: titik,
         moda: moda,
         warna: _warnaPerJalur[jalurId] ?? _warnaKendaraanSendiri,
+        nama: _namaJalur[jalurId] ?? 'Kamu',
       );
     }
 
     if (ikutiKamera) {
       await map.animateCamera(CameraUpdate.newLatLng(titik));
+    }
+  }
+
+  Future<void> _gantiJalur(
+    String jalurId,
+    List<LatLng> titik, {
+    String? warna,
+  }) async {
+    final map = _map;
+    final baru = !_titikPerJalur.containsKey(jalurId);
+    _titikPerJalur[jalurId] = List.of(titik);
+    _warnaPerJalur[jalurId] ??= warna;
+    if (map == null || !_siap) return;
+
+    if (baru) {
+      // Rute navigasi digambar di bawah jejakmu sendiri: yang kamu buat
+      // tetap yang paling menonjol, panduannya jadi latar.
+      await _pasangJalur(
+        map,
+        jalurId,
+        _warnaPerJalur[jalurId],
+        diBawah: widget.jalur.isEmpty
+            ? null
+            : 'tourvella-garis-${widget.jalur.first.id}',
+      );
+    } else {
+      await map.setGeoJsonSource(
+        'tourvella-rute-$jalurId',
+        _garisGeoJson(jalurId),
+      );
     }
   }
 
