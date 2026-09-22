@@ -31,6 +31,7 @@ class LiveState {
     this.berbagiSendiri = false,
     this.sinyal = const [],
     this.konvoi,
+    this.telepon = const StatusTelepon(),
     this.pesan,
   });
 
@@ -53,6 +54,9 @@ class LiveState {
   /// Barisan rombongan terakhir. null sampai minimal dua orang berbagi posisi.
   final KabarKonvoi? konvoi;
 
+  /// Telepon rombongan yang sedang berjalan.
+  final StatusTelepon telepon;
+
   final String? pesan;
 
   LiveState copyWith({
@@ -61,6 +65,7 @@ class LiveState {
     bool? berbagiSendiri,
     List<SinyalMasuk>? sinyal,
     KabarKonvoi? konvoi,
+    StatusTelepon? telepon,
     String? pesan,
     bool hapusPesan = false,
   }) => LiveState(
@@ -69,6 +74,7 @@ class LiveState {
     berbagiSendiri: berbagiSendiri ?? this.berbagiSendiri,
     sinyal: sinyal ?? this.sinyal,
     konvoi: konvoi ?? this.konvoi,
+    telepon: telepon ?? this.telepon,
     pesan: hapusPesan ? null : (pesan ?? this.pesan),
   );
 }
@@ -108,6 +114,7 @@ class LiveLocationController extends Notifier<LiveState> {
           pesan: k.pengumuman.isEmpty ? null : k.pengumuman.join(' '),
         );
       }),
+      service.telepon.listen((t) => state = state.copyWith(telepon: t)),
       service.sinyal.listen((m) {
         // Delapan terakhir saja. Yang lebih lama sudah tidak berguna untuk
         // mengoordinasikan apa pun.

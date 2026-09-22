@@ -13,6 +13,7 @@ import '../../../core/widgets/tourvella_skeleton.dart';
 import '../../profil/presentation/profil_page.dart' show FotoProfil;
 import '../../trips/presentation/pratinjau_rute.dart';
 import '../data/linimasa_data.dart';
+import 'komentar_sheet.dart';
 
 /// Linimasa di beranda: perjalanan yang dipajang teman, dan milikmu sendiri.
 ///
@@ -373,6 +374,15 @@ class _KartuPostState extends ConsumerState<_KartuPost> {
                   onTap: p.milikSendiri && p.salut == 0 ? null : _salut,
                   milikSendiri: p.milikSendiri,
                 ),
+                _TombolKomentar(
+                  jumlah: p.komentar,
+                  onTap: () async {
+                    final jumlah = await KomentarSheet.tampilkan(context, p);
+                    if (jumlah != null && mounted) {
+                      setState(() => _post = _post.denganKomentar(jumlah));
+                    }
+                  },
+                ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () => context.push('/trip/${p.tripId}'),
@@ -497,6 +507,50 @@ class _LatarRute extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _TombolKomentar extends StatelessWidget {
+  const _TombolKomentar({required this.jumlah, required this.onTap});
+
+  final int jumlah;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Semantics(
+      button: true,
+      label: jumlah == 0 ? 'Tulis komentar' : '$jumlah komentar',
+      child: TourvellaPressable(
+        skala: 0.9,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.mode_comment_outlined,
+                color: TourvellaColors.textSecondary,
+                size: 21,
+              ),
+              if (jumlah > 0) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '$jumlah',
+                  style: text.labelLarge?.copyWith(
+                    color: TourvellaColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

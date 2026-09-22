@@ -25,6 +25,7 @@ class IntercomState {
     this.anggota = const [],
     this.bicara = const {},
     this.sayaBicara = false,
+    this.mulaiPada,
     this.pesan,
   });
 
@@ -38,6 +39,9 @@ class IntercomState {
   /// userId yang suaranya sedang terdengar.
   final Set<String> bicara;
   final bool sayaBicara;
+
+  /// Kapan kamu masuk telepon, untuk penghitung durasi.
+  final DateTime? mulaiPada;
   final String? pesan;
 
   bool get aktif => tripId != null;
@@ -50,6 +54,7 @@ class IntercomState {
     List<AnggotaSuara>? anggota,
     Set<String>? bicara,
     bool? sayaBicara,
+    DateTime? mulaiPada,
     String? pesan,
     bool hapusPesan = false,
   }) => IntercomState(
@@ -60,6 +65,7 @@ class IntercomState {
     anggota: anggota ?? this.anggota,
     bicara: bicara ?? this.bicara,
     sayaBicara: sayaBicara ?? this.sayaBicara,
+    mulaiPada: mulaiPada ?? this.mulaiPada,
     pesan: hapusPesan ? null : (pesan ?? this.pesan),
   );
 }
@@ -106,13 +112,17 @@ class IntercomController extends Notifier<IntercomState> {
     if (!await _service.mintaIzinMikrofon()) {
       state = state.copyWith(
         pesan:
-            'Tourvella butuh izin mikrofon untuk intercom. Kamu bisa '
-            'menyalakannya di Pengaturan.',
+            'Tourvella butuh izin mikrofon untuk telepon rombongan. Kamu '
+            'bisa menyalakannya di Pengaturan.',
       );
       return;
     }
 
-    state = IntercomState(tripId: tripId, menyambung: true);
+    state = IntercomState(
+      tripId: tripId,
+      menyambung: true,
+      mulaiPada: DateTime.now(),
+    );
     await _service.masuk(tripId, bisu: false);
 
     // Siapa yang sedang bicara, lima kali sedetik. State hanya diganti kalau

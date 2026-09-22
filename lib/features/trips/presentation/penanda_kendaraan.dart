@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/theme/tourvella_colors.dart';
@@ -15,19 +15,31 @@ import '../../../core/theme/tourvella_motion.dart';
 /// backend): kotak 24×24, menghadap ke kanan. Kendaraan di aplikasi dan di
 /// video yang dibagikan harus terlihat satu keluarga.
 enum ModaPenanda {
-  motor('motor'),
-  mobil('mobil'),
-  sepeda('sepeda'),
-  jalanKaki('jalan_kaki'),
-  lainnya('lainnya');
+  motor('motor', 'Motor', 'assets/kendaraan/motor.png'),
+  matic('matic', 'Matic', 'assets/kendaraan/matic.png'),
+  mobil('mobil', 'Mobil', 'assets/kendaraan/mobil.png'),
+  sepeda('sepeda', 'Sepeda', 'assets/kendaraan/sepeda.png'),
+  jalanKaki('jalan_kaki', 'Jalan kaki', null),
+  lainnya('lainnya', 'Lainnya', null);
 
-  const ModaPenanda(this.wire);
+  const ModaPenanda(this.wire, this.label, this.aset);
   final String wire;
+  final String label;
+
+  /// Foto kendaraan sungguhan berlatar transparan (Vixion, PCX 160, Avanza,
+  /// onthel — kreditnya di `assets/kendaraan/KREDIT.md`). Semuanya menghadap
+  /// **kiri**; penanda peta membaliknya supaya sama dengan siluet garis yang
+  /// menghadap kanan.
+  final String? aset;
+
+  /// Yang bisa dipilih saat mulai merekam.
+  static const pilihan = [motor, matic, mobil, sepeda];
 
   /// Kereta, kapal, dan pesawat jarang dipakai saat konvoi; digambar sebagai
   /// panah arah, bukan ditebak jadi motor.
   static ModaPenanda dari(String? wire) => switch (wire) {
     'motor' => motor,
+    'matic' => matic,
     'mobil' => mobil,
     'sepeda' => sepeda,
     'jalan_kaki' => jalanKaki,
@@ -90,7 +102,22 @@ String namaIkonKendaraan(ModaPenanda moda, String warna, bool cermin) =>
     'kendaraan-${moda.wire}-${warna.replaceAll('#', '').toLowerCase()}-${cermin ? 'c' : 'k'}';
 
 /// Ukuran penanda di layar, piksel logis.
-const double ukuranPenanda = 52;
+const double ukuranPenanda = 60;
+
+/// Jari-jari piringan tempat kendaraan duduk.
+const double _jariPiringan = 23;
+
+final _fotoKendaraan = <String, ui.Image>{};
+
+/// Foto kendaraan dari aset, dibaca sekali lalu disimpan.
+Future<ui.Image> _muatFoto(String aset) async {
+  final ada = _fotoKendaraan[aset];
+  if (ada != null) return ada;
+  final data = await rootBundle.load(aset);
+  final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+  final gambar = (await codec.getNextFrame()).image;
+  return _fotoKendaraan[aset] = gambar;
+}
 
 /// Menggambar satu penanda kendaraan sebagai PNG.
 ///
@@ -112,29 +139,44 @@ Future<Uint8List> gambarPenandaKendaraan({
   // Bayangan lembut supaya terbaca di atas peta terang maupun rute berwarna.
   kanvas.drawCircle(
     pusat.translate(0, 1.5),
-    20,
+    _jariPiringan + 1,
     Paint()
       ..color = TourvellaColors.textPrimary.withValues(alpha: 0.22)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
   );
-  kanvas.drawCircle(pusat, 19, Paint()..color = TourvellaColors.base);
+  kanvas.drawCircle(pusat, _jariPiringan, Paint()..color = TourvellaColors.base);
   kanvas.drawCircle(
     pusat,
-    19,
+    _jariPiringan,
     Paint()
       ..color = aksen
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5,
   );
 
+  final aset = moda.aset;
   kanvas
     ..save()
     ..translate(pusat.dx, pusat.dy);
-  if (cermin) kanvas.scale(-1, 1);
-  kanvas
-    ..scale(1.3)
-    ..translate(-12, -12);
-  _gambarSiluet(kanvas, moda, aksen);
+  if (aset != null) {
+    // Foto menghadap kiri: dibalik dulu supaya menghadap kanan seperti
+    // siluet, lalu dicerminkan lagi kalau sedang ke barat.
+    if (!cermin) kanvas.scale(-1, 1);
+    final foto = await _muatFoto(aset);
+    const sisiFoto = _jariPiringan * 1.7;
+    kanvas.drawImageRect(
+      foto,
+      Rect.fromLTWH(0, 0, foto.width.toDouble(), foto.height.toDouble()),
+      const Rect.fromLTWH(-sisiFoto / 2, -sisiFoto / 2, sisiFoto, sisiFoto),
+      Paint()..filterQuality = FilterQuality.high,
+    );
+  } else {
+    if (cermin) kanvas.scale(-1, 1);
+    kanvas
+      ..scale(1.4)
+      ..translate(-12, -12);
+    _gambarSiluet(kanvas, moda, aksen);
+  }
   kanvas.restore();
 
   final gambar = await perekam.endRecording().toImage(sisi, sisi);
@@ -161,6 +203,7 @@ void _gambarSiluet(Canvas k, ModaPenanda moda, Color warna) {
 
   switch (moda) {
     case ModaPenanda.motor:
+    case ModaPenanda.matic:
       k
         ..drawCircle(const Offset(5, 16.5), 3, garis)
         ..drawCircle(const Offset(19, 16.5), 3, garis)

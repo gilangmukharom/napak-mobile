@@ -93,6 +93,7 @@ enum JenisKabar {
   pesanBaru('pesan_baru'),
   kenangan('kenangan'),
   salut('salut'),
+  komentar('komentar'),
   lain('lain');
 
   const JenisKabar(this.wire);

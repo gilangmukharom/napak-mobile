@@ -11,7 +11,7 @@ import '../../../core/theme/tourvella_colors.dart';
 import '../../../core/theme/tourvella_motion.dart';
 import '../../../core/widgets/tourvella_gerak.dart';
 import '../../../core/widgets/tourvella_pressable.dart';
-import '../../intercom/presentation/panel_intercom.dart';
+import '../../intercom/presentation/telepon_rombongan.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
@@ -123,7 +123,10 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 ),
                 // Ruang suara hanya ada selama perjalanannya berjalan.
                 if (trip.value?.isRecording ?? false) ...[
-                  PanelIntercom(tripId: widget.tripId),
+                  PanelTelepon(
+                    tripId: widget.tripId,
+                    judul: trip.value?.title,
+                  ),
                   const SizedBox(height: 16),
                 ],
                 _PanelSinyal(tripId: widget.tripId, live: live),

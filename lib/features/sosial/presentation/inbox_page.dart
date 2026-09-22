@@ -196,6 +196,10 @@ class _InboxPageState extends ConsumerState<InboxPage> {
   ),
   JenisKabar.kenangan => (Icons.history_rounded, TourvellaColors.attention),
   JenisKabar.salut => (Icons.front_hand_rounded, TourvellaColors.ember),
+  JenisKabar.komentar => (
+    Icons.mode_comment_outlined,
+    TourvellaColors.deepAccent,
+  ),
   JenisKabar.lain => (
     Icons.notifications_none_rounded,
     TourvellaColors.primary,

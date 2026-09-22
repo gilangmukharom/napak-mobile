@@ -32,6 +32,7 @@ class PostLinimasa {
     required this.previewPath,
     required this.salut,
     required this.sudahSalut,
+    this.komentar = 0,
     this.mulai,
     this.dari,
     this.ke,
@@ -77,6 +78,7 @@ class PostLinimasa {
           : JenisKendaraan.dari(kendaraan['jenis'] as String?),
       salut: (j['salut'] as num?)?.toInt() ?? 0,
       sudahSalut: j['sudahSalut'] as bool? ?? false,
+      komentar: (j['komentar'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -95,8 +97,15 @@ class PostLinimasa {
   final JenisKendaraan? kendaraanJenis;
   final int salut;
   final bool sudahSalut;
+  final int komentar;
 
-  PostLinimasa denganSalut(int jumlah, bool sudah) => PostLinimasa(
+  PostLinimasa denganSalut(int jumlah, bool sudah) =>
+      _salin(salut: jumlah, sudahSalut: sudah);
+
+  PostLinimasa denganKomentar(int jumlah) => _salin(komentar: jumlah);
+
+  PostLinimasa _salin({int? salut, bool? sudahSalut, int? komentar}) =>
+      PostLinimasa(
     tripId: tripId,
     judul: judul,
     mulai: mulai,
@@ -110,9 +119,47 @@ class PostLinimasa {
     previewPath: previewPath,
     kendaraanNama: kendaraanNama,
     kendaraanJenis: kendaraanJenis,
-    salut: jumlah,
-    sudahSalut: sudah,
+    salut: salut ?? this.salut,
+    sudahSalut: sudahSalut ?? this.sudahSalut,
+    komentar: komentar ?? this.komentar,
   );
+}
+
+/// Satu komentar di perjalanan yang dipajang.
+class Komentar {
+  const Komentar({
+    required this.id,
+    required this.isi,
+    required this.dibuat,
+    required this.penulis,
+    required this.bolehHapus,
+    required this.milikSendiri,
+  });
+
+  factory Komentar.fromJson(Map<String, dynamic> j) {
+    final p = j['penulis'] as Map<String, dynamic>;
+    return Komentar(
+      id: j['id'] as String,
+      isi: j['isi'] as String,
+      dibuat: DateTime.parse(j['dibuat'] as String).toLocal(),
+      penulis: PenulisPost(
+        id: p['id'] as String,
+        nama: p['nama'] as String,
+        fotoUrl: p['fotoUrl'] as String?,
+      ),
+      bolehHapus: j['bolehHapus'] as bool? ?? false,
+      milikSendiri: j['milikSendiri'] as bool? ?? false,
+    );
+  }
+
+  final String id;
+  final String isi;
+  final DateTime dibuat;
+  final PenulisPost penulis;
+
+  /// Penulisnya sendiri, atau pemilik perjalanan — itulah moderasinya.
+  final bool bolehHapus;
+  final bool milikSendiri;
 }
 
 class LinimasaRepository {
@@ -144,6 +191,26 @@ class LinimasaRepository {
       sudah: data['sudahSalut'] as bool? ?? false,
     );
   }
+}
+
+extension KomentarRepository on LinimasaRepository {
+  Future<List<Komentar>> komentar(String tripId) async {
+    final data = await _api.get<List<dynamic>>('/linimasa/$tripId/komentar');
+    return [
+      for (final k in data) Komentar.fromJson(k as Map<String, dynamic>),
+    ];
+  }
+
+  Future<Komentar> tulisKomentar(String tripId, String isi) async {
+    final data = await _api.post<Map<String, dynamic>>(
+      '/linimasa/$tripId/komentar',
+      body: {'isi': isi},
+    );
+    return Komentar.fromJson(data);
+  }
+
+  Future<void> hapusKomentar(String id) =>
+      _api.delete<void>('/linimasa/komentar/$id');
 }
 
 final linimasaRepositoryProvider = Provider<LinimasaRepository>(

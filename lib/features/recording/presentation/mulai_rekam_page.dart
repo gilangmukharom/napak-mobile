@@ -12,6 +12,7 @@ import '../../../core/theme/tourvella_motion.dart';
 import '../../../core/widgets/tourvella_gerak.dart';
 import '../../../core/widgets/tourvella_pressable.dart';
 import '../../trips/data/trip_models.dart';
+import '../../trips/presentation/penanda_kendaraan.dart';
 import '../application/recording_controller.dart';
 
 /// Layar memulai perjalanan.
@@ -42,18 +43,16 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
   /// Kendaraan dari garasi yang dibawa kali ini. Boleh kosong.
   String? _kendaraanId;
 
+  /// Jenis kendaraan: ikon di peta dan yang dilihat rombongan. Motor bawaan
+  /// — untuk siapa aplikasi ini dibuat.
+  ModaPenanda _moda = ModaPenanda.motor;
+
   Future<void> _mulai() async {
     setState(() => _memulai = true);
 
     final judul = _judul.text.trim().isEmpty
         ? 'Perjalanan ${DateFormat('d MMMM', 'id_ID').format(DateTime.now())}'
         : _judul.text.trim();
-
-    // Jenisnya ikut, bukan hanya id-nya: peta dan rombongan perlu tahu yang
-    // jalan itu motor atau mobil.
-    final kendaraan = (ref.read(garasiProvider('saya')).value ?? const [])
-        .where((k) => k.id == _kendaraanId)
-        .firstOrNull;
 
     await ref
         .read(recordingControllerProvider.notifier)
@@ -62,7 +61,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
           mode: _mode,
           yangDisusuri: _yangDisusuri,
           kendaraanId: _kendaraanId,
-          modaKendaraan: kendaraan?.jenis.wire,
+          modaKendaraan: _moda.wire,
         );
 
     if (!mounted) return;
@@ -245,9 +244,27 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                         const SizedBox(height: 28),
                         MunculBertahap(
                           indeks: 6,
+                          child: _PilihModa(
+                            terpilih: _moda,
+                            onPilih: (m) => setState(() {
+                              _moda = m;
+                              // Kendaraan garasi yang jenisnya lain tidak
+                              // lagi cocok dengan pilihan ini.
+                              _kendaraanId = null;
+                            }),
+                          ),
+                        ),
+                        MunculBertahap(
+                          indeks: 6,
                           child: _PilihKendaraan(
                             terpilih: _kendaraanId,
-                            onPilih: (id) => setState(() => _kendaraanId = id),
+                            onPilih: (k) => setState(() {
+                              _kendaraanId = k?.id;
+                              final jenis = ModaPenanda.dari(k?.jenis.wire);
+                              if (k != null && jenis != ModaPenanda.lainnya) {
+                                _moda = jenis;
+                              }
+                            }),
                           ),
                         ),
                         MunculBertahap(
@@ -614,11 +631,116 @@ class _PilihSusurUlang extends ConsumerWidget {
 ///
 /// Tidak tampil sama sekali kalau garasinya kosong — layar ini sudah cukup
 /// berisi, dan orang yang belum punya garasi tidak perlu diingatkan.
+/// Motor, matic, mobil, atau sepeda — selalu tampil, garasi kosong pun.
+///
+/// Fotonya kendaraan sungguhan, supaya pilihan ini terasa seperti memilih
+/// tunggangan, bukan mengisi formulir.
+class _PilihModa extends StatelessWidget {
+  const _PilihModa({required this.terpilih, required this.onPilih});
+
+  final ModaPenanda terpilih;
+  final ValueChanged<ModaPenanda> onPilih;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const LabelKapital('Berangkat naik'),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              for (final (i, m) in ModaPenanda.pilihan.indexed) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: _KartuModa(
+                    moda: m,
+                    pilih: m == terpilih,
+                    onTap: () => onPilih(m),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KartuModa extends StatelessWidget {
+  const _KartuModa({
+    required this.moda,
+    required this.pilih,
+    required this.onTap,
+  });
+
+  final ModaPenanda moda;
+  final bool pilih;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: pilih,
+      label: moda.label,
+      child: TourvellaPressable(
+        skala: 0.94,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: TourvellaMotion.cepat,
+          curve: TourvellaMotion.mengalir,
+          padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
+          decoration: BoxDecoration(
+            color: pilih
+                ? TourvellaColors.ember.withValues(alpha: 0.16)
+                : TourvellaColors.malamNaik.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: pilih ? TourvellaColors.ember : TourvellaColors.kontur,
+              width: pilih ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              AnimatedScale(
+                scale: pilih ? 1.08 : 0.94,
+                duration: TourvellaMotion.sedang,
+                curve: TourvellaMotion.memantul,
+                child: Image.asset(
+                  moda.aset!,
+                  height: 54,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                moda.label,
+                style: TextStyle(
+                  color: pilih
+                      ? TourvellaColors.base
+                      : TourvellaColors.base.withValues(alpha: 0.7),
+                  fontSize: 13,
+                  fontWeight: pilih ? FontWeight.w800 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PilihKendaraan extends ConsumerWidget {
   const _PilihKendaraan({required this.terpilih, required this.onPilih});
 
   final String? terpilih;
-  final ValueChanged<String?> onPilih;
+  final ValueChanged<Kendaraan?> onPilih;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -630,7 +752,7 @@ class _PilihKendaraan extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const LabelKapital('Berangkat dengan'),
+          const LabelKapital('Dari garasimu'),
           const SizedBox(height: 10),
           SizedBox(
             height: 44,
@@ -643,7 +765,7 @@ class _PilihKendaraan extends ConsumerWidget {
                 final pilih = k.id == terpilih;
                 return TourvellaPressable(
                   skala: 0.94,
-                  onTap: () => onPilih(pilih ? null : k.id),
+                  onTap: () => onPilih(pilih ? null : k),
                   child: AnimatedContainer(
                     duration: TourvellaMotion.cepat,
                     padding: const EdgeInsets.symmetric(horizontal: 14),

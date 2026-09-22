@@ -17,7 +17,7 @@ import '../../../core/widgets/tourvella_gerak.dart';
 import '../../../core/widgets/tourvella_pressable.dart';
 import '../../groups/application/live_location_controller.dart';
 import '../../intercom/application/intercom_controller.dart';
-import '../../intercom/presentation/panel_intercom.dart';
+import '../../intercom/presentation/telepon_rombongan.dart';
 import '../../peta/presentation/layanan_sheet.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
@@ -391,7 +391,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                   if (rekaman.bareng)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                      child: PanelIntercom(tripId: tripId),
+                      child: PanelTelepon(tripId: tripId, judul: rekaman.title),
                     ),
                   _PanelBawah(
                     berjalan: _berjalan,

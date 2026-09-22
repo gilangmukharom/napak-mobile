@@ -5,6 +5,23 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../../trips/data/trip_models.dart';
 
+/// Telepon rombongan yang sedang berjalan, dari `/live` — siapa saja yang
+/// sudah di dalam. Suaranya sendiri lewat `/intercom`.
+@immutable
+class StatusTelepon {
+  const StatusTelepon({this.aktif = false, this.nama = const []});
+
+  factory StatusTelepon.fromJson(Map<String, dynamic> j) => StatusTelepon(
+    aktif: j['aktif'] as bool? ?? false,
+    nama: [for (final n in (j['nama'] as List? ?? const [])) n.toString()],
+  );
+
+  final bool aktif;
+  final List<String> nama;
+
+  int get jumlah => nama.length;
+}
+
 /// Sambungan posisi langsung saat Trip Bareng.
 ///
 /// Yang lewat di sini tidak pernah menyentuh database — server hanya
@@ -32,6 +49,10 @@ class LiveLocationService {
   final _tersambung = StreamController<bool>.broadcast();
   final _sinyal = StreamController<SinyalMasuk>.broadcast();
   final _konvoi = StreamController<KabarKonvoi>.broadcast();
+  final _telepon = StreamController<StatusTelepon>.broadcast();
+
+  /// Ada yang memulai atau meninggalkan telepon rombongan.
+  Stream<StatusTelepon> get telepon => _telepon.stream;
 
   /// Posisi teman seperjalanan yang masuk satu per satu.
   Stream<PosisiLangsung> get posisi => _posisi.stream;
@@ -93,6 +114,11 @@ class LiveLocationService {
       } catch (error) {
         debugPrint('Kabar konvoi tidak terbaca: $error');
       }
+    });
+
+    socket.on('telepon:status', (data) {
+      if (data is! Map) return;
+      _telepon.add(StatusTelepon.fromJson(Map<String, dynamic>.from(data)));
     });
 
     socket.on('tourvella:error', (data) {
@@ -161,6 +187,7 @@ class LiveLocationService {
     await putus();
     await _sinyal.close();
     await _konvoi.close();
+    await _telepon.close();
     await _posisi.close();
     await _galat.close();
     await _tersambung.close();
