@@ -4,20 +4,20 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
 import '../../trips/data/trip_models.dart';
 
 final recapProvider = FutureProvider.autoDispose.family<Recap, int>(
   (ref, tahun) => ref.watch(tripRepositoryProvider).recap(tahun),
 );
 
-/// Napak Tilas — ringkasan satu tahun perjalanan.
+/// Tourvella Recap — ringkasan satu tahun perjalanan.
 ///
 /// Disusun sebagai cerita, bukan dasbor: satu kalimat pembuka, lalu angka
 /// besar yang berjalan naik, lalu nama-nama kota yang dilewati. Yang
@@ -56,7 +56,7 @@ class _RecapPageState extends ConsumerState<RecapPage> {
     final tahunIni = DateTime.now().year;
 
     return Scaffold(
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       body: PendengarGulir(
         builder: (geser) => LatarEkspedisi(
           gunung: true,
@@ -77,20 +77,20 @@ class _RecapPageState extends ConsumerState<RecapPage> {
                             children: [
                               const LabelKapital(
                                 'Setahun ke belakang',
-                                warna: NapakColors.emberRedup,
+                                warna: TourvellaColors.emberRedup,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Napak Tilas',
+                                'Tourvella Recap',
                                 style: text.displaySmall?.copyWith(
-                                  color: NapakColors.base,
+                                  color: TourvellaColors.base,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 'Menyusuri kembali setahun yang sudah lewat.',
                                 style: text.bodyMedium?.copyWith(
-                                  color: NapakColors.base.withValues(
+                                  color: TourvellaColors.base.withValues(
                                     alpha: 0.6,
                                   ),
                                 ),
@@ -101,7 +101,7 @@ class _RecapPageState extends ConsumerState<RecapPage> {
                         IconButton(
                           tooltip: 'Hitung ulang',
                           onPressed: _menghitungUlang ? null : _hitungUlang,
-                          color: NapakColors.emberRedup,
+                          color: TourvellaColors.emberRedup,
                           icon: AnimatedRotation(
                             // Ikonnya ikut berputar selagi menghitung — satu
                             // isyarat, tanpa perlu menumpuk spinner terpisah.
@@ -136,7 +136,7 @@ class _RecapPageState extends ConsumerState<RecapPage> {
                       error.toString(),
                       textAlign: TextAlign.center,
                       style: text.bodyMedium?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.7),
+                        color: TourvellaColors.base.withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -176,7 +176,7 @@ class _IsiRecap extends StatelessWidget {
               recap.caption,
               style: text.headlineSmall?.copyWith(
                 height: 1.45,
-                color: NapakColors.base,
+                color: TourvellaColors.base,
               ),
             ),
           ),
@@ -228,7 +228,7 @@ class _IsiRecap extends StatelessWidget {
               indeks: 3,
               child: const LabelKapital(
                 'Kota yang kamu lewati',
-                warna: NapakColors.emberRedup,
+                warna: TourvellaColors.emberRedup,
                 ukuran: 12,
               ),
             ),
@@ -256,15 +256,15 @@ class _IsiRecap extends StatelessWidget {
                   Icon(
                     Icons.lock_outline_rounded,
                     size: 14,
-                    color: NapakColors.base.withValues(alpha: 0.45),
+                    color: TourvellaColors.base.withValues(alpha: 0.45),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Dihitung di dalam Napak sendiri, tanpa mengirim '
+                      'Dihitung di dalam Tourvella sendiri, tanpa mengirim '
                       'koordinatmu ke layanan peta mana pun.',
                       style: text.bodySmall?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.45),
+                        color: TourvellaColors.base.withValues(alpha: 0.45),
                       ),
                     ),
                   ),
@@ -278,14 +278,16 @@ class _IsiRecap extends StatelessWidget {
             indeks: 6 + recap.cities.length,
             child: FilledButton.icon(
               style: FilledButton.styleFrom(
-                backgroundColor: NapakColors.ember,
-                foregroundColor: NapakColors.malam,
+                backgroundColor: TourvellaColors.ember,
+                foregroundColor: TourvellaColors.malam,
                 minimumSize: const Size(double.infinity, 52),
               ),
               onPressed: () => SharePlus.instance.share(
                 ShareParams(
-                  text: '${recap.caption}\n\n— Napak',
-                  subject: 'Napak Tilas ${recap.year}',
+                  text:
+                      '${recap.caption}\n\n'
+                      'Setiap perjalanan punya cerita. — Tourvella',
+                  subject: 'Tourvella Recap ${recap.year}',
                 ),
               ),
               icon: const Icon(Icons.ios_share_rounded, size: 20),
@@ -311,7 +313,7 @@ class _PemilihTahun extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Lima tahun ke belakang sudah cukup. Napak baru seumur jagung.
+    // Lima tahun ke belakang sudah cukup. Tourvella baru seumur jagung.
     final pilihan = [for (var t = tahunTerbaru; t > tahunTerbaru - 5; t--) t];
 
     return SizedBox(
@@ -324,29 +326,31 @@ class _PemilihTahun extends StatelessWidget {
           final t = pilihan[i];
           final terpilih = t == tahun;
 
-          return NapakPressable(
+          return TourvellaPressable(
             onTap: () => onPilih(t),
             skala: 0.94,
             child: AnimatedContainer(
-              duration: NapakMotion.cepat,
-              curve: NapakMotion.mengalir,
+              duration: TourvellaMotion.cepat,
+              curve: TourvellaMotion.mengalir,
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
                 color: terpilih
-                    ? NapakColors.ember
-                    : NapakColors.malamNaik.withValues(alpha: 0.55),
+                    ? TourvellaColors.ember
+                    : TourvellaColors.malamNaik.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: terpilih ? NapakColors.ember : NapakColors.kontur,
+                  color: terpilih
+                      ? TourvellaColors.ember
+                      : TourvellaColors.kontur,
                 ),
               ),
               child: AnimatedDefaultTextStyle(
-                duration: NapakMotion.cepat,
+                duration: TourvellaMotion.cepat,
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: terpilih
-                      ? NapakColors.malam
-                      : NapakColors.base.withValues(alpha: 0.6),
+                      ? TourvellaColors.malam
+                      : TourvellaColors.base.withValues(alpha: 0.6),
                   fontWeight: terpilih ? FontWeight.w800 : FontWeight.w500,
                   letterSpacing: 1.2,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -389,11 +393,11 @@ class _Kartu extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         decoration: BoxDecoration(
           color: utama
-              ? NapakColors.ember.withValues(alpha: 0.16)
-              : NapakColors.malamNaik.withValues(alpha: 0.8),
+              ? TourvellaColors.ember.withValues(alpha: 0.16)
+              : TourvellaColors.malamNaik.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: utama ? NapakColors.ember : NapakColors.kontur,
+            color: utama ? TourvellaColors.ember : TourvellaColors.kontur,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -406,7 +410,9 @@ class _Kartu extends StatelessWidget {
                 satuan: satuan.isEmpty ? null : satuan.toUpperCase(),
                 gaya: (utama ? text.headlineMedium : text.headlineSmall)
                     ?.copyWith(
-                      color: utama ? NapakColors.ember : NapakColors.base,
+                      color: utama
+                          ? TourvellaColors.ember
+                          : TourvellaColors.base,
                       fontWeight: FontWeight.w800,
                     ),
               ),
@@ -414,7 +420,7 @@ class _Kartu extends StatelessWidget {
             const SizedBox(height: 6),
             LabelKapital(
               label,
-              warna: NapakColors.base.withValues(alpha: 0.55),
+              warna: TourvellaColors.base.withValues(alpha: 0.55),
               ukuran: 10,
             ),
           ],
@@ -437,9 +443,9 @@ class _TripTerjauh extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NapakColors.malamNaik.withValues(alpha: 0.82),
+        color: TourvellaColors.malamNaik.withValues(alpha: 0.82),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: NapakColors.kontur),
+        border: Border.all(color: TourvellaColors.kontur),
       ),
       child: Row(
         children: [
@@ -447,13 +453,13 @@ class _TripTerjauh extends StatelessWidget {
             height: 44,
             width: 44,
             decoration: BoxDecoration(
-              color: NapakColors.ember.withValues(alpha: 0.16),
+              color: TourvellaColors.ember.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.flag_outlined,
               size: 21,
-              color: NapakColors.ember,
+              color: TourvellaColors.ember,
             ),
           ),
           const SizedBox(width: 16),
@@ -465,7 +471,9 @@ class _TripTerjauh extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   judul,
-                  style: text.titleMedium?.copyWith(color: NapakColors.base),
+                  style: text.titleMedium?.copyWith(
+                    color: TourvellaColors.base,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -473,7 +481,7 @@ class _TripTerjauh extends StatelessWidget {
                 Text(
                   '${km.toStringAsFixed(1)} km',
                   style: text.bodySmall?.copyWith(
-                    color: NapakColors.emberRedup,
+                    color: TourvellaColors.emberRedup,
                   ),
                 ),
               ],
@@ -495,14 +503,14 @@ class _KepingKota extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
       decoration: BoxDecoration(
-        color: NapakColors.malamNaik.withValues(alpha: 0.6),
+        color: TourvellaColors.malamNaik.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: NapakColors.kontur),
+        border: Border.all(color: TourvellaColors.kontur),
       ),
       child: Text(
         nama,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: NapakColors.base.withValues(alpha: 0.8),
+          color: TourvellaColors.base.withValues(alpha: 0.8),
         ),
       ),
     );
@@ -519,13 +527,13 @@ class _MemuatRecap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          NapakSkeleton.teks(lebar: 260, gelap: true),
+          TourvellaSkeleton.teks(lebar: 260, gelap: true),
           SizedBox(height: 10),
-          NapakSkeleton.teks(lebar: 180, gelap: true),
+          TourvellaSkeleton.teks(lebar: 180, gelap: true),
           SizedBox(height: 34),
-          NapakSkeleton(tinggi: 104, radius: 16, gelap: true),
+          TourvellaSkeleton(tinggi: 104, radius: 16, gelap: true),
           SizedBox(height: 28),
-          NapakSkeleton(tinggi: 84, radius: 16, gelap: true),
+          TourvellaSkeleton(tinggi: 84, radius: 16, gelap: true),
         ],
       ),
     );
@@ -540,23 +548,25 @@ class _PintuNusantara extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/jejak-nusantara'),
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              NapakColors.ember.withValues(alpha: 0.2),
-              NapakColors.malamNaik.withValues(alpha: 0.6),
+              TourvellaColors.ember.withValues(alpha: 0.2),
+              TourvellaColors.malamNaik.withValues(alpha: 0.6),
             ],
           ),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: TourvellaColors.ember.withValues(alpha: 0.5),
+          ),
         ),
         child: Row(
           children: [
-            const Icon(Icons.auto_awesome, color: NapakColors.ember),
+            const Icon(Icons.auto_awesome, color: TourvellaColors.ember),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -565,14 +575,14 @@ class _PintuNusantara extends StatelessWidget {
                   Text(
                     'Jejak Nusantara',
                     style: text.titleMedium?.copyWith(
-                      color: NapakColors.base,
+                      color: TourvellaColors.base,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   Text(
                     'Lihat kota-kota yang pernah kamu lewati menyala di peta.',
                     style: text.bodySmall?.copyWith(
-                      color: NapakColors.base.withValues(alpha: 0.7),
+                      color: TourvellaColors.base.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -580,7 +590,7 @@ class _PintuNusantara extends StatelessWidget {
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              color: NapakColors.emberRedup,
+              color: TourvellaColors.emberRedup,
             ),
           ],
         ),

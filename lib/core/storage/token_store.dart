@@ -10,9 +10,9 @@ class TokenStore {
 
   final FlutterSecureStorage _storage;
 
-  static const _accessKey = 'napak.access_token';
-  static const _refreshKey = 'napak.refresh_token';
-  static const _nameKey = 'napak.user_name';
+  static const _accessKey = 'tourvella.access_token';
+  static const _refreshKey = 'tourvella.refresh_token';
+  static const _nameKey = 'tourvella.user_name';
 
   Future<String?> readAccessToken() => _storage.read(key: _accessKey);
   Future<String?> readRefreshToken() => _storage.read(key: _refreshKey);

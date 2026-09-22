@@ -9,13 +9,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../obrolan/data/obrolan_data.dart';
 import '../../profil/presentation/penampil_media.dart';
@@ -75,7 +75,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     });
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       body: trip.when(
         loading: () => const _MemuatDetail(),
         error: (error, _) => _Galat(pesan: error.toString()),
@@ -101,9 +101,9 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      NapakSkeleton.teks(lebar: 120),
+                      TourvellaSkeleton.teks(lebar: 120),
                       SizedBox(height: 16),
-                      NapakSkeleton(tinggi: 76, radius: 16),
+                      TourvellaSkeleton(tinggi: 76, radius: 16),
                     ],
                   ),
                 ),
@@ -145,20 +145,23 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
               child: Text(
                 'Orang di luar perjalanan ini hanya melihat bentuk rutenya '
                 'secara kasar — bukan titik persisnya, dan tanpa catatanmu.',
-                style: TextStyle(color: NapakColors.textSecondary, height: 1.5),
+                style: TextStyle(
+                  color: TourvellaColors.textSecondary,
+                  height: 1.5,
+                ),
               ),
             ),
             for (final v in TripVisibility.values)
               ListTile(
                 leading: Icon(
                   _ikonVisibility(v),
-                  color: NapakColors.deepAccent,
+                  color: TourvellaColors.deepAccent,
                 ),
                 title: Text(v.label),
                 trailing: trip.visibility == v
                     ? const Icon(
                         Icons.check_rounded,
-                        color: NapakColors.deepAccent,
+                        color: TourvellaColors.deepAccent,
                       )
                     : null,
                 onTap: () => Navigator.of(sheetContext).pop(v),
@@ -176,7 +179,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     ref.invalidate(tripListProvider);
   }
 
-  /// Bawa perjalanan ini keluar dari Napak.
+  /// Bawa perjalanan ini keluar dari Tourvella.
   Future<void> _ekspor(BuildContext context, Trip trip) async {
     try {
       final folder = await getTemporaryDirectory();
@@ -184,7 +187,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
           .toLowerCase()
           .replaceAll(RegExp('[^a-z0-9]+'), '-')
           .replaceAll(RegExp(r'^-|-$'), '');
-      final berkas = File('${folder.path}/napak-$nama.gpx');
+      final berkas = File('${folder.path}/tourvella-$nama.gpx');
 
       await ref.read(tripRepositoryProvider).unduhGpx(trip.id, berkas.path);
 
@@ -209,7 +212,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
     final yakin = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
+        backgroundColor: TourvellaColors.base,
         title: const Text('Hapus perjalanan ini?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -242,7 +245,7 @@ class _TripDetailPageState extends ConsumerState<TripDetailPage> {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: NapakColors.attention,
+              backgroundColor: TourvellaColors.attention,
             ),
             child: const Text('Hapus permanen'),
           ),
@@ -298,7 +301,7 @@ class _KepalaPeta extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 340,
       pinned: true,
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       surfaceTintColor: Colors.transparent,
       leadingWidth: 56,
       leading: const _TombolBulat(ikon: Icons.arrow_back_rounded),
@@ -316,7 +319,7 @@ class _KepalaPeta extends StatelessWidget {
         if (trip.isOwner)
           _TombolBulat(
             ikon: Icons.delete_outline_rounded,
-            warna: NapakColors.attention,
+            warna: TourvellaColors.attention,
             onTap: onHapus,
           ),
         const SizedBox(width: 8),
@@ -334,8 +337,8 @@ class _KepalaPeta extends StatelessWidget {
                   // waktu, dan kedipan itu yang paling terasa murah.
                   : TweenAnimationBuilder<double>(
                       tween: Tween(begin: 0, end: 1),
-                      duration: NapakMotion.lambat,
-                      curve: NapakMotion.mengalir,
+                      duration: TourvellaMotion.lambat,
+                      curve: TourvellaMotion.mengalir,
                       builder: (context, t, anak) =>
                           Opacity(opacity: t, child: anak),
                       child: PetaRute(
@@ -361,10 +364,10 @@ class _KepalaPeta extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      NapakColors.malam.withValues(alpha: 0.45),
+                      TourvellaColors.malam.withValues(alpha: 0.45),
                       Colors.transparent,
                       Colors.transparent,
-                      NapakColors.malam.withValues(alpha: 0.5),
+                      TourvellaColors.malam.withValues(alpha: 0.5),
                     ],
                     stops: const [0, 0.24, 0.62, 1],
                   ),
@@ -384,7 +387,7 @@ class _TombolBulat extends StatelessWidget {
   const _TombolBulat({
     required this.ikon,
     this.onTap,
-    this.warna = NapakColors.base,
+    this.warna = TourvellaColors.base,
   });
 
   final IconData ikon;
@@ -394,7 +397,7 @@ class _TombolBulat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: NapakPressable(
+      child: TourvellaPressable(
         skala: 0.88,
         onTap: onTap ?? () => context.pop(),
         child: Container(
@@ -402,9 +405,11 @@ class _TombolBulat extends StatelessWidget {
           width: 36,
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
-            color: NapakColors.malam.withValues(alpha: 0.72),
+            color: TourvellaColors.malam.withValues(alpha: 0.72),
             shape: BoxShape.circle,
-            border: Border.all(color: NapakColors.base.withValues(alpha: 0.18)),
+            border: Border.all(
+              color: TourvellaColors.base.withValues(alpha: 0.18),
+            ),
           ),
           child: Icon(ikon, size: 19, color: warna),
         ),
@@ -448,7 +453,7 @@ class _Ringkasan extends StatelessWidget {
             const SizedBox(height: 16),
             MunculBertahap(
               indeks: 2,
-              child: _KaitanTilas(lama: trip.retraceOf!),
+              child: _KaitanSusurUlang(lama: trip.retraceOf!),
             ),
           ],
           const SizedBox(height: 22),
@@ -487,9 +492,9 @@ class _PanelJarak extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: NapakColors.malam,
+        color: TourvellaColors.malam,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: NapakColors.kontur),
+        border: Border.all(color: TourvellaColors.kontur),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -504,26 +509,37 @@ class _PanelJarak extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const LabelKapital('Ditempuh', warna: NapakColors.emberRedup),
+                const LabelKapital(
+                  'Ditempuh',
+                  warna: TourvellaColors.emberRedup,
+                ),
                 const SizedBox(height: 4),
                 Odometer(
                   nilai: trip.distanceKm,
                   desimal: 1,
                   satuan: 'KM',
                   gaya: text.displaySmall?.copyWith(
-                    color: NapakColors.ember,
+                    color: TourvellaColors.ember,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 14),
-                const PemisahJalur(warna: NapakColors.kontur),
+                const PemisahJalur(warna: TourvellaColors.kontur),
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     _Sel(label: 'Lama', nilai: _Ringkasan._durasi(trip)),
-                    Container(width: 1, height: 30, color: NapakColors.kontur),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: TourvellaColors.kontur,
+                    ),
                     _Sel(label: 'Jejak', nilai: '${trip.pointCount}'),
-                    Container(width: 1, height: 30, color: NapakColors.kontur),
+                    Container(
+                      width: 1,
+                      height: 30,
+                      color: TourvellaColors.kontur,
+                    ),
                     _Sel(
                       label: 'Berangkat',
                       nilai: trip.startedAt == null
@@ -556,7 +572,7 @@ class _Sel extends StatelessWidget {
         children: [
           LabelKapital(
             label,
-            warna: NapakColors.base.withValues(alpha: 0.5),
+            warna: TourvellaColors.base.withValues(alpha: 0.5),
             ukuran: 10,
           ),
           const SizedBox(height: 4),
@@ -564,7 +580,7 @@ class _Sel extends StatelessWidget {
             child: Text(
               nilai,
               style: text.titleLarge?.copyWith(
-                color: NapakColors.base,
+                color: TourvellaColors.base,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
@@ -778,10 +794,10 @@ class _DaftarSinggahan extends StatelessWidget {
                         width: 11,
                         margin: const EdgeInsets.only(top: 6),
                         decoration: BoxDecoration(
-                          color: NapakColors.base,
+                          color: TourvellaColors.base,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: NapakColors.deepAccent,
+                            color: TourvellaColors.deepAccent,
                             width: 2.5,
                           ),
                         ),
@@ -791,7 +807,7 @@ class _DaftarSinggahan extends StatelessWidget {
                           child: Container(
                             width: 2,
                             margin: const EdgeInsets.symmetric(vertical: 4),
-                            color: NapakColors.divider,
+                            color: TourvellaColors.divider,
                           ),
                         ),
                     ],
@@ -803,7 +819,7 @@ class _DaftarSinggahan extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: NapakColors.warmNeutral,
+                          color: TourvellaColors.warmNeutral,
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
@@ -814,7 +830,7 @@ class _DaftarSinggahan extends StatelessWidget {
                                 Text(
                                   DateFormat('HH:mm').format(t.recordedAt),
                                   style: text.labelMedium?.copyWith(
-                                    color: NapakColors.deepAccent,
+                                    color: TourvellaColors.deepAccent,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -884,17 +900,17 @@ class _MemuatDetail extends StatelessWidget {
     return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        NapakSkeleton(tinggi: 340, radius: 0),
+        TourvellaSkeleton(tinggi: 340, radius: 0),
         Padding(
           padding: EdgeInsets.fromLTRB(24, 24, 24, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              NapakSkeleton.teks(lebar: 200),
+              TourvellaSkeleton.teks(lebar: 200),
               SizedBox(height: 12),
-              NapakSkeleton.teks(lebar: 140),
+              TourvellaSkeleton.teks(lebar: 140),
               SizedBox(height: 24),
-              NapakSkeleton(tinggi: 86, radius: 18),
+              TourvellaSkeleton(tinggi: 86, radius: 18),
             ],
           ),
         ),
@@ -952,7 +968,7 @@ class _FotoSinggahan extends StatelessWidget {
                   const DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: NapakColors.routeGradient,
+                        colors: TourvellaColors.routeGradient,
                       ),
                     ),
                   )
@@ -962,7 +978,7 @@ class _FotoSinggahan extends StatelessWidget {
                     fit: BoxFit.cover,
                     loadingBuilder: (context, anak, kemajuan) {
                       if (kemajuan == null) return anak;
-                      return const NapakSkeleton(
+                      return const TourvellaSkeleton(
                         tinggi: double.infinity,
                         radius: 0,
                       );
@@ -971,7 +987,7 @@ class _FotoSinggahan extends StatelessWidget {
                     // terbuka lama. Yang tampil kemudian adalah penjelasan, bukan ikon
                     // rusak tanpa keterangan.
                     errorBuilder: (context, galat, jejak) => Container(
-                      color: NapakColors.softSky,
+                      color: TourvellaColors.softSky,
                       alignment: Alignment.center,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -979,7 +995,7 @@ class _FotoSinggahan extends StatelessWidget {
                           const Icon(
                             Icons.image_not_supported_outlined,
                             size: 22,
-                            color: NapakColors.primary,
+                            color: TourvellaColors.primary,
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -996,13 +1012,15 @@ class _FotoSinggahan extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: NapakColors.textPrimary.withValues(alpha: 0.45),
+                        color: TourvellaColors.textPrimary.withValues(
+                          alpha: 0.45,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.play_arrow_rounded,
                         size: 34,
-                        color: NapakColors.textOnDeep,
+                        color: TourvellaColors.textOnDeep,
                       ),
                     ),
                   ),
@@ -1044,7 +1062,7 @@ class _SakelarProfilState extends ConsumerState<_SakelarProfil> {
         SnackBar(
           content: Text(
             nyala
-                ? 'Dipajang. Temanmu bisa melihat foto dan ceritanya.'
+                ? 'Dipajang. Muncul di linimasa dan profilmu untuk teman.'
                 : 'Diturunkan dari profil. Hanya kamu yang bisa melihatnya.',
           ),
         ),
@@ -1067,22 +1085,22 @@ class _SakelarProfilState extends ConsumerState<_SakelarProfil> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
       child: AnimatedContainer(
-        duration: NapakMotion.sedang,
+        duration: TourvellaMotion.sedang,
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
         decoration: BoxDecoration(
           color: _nyala
-              ? NapakColors.softSky
-              : NapakColors.softSky.withValues(alpha: 0.35),
+              ? TourvellaColors.softSky
+              : TourvellaColors.softSky.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
           children: [
             AnimatedSwitcher(
-              duration: NapakMotion.cepat,
+              duration: TourvellaMotion.cepat,
               child: Icon(
                 _nyala ? Icons.grid_on_rounded : Icons.lock_outline_rounded,
                 key: ValueKey(_nyala),
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
                 size: 20,
               ),
             ),
@@ -1094,7 +1112,7 @@ class _SakelarProfilState extends ConsumerState<_SakelarProfil> {
                   Text('Pajang di profil', style: text.titleSmall),
                   Text(
                     _nyala
-                        ? 'Teman melihat foto, video, dan ceritanya.'
+                        ? 'Muncul di linimasa teman, beserta foto dan ceritanya.'
                         : 'Hanya kamu yang melihat perjalanan ini.',
                     style: text.bodySmall,
                   ),
@@ -1112,9 +1130,9 @@ class _SakelarProfilState extends ConsumerState<_SakelarProfil> {
 /// Menandai bahwa perjalanan ini mengulang perjalanan lama.
 ///
 /// Bisa diketuk untuk membuka yang lama — dan dari sana, kalau yang lama juga
-/// menapak tilas sesuatu, rantainya bisa ditelusuri terus ke belakang.
-class _KaitanTilas extends StatelessWidget {
-  const _KaitanTilas({required this.lama});
+/// menyusuri ulang sesuatu, rantainya bisa ditelusuri terus ke belakang.
+class _KaitanSusurUlang extends StatelessWidget {
+  const _KaitanSusurUlang({required this.lama});
 
   final RingkasTrip lama;
 
@@ -1122,13 +1140,13 @@ class _KaitanTilas extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/trip/${lama.id}'),
       skala: 0.98,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
+          color: TourvellaColors.warmNeutral,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -1136,14 +1154,14 @@ class _KaitanTilas extends StatelessWidget {
             const Icon(
               Icons.history_rounded,
               size: 18,
-              color: NapakColors.deepAccent,
+              color: TourvellaColors.deepAccent,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Menapak tilas', style: text.bodySmall),
+                  Text('Menyusuri ulang', style: text.bodySmall),
                   const SizedBox(height: 2),
                   Text(
                     lama.startedAt == null
@@ -1159,7 +1177,7 @@ class _KaitanTilas extends StatelessWidget {
             const Icon(
               Icons.chevron_right_rounded,
               size: 18,
-              color: NapakColors.deepAccent,
+              color: TourvellaColors.deepAccent,
             ),
           ],
         ),

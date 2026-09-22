@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../theme/napak_motion.dart';
+import '../theme/tourvella_motion.dart';
 
 /// Pembungkus yang membuat apa pun terasa bisa ditekan.
 ///
@@ -12,8 +12,8 @@ import '../theme/napak_motion.dart';
 ///
 /// Gerak turunnya lebih cepat daripada naiknya — benda nyata memang begitu:
 /// ditekan langsung ambles, dilepas mengendap perlahan.
-class NapakPressable extends StatefulWidget {
-  const NapakPressable({
+class TourvellaPressable extends StatefulWidget {
+  const TourvellaPressable({
     required this.child,
     this.onTap,
     this.onLongPress,
@@ -39,21 +39,21 @@ class NapakPressable extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   @override
-  State<NapakPressable> createState() => _NapakPressableState();
+  State<TourvellaPressable> createState() => _TourvellaPressableState();
 }
 
-class _NapakPressableState extends State<NapakPressable>
+class _TourvellaPressableState extends State<TourvellaPressable>
     with SingleTickerProviderStateMixin {
   late final AnimationController _kendali = AnimationController(
     vsync: this,
-    duration: NapakMotion.kilat,
-    reverseDuration: NapakMotion.cepat,
+    duration: TourvellaMotion.kilat,
+    reverseDuration: TourvellaMotion.cepat,
   );
 
   late final Animation<double> _skala = Tween(
     begin: 1.0,
     end: widget.skala,
-  ).animate(CurvedAnimation(parent: _kendali, curve: NapakMotion.mengalir));
+  ).animate(CurvedAnimation(parent: _kendali, curve: TourvellaMotion.mengalir));
 
   @override
   void dispose() {

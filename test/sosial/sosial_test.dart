@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/features/obrolan/data/obrolan_data.dart';
-import 'package:napak/features/sosial/data/sosial_models.dart';
-import 'package:napak/features/sosial/presentation/komponen_sosial.dart';
-import 'package:napak/features/trips/data/trip_models.dart';
+import 'package:tourvella/features/obrolan/data/obrolan_data.dart';
+import 'package:tourvella/features/sosial/data/sosial_models.dart';
+import 'package:tourvella/features/sosial/presentation/komponen_sosial.dart';
+import 'package:tourvella/features/trips/data/trip_models.dart';
 
 String _token(Map<String, dynamic> muatan) {
   String bagian(Object o) =>

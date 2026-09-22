@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 
 /// Pratinjau bentuk rute untuk kartu di daftar perjalanan.
 ///
@@ -29,7 +29,7 @@ class PratinjauRute extends StatelessWidget {
   final double tinggi;
 
   /// Warna tunggal untuk rute anggota Trip Bareng. Kalau null, dipakai
-  /// gradasi khas Napak.
+  /// gradasi khas Tourvella.
   final Color? warna;
 
   /// Warna latar di belakang garisnya. Diisi `Colors.transparent` kalau
@@ -48,15 +48,15 @@ class PratinjauRute extends StatelessWidget {
     return Container(
       height: tinggi,
       width: double.infinity,
-      color: latar ?? NapakColors.softSky,
+      color: latar ?? TourvellaColors.softSky,
       child: animasikan
           // Rutenya menggambar dirinya sendiri dari titik berangkat ke titik
           // sampai, bukan sekadar memudar masuk. Gerakan itu yang membuat
           // kartunya terbaca sebagai perjalanan, bukan sebagai gambar.
           ? TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
-              duration: NapakMotion.lambat + NapakMotion.sedang,
-              curve: NapakMotion.mengalir,
+              duration: TourvellaMotion.lambat + TourvellaMotion.sedang,
+              curve: TourvellaMotion.mengalir,
               builder: (context, t, _) => CustomPaint(
                 painter: _PelukisPratinjau(
                   titik: titik,
@@ -139,7 +139,7 @@ class _PelukisPratinjau extends CustomPainter {
     canvas.drawPath(
       tergambar.shift(const Offset(0, 1.5)),
       Paint()
-        ..color = NapakColors.deepAccent.withValues(alpha: 0.12)
+        ..color = TourvellaColors.deepAccent.withValues(alpha: 0.12)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.5
         ..strokeCap = StrokeCap.round
@@ -152,9 +152,9 @@ class _PelukisPratinjau extends CustomPainter {
         ..shader = warna != null
             ? null
             : const LinearGradient(
-                colors: NapakColors.routeGradient,
+                colors: TourvellaColors.routeGradient,
               ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-        ..color = warna ?? NapakColors.deepAccent
+        ..color = warna ?? TourvellaColors.deepAccent
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.5
         ..strokeCap = StrokeCap.round
@@ -169,7 +169,7 @@ class _PelukisPratinjau extends CustomPainter {
     // Titik sampai diberi bara: di ujung sanalah perjalanannya berhenti,
     // dan itu yang dicari mata lebih dulu daripada titik berangkatnya.
     final warnaTitik =
-        warna ?? (isAwal ? NapakColors.deepAccent : NapakColors.ember);
+        warna ?? (isAwal ? TourvellaColors.deepAccent : TourvellaColors.ember);
 
     if (!isAwal) {
       canvas.drawCircle(
@@ -181,7 +181,7 @@ class _PelukisPratinjau extends CustomPainter {
     canvas.drawCircle(
       posisi,
       isAwal ? 4.5 : 5,
-      Paint()..color = NapakColors.base,
+      Paint()..color = TourvellaColors.base,
     );
     canvas.drawCircle(
       posisi,
@@ -210,12 +210,12 @@ class _PratinjauKosong extends StatelessWidget {
     return Container(
       height: tinggi,
       width: double.infinity,
-      color: NapakColors.softSky,
+      color: TourvellaColors.softSky,
       alignment: Alignment.center,
       child: const Icon(
         Icons.timeline_rounded,
         size: 26,
-        color: NapakColors.primary,
+        color: TourvellaColors.primary,
       ),
     );
   }

@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../theme/napak_colors.dart';
-import '../theme/napak_tekstur.dart';
-import '../theme/napak_motion.dart';
+import '../theme/tourvella_colors.dart';
+import '../theme/tourvella_tekstur.dart';
+import '../theme/tourvella_motion.dart';
 
 /// Komponen bertema ekspedisi: odometer, kompas, stempel, label kapital.
 ///
@@ -67,9 +67,9 @@ class _Digit extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: NapakMotion.sedang,
-      switchInCurve: NapakMotion.mengalir,
-      switchOutCurve: NapakMotion.pergi,
+      duration: TourvellaMotion.sedang,
+      switchInCurve: TourvellaMotion.mengalir,
+      switchOutCurve: TourvellaMotion.pergi,
       transitionBuilder: (anak, animasi) => ClipRect(
         child: SlideTransition(
           position: Tween(
@@ -95,8 +95,8 @@ class JarumKompas extends StatefulWidget {
   const JarumKompas({
     required this.arah,
     this.ukuran = 52,
-    this.warna = NapakColors.ember,
-    this.warnaLatar = NapakColors.malamNaik,
+    this.warna = TourvellaColors.ember,
+    this.warnaLatar = TourvellaColors.malamNaik,
     super.key,
   });
 
@@ -135,8 +135,8 @@ class _JarumKompasState extends State<JarumKompas>
           final goyang = math.sin(_ayun.value * math.pi * 2) * 2.5;
           return TweenAnimationBuilder<double>(
             tween: Tween(end: widget.arah),
-            duration: NapakMotion.lambat,
-            curve: NapakMotion.memantul,
+            duration: TourvellaMotion.lambat,
+            curve: TourvellaMotion.memantul,
             builder: (context, arah, _) => CustomPaint(
               painter: _PelukisKompas(
                 arah: arah + goyang,
@@ -235,7 +235,7 @@ class StempelPencapaian extends StatelessWidget {
   const StempelPencapaian({
     required this.teks,
     this.keterangan,
-    this.warna = NapakColors.ember,
+    this.warna = TourvellaColors.ember,
     this.miring = -0.12,
     this.tunda = Duration.zero,
     super.key,
@@ -283,9 +283,9 @@ class StempelPencapaian extends StatelessWidget {
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: NapakMotion.lambat + tunda,
+      duration: TourvellaMotion.lambat + tunda,
       curve: Interval(
-        tunda.inMilliseconds / (NapakMotion.lambat + tunda).inMilliseconds,
+        tunda.inMilliseconds / (TourvellaMotion.lambat + tunda).inMilliseconds,
         1,
         // Mendarat keras lalu memantul sedikit — seperti stempel sungguhan.
         curve: Curves.elasticOut,
@@ -328,7 +328,7 @@ class LabelKapital extends StatelessWidget {
         fontSize: ukuran,
         fontWeight: tebal,
         letterSpacing: 2.2,
-        color: warna ?? NapakColors.textSecondary,
+        color: warna ?? TourvellaColors.textSecondary,
       ),
     );
   }
@@ -337,7 +337,7 @@ class LabelKapital extends StatelessWidget {
 /// Garis putus-putus seperti jalur di peta.
 class PemisahJalur extends StatelessWidget {
   const PemisahJalur({
-    this.warna = NapakColors.divider,
+    this.warna = TourvellaColors.divider,
     this.tebal = 1.4,
     super.key,
   });
@@ -448,7 +448,7 @@ class BilahEkspedisi extends StatelessWidget implements PreferredSizeWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [NapakColors.malam, NapakColors.malamNaik],
+          colors: [TourvellaColors.malam, TourvellaColors.malamNaik],
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -469,7 +469,7 @@ class BilahEkspedisi extends StatelessWidget implements PreferredSizeWidget {
                   child: Row(
                     children: [
                       if (Navigator.of(context).canPop())
-                        const BackButton(color: NapakColors.base)
+                        const BackButton(color: TourvellaColors.base)
                       else
                         const SizedBox(width: 20),
                       Expanded(
@@ -480,7 +480,7 @@ class BilahEkspedisi extends StatelessWidget implements PreferredSizeWidget {
                             if (keterangan != null) ...[
                               LabelKapital(
                                 keterangan!,
-                                warna: NapakColors.emberRedup,
+                                warna: TourvellaColors.emberRedup,
                                 ukuran: 10,
                               ),
                               const SizedBox(height: 3),
@@ -488,7 +488,7 @@ class BilahEkspedisi extends StatelessWidget implements PreferredSizeWidget {
                             Text(
                               judul,
                               style: text.titleLarge?.copyWith(
-                                color: NapakColors.base,
+                                color: TourvellaColors.base,
                                 fontWeight: FontWeight.w800,
                               ),
                               maxLines: 1,

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// Palet Napak.
+/// Palet Tourvella.
 ///
 /// Semua warna di aplikasi ini berasal dari sini. Kalau sebuah komponen butuh
 /// warna yang belum ada, warnanya ditambahkan ke kelas ini dulu — bukan
 /// dituliskan langsung di widget. Begitu satu `Color(0xFF...)` lepas berkeliaran
 /// di halaman, ketenangan palet ini mulai bocor.
 ///
-/// Dasarnya tetap pastel biru dan rendah saturasi — tidak ada neon di Napak.
+/// Dasarnya tetap pastel biru dan rendah saturasi — tidak ada neon di Tourvella.
 /// Di atasnya ada tiga warna ekspedisi: `malam`, `ember`, dan `rimba`.
 ///
 /// Tiga itu ditambahkan setelah paletnya terbukti terlalu lembut untuk
@@ -15,8 +15,8 @@ import 'package:flutter/material.dart';
 /// akibatnya tidak ada yang terasa seperti berangkat subuh-subuh. Pastel
 /// tetap memegang permukaan tenang — daftar, kartu, teks. Warna ekspedisi
 /// memegang saat-saat berangkat dan malam sebelum jalan.
-abstract final class NapakColors {
-  /// Warna utama Napak. Tombol utama, elemen aktif, garis rute di peta.
+abstract final class TourvellaColors {
+  /// Warna utama Tourvella. Tombol utama, elemen aktif, garis rute di peta.
   static const primary = Color(0xFFA8C8E8);
 
   /// Teks penting, ikon aktif, border elemen utama.

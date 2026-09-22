@@ -1,6 +1,6 @@
-# napak-mobile
+# tourvella-mobile
 
-Aplikasi Napak — setiap perjalanan meninggalkan jejak.
+Aplikasi Tourvella — setiap perjalanan punya cerita.
 
 Flutter · Riverpod · go_router · MapLibre GL · drift
 
@@ -12,7 +12,7 @@ dart run build_runner build --delete-conflicting-outputs   # kode drift
 flutter run
 ```
 
-Pastikan [`napak-api`](../napak-api) sudah jalan lebih dulu, dan sudah disemai
+Pastikan [`tourvella-api`](../tourvella-api) sudah jalan lebih dulu, dan sudah disemai
 data contohnya (`npm run seed`). Emulator Android otomatis menunjuk ke
 `10.0.2.2:3000` — jalan tembus menuju localhost komputernya.
 
@@ -20,24 +20,24 @@ data contohnya (`npm run seed`). Emulator Android otomatis menunjuk ke
 backend, lalu pakai alamat yang dicetaknya:
 
 ```bash
-# di napak-api
+# di tourvella-api
 npm run tunnel
 
 # lalu, dengan alamat yang tadi tercetak
-flutter run --dart-define=NAPAK_API_URL=https://<acak>.trycloudflare.com/api
+flutter run --dart-define=TOURVELLA_API_URL=https://<acak>.trycloudflare.com/api
 ```
 
 ### Gaya peta
 
-Bawaannya mengambil gaya pastel Napak dari backend (`GET /api/map/style`) —
+Bawaannya mengambil gaya pastel Tourvella dari backend (`GET /api/map/style`) —
 bukan ditanam di aplikasi, supaya paletnya bisa diperbaiki tanpa menunggu orang
 memperbarui aplikasinya, dan supaya kunci penyedia tile tidak ikut masuk APK.
 
-Itu berarti backend perlu punya sumber tile (lihat README `napak-api`). Untuk
+Itu berarti backend perlu punya sumber tile (lihat README `tourvella-api`). Untuk
 mengembangkan tanpa tile server sama sekali:
 
 ```bash
-flutter run --dart-define=NAPAK_MAP_STYLE=https://demotiles.maplibre.org/style.json
+flutter run --dart-define=TOURVELLA_MAP_STYLE=https://demotiles.maplibre.org/style.json
 ```
 
 ## Susunan
@@ -48,7 +48,7 @@ lib/
     config/       alamat backend, jeda tracking, ambang jarak
     network/      klien HTTP + rotasi token otomatis
     storage/      token di Keystore/Keychain
-    theme/        napak_colors (palet) + napak_motion (durasi & kurva)
+    theme/        tourvella_colors (palet) + tourvella_motion (durasi & kurva)
     widgets/      shell tab, pressable, skeleton, angka berjalan
     router/       go_router + pengalihan sesi
     providers.dart
@@ -59,17 +59,17 @@ lib/
     recording/    mulai & jalannya perekaman, antrean offline, sinkron
     groups/       Trip Bareng: anggota, undangan, posisi langsung
     render/       minta video, pratinjau, bagikan
-    recap/        Napak Tilas tahunan
+    recap/        Tourvella Recap tahunan
 ```
 
 ## Gerak
 
 Gerak punya palet, sama seperti warna. Semua durasi dan kurva berasal dari
-[`lib/core/theme/napak_motion.dart`](lib/core/theme/napak_motion.dart) — kalau
+[`lib/core/theme/tourvella_motion.dart`](lib/core/theme/tourvella_motion.dart) — kalau
 tiap layar memilih sendiri, aplikasinya terasa gelisah: satu tombol memantul,
 tombol sebelahnya meluncur, dan tidak ada yang terasa satu keluarga.
 
-Satu pertimbangan mendasarinya: gerak di Napak harus terasa seperti sesuatu
+Satu pertimbangan mendasarinya: gerak di Tourvella harus terasa seperti sesuatu
 yang **mengalir**, bukan yang **melompat**. Perjalanan tidak melompat.
 
 | | |
@@ -83,11 +83,11 @@ yang **mengalir**, bukan yang **melompat**. Perjalanan tidak melompat.
 
 Tiga hal yang paling menentukan rasa "enak dipakai":
 
-- **`NapakPressable`** membungkus apa pun yang bisa ditekan. Saat kartu
+- **`TourvellaPressable`** membungkus apa pun yang bisa ditekan. Saat kartu
   menyusut sedikit di bawah jari lalu kembali, otak membacanya sebagai benda,
   bukan gambar. Turunnya lebih cepat daripada naiknya — benda nyata memang
   begitu.
-- **`NapakSkeleton`** menggantikan lingkaran berputar. Kerangka memberi tahu
+- **`TourvellaSkeleton`** menggantikan lingkaran berputar. Kerangka memberi tahu
   bentuk apa yang sedang datang, jadi halamannya tidak melompat saat isinya
   masuk. Lingkaran berputar tidak memberi tahu apa-apa selain "tunggu".
 - **`MunculBertahap`** membuat daftar muncul satu per satu. Serentak terasa
@@ -100,7 +100,7 @@ Empat tab di bawah dengan tombol rekam di tengah, meminjam bentuk yang ibu
 jari orang sudah hafal. Menaruh "Mulai merekam" di pojok kanan atas berarti
 meminta orang memindahkan genggaman di atas motor.
 
-Yang dipinjam hanya mekanikanya — warnanya tetap Napak: latar nyaris putih,
+Yang dipinjam hanya mekanikanya — warnanya tetap Tourvella: latar nyaris putih,
 aksen biru pastel, tanpa satu pun titik merah pemberitahuan.
 
 Beranda disusun seperti feed: **bentuk rute tampil besar dan lebih dulu**,
@@ -115,7 +115,7 @@ sekecil itu yang dibutuhkan mata memang cuma bentuknya.
 ## Warna
 
 Seluruh warna berasal dari
-[`lib/core/theme/napak_colors.dart`](lib/core/theme/napak_colors.dart).
+[`lib/core/theme/tourvella_colors.dart`](lib/core/theme/tourvella_colors.dart).
 Kalau sebuah komponen butuh warna yang belum ada, warnanya ditambahkan ke file
 itu dulu — bukan dituliskan langsung di widget. Begitu satu `Color(0xFF...)`
 lepas berkeliaran di halaman, ketenangan paletnya mulai bocor.
@@ -187,10 +187,10 @@ Jalan keluarnya: runner macOS di GitHub Actions membuat IPA-nya,
 ### Sekali jalan
 
 ```
-1. di napak-api:  npm run tunnel          → salin URL yang tercetak
+1. di tourvella-api:  npm run tunnel          → salin URL yang tercetak
 2. di GitHub:     Actions ▸ Build iOS ▸ Run workflow
                   tempel URL tadi ke kolom "api_url"
-3. tunggu ±10 menit, unduh artefak Napak-unsigned-ipa
+3. tunggu ±10 menit, unduh artefak Tourvella-unsigned-ipa
 4. buka Sideloadly, sambungkan iPhone, jatuhkan IPA-nya, masuk Apple ID
 5. di iPhone: Pengaturan ▸ Umum ▸ VPN & Manajemen Perangkat ▸ percayai
 ```
@@ -224,7 +224,7 @@ dan cara paling aman menjaganya adalah tidak menaruhnya di mana-mana.
 | `NSPhotoLibraryAddUsageDescription` | terisi |
 | `UIBackgroundModes` | `location`, `fetch` |
 | Deployment target | 13.0 — sesuai syarat MapLibre |
-| Bundle ID | `id.napak.napak` |
+| Bundle ID | `id.tourvella.app` |
 | App Transport Security | tanpa `NSAllowsArbitraryLoads` |
 
 Teks izinnya muncul apa adanya di dialog iOS, jadi ditulis dengan bahasa yang
@@ -240,7 +240,7 @@ seperti itu jauh lebih enak ketahuan di CI daripada di HP.
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 cd ios && pod install && cd ..
-flutter run --dart-define=NAPAK_API_URL=https://<acak>.trycloudflare.com/api
+flutter run --dart-define=TOURVELLA_API_URL=https://<acak>.trycloudflare.com/api
 ```
 
 Simulator iOS tidak butuh Apple ID, tapi tidak punya GPS sungguhan —

@@ -7,8 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
 import '../data/obrolan_data.dart';
 
@@ -249,7 +249,7 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
     final rombongan = widget.rombongan || (dariDaftar?.rombongan ?? false);
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: AppBar(
         titleSpacing: 0,
         title: Row(
@@ -275,7 +275,7 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   AnimatedSwitcher(
-                    duration: NapakMotion.cepat,
+                    duration: TourvellaMotion.cepat,
                     child: _yangMengetik == null
                         ? Text(
                             rombongan ? 'Obrolan rombongan' : 'Teman',
@@ -288,7 +288,7 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
                                 : 'sedang mengetik…',
                             key: const ValueKey('ketik'),
                             style: text.bodySmall?.copyWith(
-                              color: NapakColors.deepAccent,
+                              color: TourvellaColors.deepAccent,
                             ),
                           ),
                   ),
@@ -302,8 +302,8 @@ class _ObrolanPageState extends ConsumerState<ObrolanPage> {
         children: [
           Expanded(child: _isi(text)),
           AnimatedSize(
-            duration: NapakMotion.cepat,
-            curve: NapakMotion.mengalir,
+            duration: TourvellaMotion.cepat,
+            curve: TourvellaMotion.mengalir,
             child: _yangMengetik == null
                 ? const SizedBox(width: double.infinity)
                 : Padding(
@@ -403,14 +403,14 @@ class _LingkaranRombongan extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: NapakColors.routeGradient,
+          colors: TourvellaColors.routeGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Icon(
         Icons.two_wheeler_rounded,
-        color: NapakColors.textOnDeep,
+        color: TourvellaColors.textOnDeep,
         size: ukuran * 0.5,
       ),
     );
@@ -437,13 +437,13 @@ class _PemisahHari extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
         decoration: BoxDecoration(
-          color: NapakColors.softSky,
+          color: TourvellaColors.softSky,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
           teks,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: NapakColors.deepAccent,
+            color: TourvellaColors.deepAccent,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -502,7 +502,7 @@ class _Gelembung extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: milikSaya
             ? const LinearGradient(
-                colors: NapakColors.routeGradient,
+                colors: TourvellaColors.routeGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
@@ -513,7 +513,7 @@ class _Gelembung extends StatelessWidget {
             ? null
             : [
                 BoxShadow(
-                  color: NapakColors.textPrimary.withValues(alpha: 0.05),
+                  color: TourvellaColors.textPrimary.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 3),
                 ),
@@ -529,7 +529,7 @@ class _Gelembung extends StatelessWidget {
               child: Text(
                 pesan.namaPengirim,
                 style: text.labelSmall?.copyWith(
-                  color: NapakColors.deepAccent,
+                  color: TourvellaColors.deepAccent,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -543,8 +543,8 @@ class _Gelembung extends StatelessWidget {
                 pesan.isi,
                 style: text.bodyMedium?.copyWith(
                   color: milikSaya
-                      ? NapakColors.textOnDeep
-                      : NapakColors.textPrimary,
+                      ? TourvellaColors.textOnDeep
+                      : TourvellaColors.textPrimary,
                   height: 1.35,
                 ),
               ),
@@ -564,7 +564,7 @@ class _Gelembung extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           AnimatedOpacity(
-            duration: NapakMotion.cepat,
+            duration: TourvellaMotion.cepat,
             opacity: pesan.sedangDikirim ? 0.6 : 1,
             child: isi,
           ),
@@ -578,8 +578,8 @@ class _Gelembung extends StatelessWidget {
     // cukup untuk terasa "sampai", tidak cukup untuk jadi atraksi.
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: NapakMotion.sedang,
-      curve: NapakMotion.memantul,
+      duration: TourvellaMotion.sedang,
+      curve: TourvellaMotion.memantul,
       builder: (context, t, anak) => Opacity(
         opacity: t.clamp(0.0, 1.0),
         child: Transform.translate(
@@ -605,8 +605,8 @@ class _StempelWaktu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final warna = milikSaya
-        ? NapakColors.textOnDeep.withValues(alpha: 0.8)
-        : NapakColors.textSecondary;
+        ? TourvellaColors.textOnDeep.withValues(alpha: 0.8)
+        : TourvellaColors.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
@@ -626,7 +626,7 @@ class _StempelWaktu extends StatelessWidget {
                   ? Icons.schedule_rounded
                   : Icons.done_rounded,
               size: 13,
-              color: pesan.gagal ? NapakColors.attention : warna,
+              color: pesan.gagal ? TourvellaColors.attention : warna,
             ),
           ],
         ],
@@ -683,7 +683,7 @@ class _TitikMengetikState extends State<_TitikMengetik>
                     width: 7,
                     height: 7,
                     decoration: const BoxDecoration(
-                      color: NapakColors.primary,
+                      color: TourvellaColors.primary,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -722,7 +722,7 @@ class _BilahTulis extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: NapakColors.textPrimary.withValues(alpha: 0.05),
+            color: TourvellaColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -743,7 +743,7 @@ class _BilahTulis extends StatelessWidget {
                 hintText: 'Tulis pesan…',
                 counterText: '',
                 filled: true,
-                fillColor: NapakColors.base,
+                fillColor: TourvellaColors.base,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -758,27 +758,29 @@ class _BilahTulis extends StatelessWidget {
           const SizedBox(width: 8),
           // Tombol kirim membesar dan berwarna penuh begitu ada yang ditulis.
           AnimatedScale(
-            duration: NapakMotion.cepat,
-            curve: NapakMotion.memantul,
+            duration: TourvellaMotion.cepat,
+            curve: TourvellaMotion.memantul,
             scale: adaIsi ? 1 : 0.86,
             child: AnimatedContainer(
-              duration: NapakMotion.cepat,
+              duration: TourvellaMotion.cepat,
               width: 46,
               height: 46,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: adaIsi ? NapakColors.ember : NapakColors.softSky,
+                color: adaIsi ? TourvellaColors.ember : TourvellaColors.softSky,
               ),
               child: IconButton(
                 onPressed: adaIsi ? onKirim : null,
                 icon: AnimatedRotation(
-                  duration: NapakMotion.sedang,
-                  curve: NapakMotion.memantul,
+                  duration: TourvellaMotion.sedang,
+                  curve: TourvellaMotion.memantul,
                   turns: adaIsi ? 0 : -0.1,
                   child: Icon(
                     Icons.send_rounded,
                     size: 20,
-                    color: adaIsi ? NapakColors.malam : NapakColors.primary,
+                    color: adaIsi
+                        ? TourvellaColors.malam
+                        : TourvellaColors.primary,
                   ),
                 ),
               ),

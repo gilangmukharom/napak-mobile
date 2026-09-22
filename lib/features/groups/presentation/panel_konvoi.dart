@@ -3,10 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
 import '../../trips/data/trip_models.dart';
 
@@ -35,13 +35,15 @@ class PanelKonvoi extends StatelessWidget {
     final depan = kabar.barisan.first;
 
     return AnimatedContainer(
-      duration: NapakMotion.sedang,
+      duration: TourvellaMotion.sedang,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        color: NapakColors.malam,
+        color: TourvellaColors.malam,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: adaTertinggal ? NapakColors.attention : NapakColors.kontur,
+          color: adaTertinggal
+              ? TourvellaColors.attention
+              : TourvellaColors.kontur,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -63,22 +65,22 @@ class PanelKonvoi extends StatelessWidget {
                         : Icons.route_rounded,
                     size: 18,
                     color: adaTertinggal
-                        ? NapakColors.attention
-                        : NapakColors.ember,
+                        ? TourvellaColors.attention
+                        : TourvellaColors.ember,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       adaTertinggal ? 'Ada yang tertinggal' : 'Rombongan rapat',
                       style: text.titleSmall?.copyWith(
-                        color: NapakColors.base,
+                        color: TourvellaColors.base,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
                   LabelKapital(
                     'rentang ${_jarak(kabar.rentangM)}',
-                    warna: NapakColors.emberRedup,
+                    warna: TourvellaColors.emberRedup,
                     ukuran: 10,
                   ),
                 ],
@@ -101,14 +103,14 @@ class PanelKonvoi extends StatelessWidget {
                         : '${b.nama.split(' ').first} ${_jarak(b.selisihM)} di belakang',
                 ].join(' · '),
                 style: text.bodySmall?.copyWith(
-                  color: NapakColors.base.withValues(alpha: 0.6),
+                  color: TourvellaColors.base.withValues(alpha: 0.6),
                 ),
               ),
             ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: NapakMotion.sedang).slideY(begin: -0.1);
+    ).animate().fadeIn(duration: TourvellaMotion.sedang).slideY(begin: -0.1);
   }
 }
 
@@ -159,7 +161,7 @@ class _JalanState extends State<_Jalan> with SingleTickerProviderStateMixin {
           AnimatedPositioned(
             key: ValueKey(b.userId),
             duration: const Duration(milliseconds: 900),
-            curve: NapakMotion.mengalir,
+            curve: TourvellaMotion.mengalir,
             // Yang terdepan di kanan; selisih terbesar di paling kiri.
             left: ruang * (1 - b.selisihM / rentang),
             top: 14,
@@ -195,7 +197,10 @@ class _Penanda extends StatelessWidget {
                 height: ukuran,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: NapakColors.attention, width: 2),
+                  border: Border.all(
+                    color: TourvellaColors.attention,
+                    width: 2,
+                  ),
                 ),
               )
               .animate(onPlay: (c) => c.repeat())
@@ -223,7 +228,7 @@ class _PelukisJalan extends CustomPainter {
     );
     canvas.drawRRect(
       aspal,
-      Paint()..color = NapakColors.kontur.withValues(alpha: 0.55),
+      Paint()..color = TourvellaColors.kontur.withValues(alpha: 0.55),
     );
 
     // Marka putus-putus bergerak ke kiri: rombongan melaju ke kanan.
@@ -231,7 +236,7 @@ class _PelukisJalan extends CustomPainter {
     const jarak = 12.0;
     const langkah = panjang + jarak;
     final marka = Paint()
-      ..color = NapakColors.base
+      ..color = TourvellaColors.base
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
     final y = size.height / 2;

@@ -12,11 +12,6 @@ on:
           Alamat backend, lengkap dengan /api. Tempel URL dari `npm run tunnel`.
         required: true
         default: https://contoh.trycloudflare.com/api
-      map_style_url:
-        description: >-
-          Gaya peta. Kosongkan untuk memakai gaya pastel Napak dari backend.
-        required: false
-        default: ''
 
 jobs:
   apk:
@@ -51,17 +46,12 @@ jobs:
       - name: Bangun APK
         env:
           API_URL: ${{ inputs.api_url }}
-          MAP_STYLE: ${{ inputs.map_style_url }}
-        run: |
-          argumen=(--release --dart-define=NAPAK_API_URL="$API_URL")
-          if [ -n "$MAP_STYLE" ]; then
-            argumen+=(--dart-define=NAPAK_MAP_STYLE="$MAP_STYLE")
-          fi
-          flutter build apk "${argumen[@]}"
+        # Gaya peta selalu dari backend (lihat catatan di build-ios.yml).
+        run: flutter build apk --release --dart-define=TOURVELLA_API_URL="$API_URL"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: Napak-apk
+          name: Tourvella-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 14
           if-no-files-found: error
@@ -69,11 +59,11 @@ jobs:
       - name: Ringkasan
         run: |
           {
-            echo "## Napak — APK siap diunduh"
+            echo "## Tourvella — APK siap diunduh"
             echo ""
             echo "Backend: \`${{ inputs.api_url }}\`"
             echo ""
-            echo "Unduh artefak \`Napak-apk\`, pindahkan ke HP, lalu pasang."
+            echo "Unduh artefak \`Tourvella-apk\`, pindahkan ke HP, lalu pasang."
             echo "Android akan meminta izin memasang dari sumber tak dikenal."
             echo ""
             echo "> Pastikan backend dan tunnel-nya masih hidup — alamat di atas"

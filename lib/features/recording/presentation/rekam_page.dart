@@ -8,16 +8,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/theme/napak_theme.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/theme/tourvella_theme.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../peta/presentation/layanan_sheet.dart';
 import '../../trips/presentation/peta_rute.dart';
-import '../application/napak_tilas.dart';
+import '../application/susur_ulang.dart';
 import '../application/recording_controller.dart';
 import '../data/photo_uploader.dart';
 
@@ -71,7 +71,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
     final yakin = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
+        backgroundColor: TourvellaColors.base,
         title: const Text('Tutup perjalanan?'),
         content: const Text(
           'Jejak yang belum terkirim akan disusulkan dulu. Setelah ditutup, '
@@ -140,8 +140,8 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                 const SizedBox(height: 16),
 
                 AnimatedSize(
-                  duration: NapakMotion.sedang,
-                  curve: NapakMotion.mengalir,
+                  duration: TourvellaMotion.sedang,
+                  curve: TourvellaMotion.mengalir,
                   child: foto == null
                       ? const SizedBox(width: double.infinity)
                       : Padding(
@@ -159,7 +159,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                                     width: double.infinity,
                                     decoration: const BoxDecoration(
                                       gradient: LinearGradient(
-                                        colors: NapakColors.routeGradient,
+                                        colors: TourvellaColors.routeGradient,
                                       ),
                                     ),
                                     child: const Column(
@@ -169,13 +169,13 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                                         Icon(
                                           Icons.play_circle_outline_rounded,
                                           size: 48,
-                                          color: NapakColors.textOnDeep,
+                                          color: TourvellaColors.textOnDeep,
                                         ),
                                         SizedBox(height: 6),
                                         Text(
                                           'Video siap disimpan',
                                           style: TextStyle(
-                                            color: NapakColors.textOnDeep,
+                                            color: TourvellaColors.textOnDeep,
                                           ),
                                         ),
                                       ],
@@ -191,14 +191,14 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                                 Positioned(
                                   top: 8,
                                   right: 8,
-                                  child: NapakPressable(
+                                  child: TourvellaPressable(
                                     skala: 0.85,
                                     onTap: () =>
                                         setSheetState(() => foto = null),
                                     child: Container(
                                       padding: const EdgeInsets.all(6),
                                       decoration: BoxDecoration(
-                                        color: NapakColors.base.withValues(
+                                        color: TourvellaColors.base.withValues(
                                           alpha: 0.92,
                                         ),
                                         shape: BoxShape.circle,
@@ -206,7 +206,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                                       child: const Icon(
                                         Icons.close_rounded,
                                         size: 16,
-                                        color: NapakColors.textPrimary,
+                                        color: TourvellaColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -301,7 +301,7 @@ class _RekamPageState extends ConsumerState<RekamPage> {
     // berangkat subuh dan dilihat sambil jalan, bukan layar yang dibaca
     // sambil duduk.
     return Theme(
-      data: NapakTheme.gelap(),
+      data: TourvellaTheme.gelap(),
       child: Scaffold(
         body: Stack(
           children: [
@@ -340,10 +340,10 @@ class _RekamPageState extends ConsumerState<RekamPage> {
                     belumTerkirim: belumTerkirim,
                   ),
                   const Spacer(),
-                  if (rekaman.menapakTilas != null)
-                    _KartuTilas(
+                  if (rekaman.susurUlang != null)
+                    _KartuSusurUlang(
                       lama: rekaman.jejakLama,
-                      judulLama: rekaman.menapakTilas!.title,
+                      judulLama: rekaman.susurUlang!.title,
                       sudahBerjalan: _berjalan,
                       jarakM: rekaman.jarakM,
                       posisiSekarang: rekaman.latest == null
@@ -388,11 +388,11 @@ class _PanelAtas extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 20, 12),
             decoration: BoxDecoration(
-              color: NapakColors.base.withValues(alpha: 0.94),
+              color: TourvellaColors.base.withValues(alpha: 0.94),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: NapakColors.textPrimary.withValues(alpha: 0.07),
+                  color: TourvellaColors.textPrimary.withValues(alpha: 0.07),
                   blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),
@@ -400,19 +400,22 @@ class _PanelAtas extends StatelessWidget {
             ),
             child: Row(
               children: [
-                NapakPressable(
+                TourvellaPressable(
                   skala: 0.9,
                   onTap: () => context.go('/'),
                   child: const Padding(
                     padding: EdgeInsets.all(4),
                     child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: NapakColors.textSecondary,
+                      color: TourvellaColors.textSecondary,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 8),
+                const TitikBerdenyut(
+                  warna: TourvellaColors.deepAccent,
+                  ukuran: 8,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Column(
@@ -435,8 +438,8 @@ class _PanelAtas extends StatelessWidget {
           // Muncul sendiri hanya kalau ada yang tertahan, lalu hilang lagi
           // begitu terkirim. Tidak perlu ada ruang kosong menunggunya.
           AnimatedSize(
-            duration: NapakMotion.sedang,
-            curve: NapakMotion.mengalir,
+            duration: TourvellaMotion.sedang,
+            curve: TourvellaMotion.mengalir,
             child: belumTerkirim == 0
                 ? const SizedBox(width: double.infinity)
                 : Padding(
@@ -447,7 +450,9 @@ class _PanelAtas extends StatelessWidget {
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: NapakColors.warmNeutral.withValues(alpha: 0.95),
+                        color: TourvellaColors.warmNeutral.withValues(
+                          alpha: 0.95,
+                        ),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
@@ -456,13 +461,13 @@ class _PanelAtas extends StatelessWidget {
                           const Icon(
                             Icons.cloud_off_rounded,
                             size: 15,
-                            color: NapakColors.deepAccent,
+                            color: TourvellaColors.deepAccent,
                           ),
                           const SizedBox(width: 9),
                           Text(
                             '$belumTerkirim jejak menunggu sinyal',
                             style: text.bodySmall?.copyWith(
-                              color: NapakColors.textPrimary,
+                              color: TourvellaColors.textPrimary,
                             ),
                           ),
                         ],
@@ -499,9 +504,11 @@ class _PanelBawah extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: NapakColors.malam.withValues(alpha: 0.94),
+        color: TourvellaColors.malam.withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: NapakColors.kontur.withValues(alpha: 0.7)),
+        border: Border.all(
+          color: TourvellaColors.kontur.withValues(alpha: 0.7),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
@@ -533,7 +540,7 @@ class _PanelBawah extends StatelessWidget {
                       desimal: 1,
                       satuan: 'KM',
                       gaya: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: NapakColors.ember,
+                        color: TourvellaColors.ember,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -574,7 +581,7 @@ class _PanelBawah extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                const PemisahJalur(warna: NapakColors.kontur),
+                const PemisahJalur(warna: TourvellaColors.kontur),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -592,12 +599,12 @@ class _PanelBawah extends StatelessWidget {
                       tooltip: 'Bensin & bengkel terdekat',
                       onPressed: onLayanan,
                       style: IconButton.styleFrom(
-                        backgroundColor: NapakColors.softSky,
+                        backgroundColor: TourvellaColors.softSky,
                         minimumSize: const Size(48, 48),
                       ),
                       icon: const Icon(
                         Icons.local_gas_station_rounded,
-                        color: NapakColors.deepAccent,
+                        color: TourvellaColors.deepAccent,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -644,7 +651,7 @@ class _TidakSedangMerekam extends StatelessWidget {
                 const Icon(
                   Icons.route_outlined,
                   size: 44,
-                  color: NapakColors.primary,
+                  color: TourvellaColors.primary,
                 ),
                 const SizedBox(height: 20),
                 Text(
@@ -666,13 +673,13 @@ class _TidakSedangMerekam extends StatelessWidget {
   }
 }
 
-/// Perbandingan dengan perjalanan yang sedang ditapak-tilasi.
+/// Perbandingan dengan perjalanan yang sedang disusuri ulang.
 ///
 /// Yang ditampilkan bukan lomba. Kalimatnya sengaja tenang dan tidak pernah
-/// memuji atau menyalahkan — napak tilas itu mengingat, bukan mengalahkan
+/// memuji atau menyalahkan — susur ulang itu mengingat, bukan mengalahkan
 /// diri sendiri yang dulu.
-class _KartuTilas extends StatelessWidget {
-  const _KartuTilas({
+class _KartuSusurUlang extends StatelessWidget {
+  const _KartuSusurUlang({
     required this.lama,
     required this.judulLama,
     required this.sudahBerjalan,
@@ -702,11 +709,11 @@ class _KartuTilas extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral.withValues(alpha: 0.96),
+          color: TourvellaColors.warmNeutral.withValues(alpha: 0.96),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: NapakColors.textPrimary.withValues(alpha: 0.07),
+              color: TourvellaColors.textPrimary.withValues(alpha: 0.07),
               blurRadius: 16,
               offset: const Offset(0, 5),
             ),
@@ -720,12 +727,12 @@ class _KartuTilas extends StatelessWidget {
                 const Icon(
                   Icons.history_rounded,
                   size: 16,
-                  color: NapakColors.deepAccent,
+                  color: TourvellaColors.deepAccent,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Menapak tilas $judulLama',
+                    'Menyusuri ulang $judulLama',
                     style: text.labelMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -737,10 +744,10 @@ class _KartuTilas extends StatelessWidget {
             Text(kalimatSelisih(hasil.selisih), style: text.titleMedium),
 
             // Catatan lama muncul sendiri saat kamu lewat tempat yang sama.
-            // Inilah bagian yang paling terasa seperti napak tilas sungguhan.
+            // Inilah bagian yang paling terasa seperti susur ulang sungguhan.
             AnimatedSize(
-              duration: NapakMotion.sedang,
-              curve: NapakMotion.mengalir,
+              duration: TourvellaMotion.sedang,
+              curve: TourvellaMotion.mengalir,
               child: hasil.catatanTerdekat == null
                   ? const SizedBox(width: double.infinity)
                   : Padding(
@@ -751,7 +758,7 @@ class _KartuTilas extends StatelessWidget {
                           const Icon(
                             Icons.format_quote_rounded,
                             size: 15,
-                            color: NapakColors.textSecondary,
+                            color: TourvellaColors.textSecondary,
                           ),
                           const SizedBox(width: 8),
                           Expanded(

@@ -4,13 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../trips/data/trip_models.dart';
 import '../application/live_location_controller.dart';
@@ -29,9 +29,9 @@ class BarengPage extends ConsumerWidget {
     final trips = ref.watch(tripListProvider);
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       body: RefreshIndicator(
-        color: NapakColors.deepAccent,
+        color: TourvellaColors.deepAccent,
         backgroundColor: Colors.white,
         onRefresh: () async => ref.invalidate(tripListProvider),
         child: CustomScrollView(
@@ -185,7 +185,7 @@ class _KepalaBareng extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: NapakColors.langitSubuh,
+          colors: TourvellaColors.langitSubuh,
           stops: [0, 0.6, 1.5],
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -200,7 +200,7 @@ class _KepalaBareng extends StatelessWidget {
           ),
           const Positioned.fill(
             child: SiluetGunung(
-              warna: [NapakColors.malamNaik, NapakColors.malam],
+              warna: [TourvellaColors.malamNaik, TourvellaColors.malam],
             ),
           ),
           const Positioned.fill(child: ButiranKertas(opasitas: 0.04)),
@@ -216,20 +216,20 @@ class _KepalaBareng extends StatelessWidget {
                       children: [
                         const LabelKapital(
                           'Rombongan',
-                          warna: NapakColors.emberRedup,
+                          warna: TourvellaColors.emberRedup,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Jalan bareng',
                           style: text.displaySmall?.copyWith(
-                            color: NapakColors.base,
+                            color: TourvellaColors.base,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Perjalanan yang kamu tempuh bersama orang lain.',
                           style: text.bodyMedium?.copyWith(
-                            color: NapakColors.base.withValues(alpha: 0.65),
+                            color: TourvellaColors.base.withValues(alpha: 0.65),
                           ),
                         ),
                       ],
@@ -256,15 +256,17 @@ class _KartuGabung extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: onTap,
       skala: 0.98,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
+          color: TourvellaColors.warmNeutral,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.35)),
+          border: Border.all(
+            color: TourvellaColors.ember.withValues(alpha: 0.35),
+          ),
         ),
         child: Row(
           children: [
@@ -272,13 +274,13 @@ class _KartuGabung extends StatelessWidget {
               height: 42,
               width: 42,
               decoration: BoxDecoration(
-                color: NapakColors.ember.withValues(alpha: 0.18),
+                color: TourvellaColors.ember.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(
                 Icons.group_add_outlined,
                 size: 21,
-                color: NapakColors.ember,
+                color: TourvellaColors.ember,
               ),
             ),
             const SizedBox(width: 16),
@@ -300,7 +302,7 @@ class _KartuGabung extends StatelessWidget {
             const Icon(
               Icons.arrow_forward_rounded,
               size: 18,
-              color: NapakColors.ember,
+              color: TourvellaColors.ember,
             ),
           ],
         ),
@@ -318,7 +320,7 @@ class _KartuBareng extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/trip/${trip.id}/bareng'),
       skala: 0.98,
       child: Container(
@@ -326,7 +328,7 @@ class _KartuBareng extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: NapakColors.divider),
+          border: Border.all(color: TourvellaColors.divider),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +338,7 @@ class _KartuBareng extends ConsumerWidget {
                 Expanded(child: Text(trip.title, style: text.titleLarge)),
                 if (trip.isRecording)
                   const TitikBerdenyut(
-                    warna: NapakColors.deepAccent,
+                    warna: TourvellaColors.deepAccent,
                     ukuran: 7,
                   ),
               ],
@@ -383,7 +385,8 @@ class _GarisAnggota extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
 
     return anggota.when(
-      loading: () => const NapakSkeleton(tinggi: 22, lebar: 140, radius: 11),
+      loading: () =>
+          const TourvellaSkeleton(tinggi: 22, lebar: 140, radius: 11),
       error: (_, _) => const SizedBox.shrink(),
       data: (daftar) {
         if (daftar.isEmpty) return const SizedBox.shrink();
@@ -430,7 +433,7 @@ class _Keping extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(ikon, size: 15, color: NapakColors.deepAccent),
+        Icon(ikon, size: 15, color: TourvellaColors.deepAccent),
         const SizedBox(width: 6),
         Text(teks, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -459,11 +462,11 @@ class _Kosong extends StatelessWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),
-            duration: NapakMotion.lambat,
-            curve: NapakMotion.memantul,
+            duration: TourvellaMotion.lambat,
+            curve: TourvellaMotion.memantul,
             builder: (context, t, anak) =>
                 Transform.scale(scale: t, child: anak),
-            child: Icon(ikon, size: 42, color: NapakColors.primary),
+            child: Icon(ikon, size: 42, color: TourvellaColors.primary),
           ),
           const SizedBox(height: 20),
           Text(judul, style: text.titleMedium, textAlign: TextAlign.center),

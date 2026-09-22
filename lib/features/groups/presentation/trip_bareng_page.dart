@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../trips/data/trip_models.dart';
 import '../../trips/presentation/peta_rute.dart';
 import '../application/live_location_controller.dart';
@@ -111,8 +111,8 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 // Barisan konvoi muncul begitu ada dua orang yang berbagi
                 // posisi — sebelum itu memang belum ada barisan.
                 AnimatedSize(
-                  duration: NapakMotion.sedang,
-                  curve: NapakMotion.mengalir,
+                  duration: TourvellaMotion.sedang,
+                  curve: TourvellaMotion.mengalir,
                   child: live.konvoi == null || live.konvoi!.barisan.length < 2
                       ? const SizedBox(width: double.infinity)
                       : Padding(
@@ -132,7 +132,7 @@ class _TripBarengPageState extends ConsumerState<TripBarengPage> {
                 const SizedBox(height: 28),
                 const LabelKapital(
                   'Teman seperjalanan',
-                  warna: NapakColors.deepAccent,
+                  warna: TourvellaColors.deepAccent,
                   ukuran: 12,
                 ),
                 const SizedBox(height: 12),
@@ -214,11 +214,11 @@ class _LampuSambungan extends StatelessWidget {
         width: 9,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: tersambung ? NapakColors.affirm : NapakColors.kontur,
+          color: tersambung ? TourvellaColors.affirm : TourvellaColors.kontur,
           boxShadow: tersambung
               ? [
                   BoxShadow(
-                    color: NapakColors.affirm.withValues(alpha: 0.6),
+                    color: TourvellaColors.affirm.withValues(alpha: 0.6),
                     blurRadius: 10,
                     spreadRadius: 2,
                   ),
@@ -243,7 +243,7 @@ class _KartuBerbagiPosisi extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NapakColors.softSky,
+        color: TourvellaColors.softSky,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -277,7 +277,7 @@ class _KartuBerbagiPosisi extends ConsumerWidget {
               const Icon(
                 Icons.info_outline_rounded,
                 size: 15,
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -334,7 +334,7 @@ class _BarisAnggota extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: NapakColors.warmNeutral,
+                          color: TourvellaColors.warmNeutral,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text('Pemimpin', style: text.labelMedium),
@@ -358,7 +358,7 @@ class _BarisAnggota extends StatelessWidget {
             const Icon(
               Icons.my_location_rounded,
               size: 18,
-              color: NapakColors.deepAccent,
+              color: TourvellaColors.deepAccent,
             ),
         ],
       ),
@@ -387,7 +387,7 @@ class _KartuUndangan extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
+          color: TourvellaColors.warmNeutral,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -408,7 +408,7 @@ class _KartuUndangan extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NapakColors.warmNeutral,
+        color: TourvellaColors.warmNeutral,
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -445,7 +445,7 @@ class _KartuUndangan extends StatelessWidget {
               IconButton(
                 tooltip: 'Salin',
                 icon: const Icon(Icons.copy_rounded, size: 20),
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: slug));
                   if (!context.mounted) return;
@@ -457,11 +457,11 @@ class _KartuUndangan extends StatelessWidget {
               IconButton(
                 tooltip: 'Bagikan',
                 icon: const Icon(Icons.ios_share_rounded, size: 20),
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
                 onPressed: () => SharePlus.instance.share(
                   ShareParams(
                     text:
-                        'Ikut jalan bareng di Napak yuk. '
+                        'Ikut jalan bareng di Tourvella yuk. '
                         'Masukkan kode ini di aplikasi: $slug',
                     subject: trip.title,
                   ),
@@ -552,8 +552,8 @@ class _PanelSinyal extends ConsumerWidget {
         // Riwayatnya cuma di memori dan cuma delapan terakhir. Ini alat
         // koordinasi saat jalan, bukan riwayat percakapan.
         AnimatedSize(
-          duration: NapakMotion.sedang,
-          curve: NapakMotion.mengalir,
+          duration: TourvellaMotion.sedang,
+          curve: TourvellaMotion.mengalir,
           child: live.sinyal.isEmpty
               ? const SizedBox(width: double.infinity)
               : Padding(
@@ -592,16 +592,16 @@ class _TombolSinyal extends StatelessWidget {
     final text = Theme.of(context).textTheme;
 
     // "Ada masalah" diberi warna hangat, bukan merah menyala. Ini isyarat
-    // minta berhenti, bukan alarm kebakaran — dan palet Napak memang tidak
+    // minta berhenti, bukan alarm kebakaran — dan palet Tourvella memang tidak
     // punya warna yang berteriak.
     final mendesak = sinyal == Sinyal.adaMasalah;
-    final latar = mendesak ? NapakColors.warmNeutral : Colors.white;
+    final latar = mendesak ? TourvellaColors.warmNeutral : Colors.white;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: aktif ? onTap : null,
       skala: 0.94,
       child: AnimatedOpacity(
-        duration: NapakMotion.cepat,
+        duration: TourvellaMotion.cepat,
         opacity: aktif ? 1 : 0.45,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
@@ -609,7 +609,9 @@ class _TombolSinyal extends StatelessWidget {
             color: latar,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: mendesak ? NapakColors.attention : NapakColors.divider,
+              color: mendesak
+                  ? TourvellaColors.attention
+                  : TourvellaColors.divider,
             ),
           ),
           child: Row(
@@ -619,8 +621,8 @@ class _TombolSinyal extends StatelessWidget {
                 _ikonSinyal(sinyal),
                 size: 18,
                 color: mendesak
-                    ? NapakColors.attention
-                    : NapakColors.deepAccent,
+                    ? TourvellaColors.attention
+                    : TourvellaColors.deepAccent,
               ),
               const SizedBox(width: 9),
               Text(sinyal.label, style: text.bodyMedium),
@@ -648,7 +650,7 @@ class _BarisSinyal extends StatelessWidget {
           Icon(
             _ikonSinyal(masuk.sinyal),
             size: 16,
-            color: NapakColors.deepAccent,
+            color: TourvellaColors.deepAccent,
           ),
           const SizedBox(width: 10),
           Expanded(

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// Seberapa terbuka sebuah perjalanan.
 enum TripVisibility {
-  /// Hanya kamu. Ini keadaan awal setiap perjalanan di Napak.
+  /// Hanya kamu. Ini keadaan awal setiap perjalanan di Tourvella.
   private('private', 'Hanya kamu'),
 
   /// Siapa pun yang punya tautannya.
@@ -70,6 +70,7 @@ class Trip {
     this.retraceOf,
     this.coverUrl,
     this.diProfil = false,
+    this.kendaraanId,
     this.startedAt,
     this.endedAt,
     this.shareSlug,
@@ -92,6 +93,7 @@ class Trip {
     ],
     coverUrl: json['coverUrl'] as String?,
     diProfil: json['diProfil'] as bool? ?? false,
+    kendaraanId: json['kendaraanId'] as String?,
     retraceOf: json['retraceOf'] == null
         ? null
         : RingkasTrip.fromJson(json['retraceOf'] as Map<String, dynamic>),
@@ -127,7 +129,10 @@ class Trip {
   /// Dipajang di profil, untuk dilihat teman. Mati bawaan.
   final bool diProfil;
 
-  /// Perjalanan lama yang sedang ditapak-tilasi perjalanan ini.
+  /// Kendaraan dari garasi pemiliknya yang menempuh perjalanan ini.
+  final String? kendaraanId;
+
+  /// Perjalanan lama yang sedang disusuri ulang perjalanan ini.
   final RingkasTrip? retraceOf;
 
   final DateTime? startedAt;
@@ -240,7 +245,7 @@ class TripMember {
   final String name;
   final String role;
 
-  /// Hex dari palet rute Napak, dikirim backend supaya warna tiap orang
+  /// Hex dari palet rute Tourvella, dikirim backend supaya warna tiap orang
   /// konsisten di semua perangkat yang menonton peta bersama.
   final String routeColor;
 

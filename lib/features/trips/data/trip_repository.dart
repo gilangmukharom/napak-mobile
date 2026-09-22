@@ -82,10 +82,16 @@ class TripRepository {
     required String title,
     TripMode mode = TripMode.solo,
     String? retraceOf,
+    String? kendaraanId,
   }) async {
     final data = await _api.post<Map<String, dynamic>>(
       '/trips',
-      body: {'title': title, 'mode': mode.wire, 'retraceOf': ?retraceOf},
+      body: {
+        'title': title,
+        'mode': mode.wire,
+        'retraceOf': ?retraceOf,
+        'kendaraanId': ?kendaraanId,
+      },
     );
     return Trip.fromJson(data);
   }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/features/recording/application/napak_tilas.dart';
-import 'package:napak/features/trips/data/trip_models.dart';
+import 'package:tourvella/features/recording/application/susur_ulang.dart';
+import 'package:tourvella/features/trips/data/trip_models.dart';
 
 /// Perjalanan lama: lurus ke timur, 10 km tiap 30 menit.
 List<TripPoint> _perjalananLama() {

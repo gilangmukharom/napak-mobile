@@ -5,7 +5,7 @@ part 'local_database.g.dart';
 
 /// Jejak yang sudah direkam tapi belum sempat dikirim.
 ///
-/// Inilah yang membuat Napak tetap bisa dipakai di jalur Sumatra yang
+/// Inilah yang membuat Tourvella tetap bisa dipakai di jalur Sumatra yang
 /// sinyalnya putus-putus, atau di kapal penyeberangan. Perjalanan tidak
 /// berhenti hanya karena sinyalnya berhenti.
 class PendingPoints extends Table {
@@ -36,9 +36,9 @@ class PendingPoints extends Table {
 }
 
 @DriftDatabase(tables: [PendingPoints])
-class NapakLocalDatabase extends _$NapakLocalDatabase {
-  NapakLocalDatabase([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'napak_local'));
+class TourvellaLocalDatabase extends _$TourvellaLocalDatabase {
+  TourvellaLocalDatabase([QueryExecutor? executor])
+    : super(executor ?? driftDatabase(name: 'tourvella_local'));
 
   @override
   int get schemaVersion => 1;

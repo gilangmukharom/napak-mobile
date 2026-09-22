@@ -6,14 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/theme/napak_theme.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/theme/tourvella_theme.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 
 /// Layar kode OTP.
 ///
-/// Nama hanya ditanyakan kalau ini perjalanan pertamamu bersama Napak — dan
+/// Nama hanya ditanyakan kalau ini perjalanan pertamamu bersama Tourvella — dan
 /// itu baru ketahuan setelah kodenya benar, karena backend sengaja tidak
 /// membocorkan nomor mana yang sudah terdaftar.
 class KodePage extends ConsumerStatefulWidget {
@@ -123,17 +123,17 @@ class _KodePageState extends ConsumerState<KodePage> {
 
     const bingkai = OutlineInputBorder(
       borderRadius: BorderRadius.all(Radius.circular(14)),
-      borderSide: BorderSide(color: NapakColors.kontur),
+      borderSide: BorderSide(color: TourvellaColors.kontur),
     );
 
     return Theme(
-      data: NapakTheme.gelap(),
+      data: TourvellaTheme.gelap(),
       child: Scaffold(
-        backgroundColor: NapakColors.malam,
+        backgroundColor: TourvellaColors.malam,
         extendBodyBehindAppBar: true,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          foregroundColor: NapakColors.base,
+          foregroundColor: TourvellaColors.base,
           leading: const BackButton(),
         ),
         body: Stack(
@@ -144,7 +144,7 @@ class _KodePageState extends ConsumerState<KodePage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: NapakColors.langitSubuh,
+                  colors: TourvellaColors.langitSubuh,
                   stops: [0, 0.5, 1.4],
                 ),
               ),
@@ -155,7 +155,7 @@ class _KodePageState extends ConsumerState<KodePage> {
               child: FractionallySizedBox(
                 heightFactor: 0.34,
                 child: SiluetGunung(
-                  warna: [NapakColors.malamNaik, NapakColors.malam],
+                  warna: [TourvellaColors.malamNaik, TourvellaColors.malam],
                 ),
               ),
             ),
@@ -169,13 +169,13 @@ class _KodePageState extends ConsumerState<KodePage> {
                   children: [
                     const LabelKapital(
                       'Satu langkah lagi',
-                      warna: NapakColors.ember,
+                      warna: TourvellaColors.ember,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Cek SMS-mu',
                       style: text.headlineMedium?.copyWith(
-                        color: NapakColors.base,
+                        color: TourvellaColors.base,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -183,7 +183,7 @@ class _KodePageState extends ConsumerState<KodePage> {
                       'Kode enam angka sudah meluncur ke '
                       '${widget.phoneNumber}.',
                       style: text.bodyLarge?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.7),
+                        color: TourvellaColors.base.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -197,23 +197,25 @@ class _KodePageState extends ConsumerState<KodePage> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       style: text.headlineMedium?.copyWith(
                         letterSpacing: 14,
-                        color: NapakColors.ember,
+                        color: TourvellaColors.ember,
                         fontWeight: FontWeight.w800,
                       ),
                       decoration: InputDecoration(
                         counterText: '',
                         filled: true,
-                        fillColor: NapakColors.malamNaik.withValues(alpha: 0.8),
+                        fillColor: TourvellaColors.malamNaik.withValues(
+                          alpha: 0.8,
+                        ),
                         hintText: '······',
                         hintStyle: text.headlineMedium?.copyWith(
                           letterSpacing: 14,
-                          color: NapakColors.kontur,
+                          color: TourvellaColors.kontur,
                         ),
                         errorText: _kesalahan,
                         enabledBorder: bingkai,
                         focusedBorder: bingkai.copyWith(
                           borderSide: const BorderSide(
-                            color: NapakColors.ember,
+                            color: TourvellaColors.ember,
                             width: 1.6,
                           ),
                         ),
@@ -226,25 +228,29 @@ class _KodePageState extends ConsumerState<KodePage> {
                     const LabelKapital('Namamu'),
                     const SizedBox(height: 6),
                     Text(
-                      'Dipakai kalau ini pertama kalinya kamu di Napak. '
+                      'Dipakai kalau ini pertama kalinya kamu di Tourvella. '
                       'Bisa diganti kapan saja.',
                       style: text.bodySmall?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.5),
+                        color: TourvellaColors.base.withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: _namaController,
                       textCapitalization: TextCapitalization.words,
-                      style: text.bodyLarge?.copyWith(color: NapakColors.base),
+                      style: text.bodyLarge?.copyWith(
+                        color: TourvellaColors.base,
+                      ),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: NapakColors.malamNaik.withValues(alpha: 0.8),
+                        fillColor: TourvellaColors.malamNaik.withValues(
+                          alpha: 0.8,
+                        ),
                         hintText: 'Nama panggilan',
                         enabledBorder: bingkai,
                         focusedBorder: bingkai.copyWith(
                           borderSide: const BorderSide(
-                            color: NapakColors.ember,
+                            color: TourvellaColors.ember,
                             width: 1.6,
                           ),
                         ),
@@ -261,7 +267,7 @@ class _KodePageState extends ConsumerState<KodePage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: NapakColors.malam,
+                                  color: TourvellaColors.malam,
                                 ),
                               )
                             : const Text('Masuk'),
@@ -272,7 +278,9 @@ class _KodePageState extends ConsumerState<KodePage> {
                       child: _detikTersisa > 0
                           ? LabelKapital(
                               'Kode baru dalam $_waktu',
-                              warna: NapakColors.base.withValues(alpha: 0.45),
+                              warna: TourvellaColors.base.withValues(
+                                alpha: 0.45,
+                              ),
                             )
                           : TextButton(
                               onPressed: _kirimUlang,

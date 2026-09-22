@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 
-import '../../../core/config/napak_config.dart';
+import '../../../core/config/tourvella_config.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers.dart';
 import 'layanan_data.dart';
@@ -133,7 +133,7 @@ class WilayahOffline {
   /// Peta offline dikenali dari alamat gayanya. Kalau alamat server berubah
   /// — tunnel uji coba berganti alamat tiap dijalankan ulang — tile yang
   /// tersimpan tidak lagi cocok dengan yang diminta peta.
-  bool get cocokDenganServer => alamatGaya == NapakConfig.mapStyleUrl;
+  bool get cocokDenganServer => alamatGaya == TourvellaConfig.mapStyleUrl;
 }
 
 sealed class KemajuanUnduh {
@@ -163,7 +163,7 @@ class UnduhanGagal extends KemajuanUnduh {
 
 /// Peta offline.
 ///
-/// Yang diunduh tile vektor dari server Napak sendiri — bukan dari penyedia
+/// Yang diunduh tile vektor dari server Tourvella sendiri — bukan dari penyedia
 /// peta luar — lalu disimpan MapLibre di HP. Setelah itu, peta di wilayah
 /// itu tetap tergambar lengkap dengan nama jalannya walau sinyal hilang.
 ///
@@ -201,8 +201,16 @@ class PetaOfflineService {
 
   Future<List<WilayahOffline>> daftar() async {
     final semua = await ml.getListOfRegions();
-    return [
-      for (final r in semua)
+    final hasil = <WilayahOffline>[];
+    for (final r in semua) {
+      int? byte = (r.metadata['byte'] as num?)?.toInt();
+      try {
+        byte = (await ml.getOfflineRegionStatus(r.id)).completedResourceSize;
+      } catch (_) {
+        // Status belum bisa dibaca; pakai perkiraan yang disimpan saat mulai.
+      }
+      final layanan = await _layanan.jumlahLokal(r.id);
+      hasil.add(
         WilayahOffline(
           id: r.id,
           nama: r.metadata['nama'] as String? ?? 'Wilayah tanpa nama',
@@ -214,12 +222,19 @@ class PetaOfflineService {
           ),
           zoomMaks: r.definition.maxZoom.round(),
           alamatGaya: r.definition.mapStyleUrl,
-          ukuranByte: (r.metadata['byte'] as num?)?.toInt(),
-          jumlahLayanan: (r.metadata['layanan'] as num?)?.toInt(),
+          ukuranByte: byte,
+          jumlahLayanan: layanan,
           diunduh: DateTime.tryParse(r.metadata['diunduh'] as String? ?? ''),
         ),
-    ];
+      );
+    }
+    return hasil;
   }
+
+  /// Satu unduhan dalam satu waktu. Dua unduhan bersamaan membuat MapLibre
+  /// mengelola dua paket sekaligus di penyimpanan yang sama — di iOS itu
+  /// jalan yang paling mungkin berakhir dengan aplikasi tertutup sendiri.
+  static bool _sedangMengunduh = false;
 
   /// Mengunduh satu wilayah. Kemajuannya mengalir lewat stream.
   Stream<KemajuanUnduh> unduh({
@@ -231,6 +246,29 @@ class PetaOfflineService {
     final aliran = StreamController<KemajuanUnduh>();
 
     Future<void> jalan() async {
+      if (!TourvellaConfig.petaMilikTourvella) {
+        aliran.add(
+          const UnduhanGagal(
+            'Aplikasi ini dibangun dengan peta demo yang isinya cuma bentuk '
+            'pulau. Bangun ulang aplikasinya dengan peta Tourvella dulu, baru '
+            'unduh untuk offline.',
+          ),
+        );
+        await aliran.close();
+        return;
+      }
+      if (_sedangMengunduh) {
+        aliran.add(
+          const UnduhanGagal(
+            'Masih ada wilayah lain yang sedang diunduh. Tunggu selesai dulu, ya.',
+          ),
+        );
+        await aliran.close();
+        return;
+      }
+      _sedangMengunduh = true;
+      var kabarTerakhir = DateTime.fromMillisecondsSinceEpoch(0);
+
       try {
         if (!_batasDiatur) {
           // Bawaan MapLibre membatasi 6.000 tile per wilayah — sepotong
@@ -246,7 +284,7 @@ class PetaOfflineService {
               southwest: ml.LatLng(kotak.s, kotak.w),
               northeast: ml.LatLng(kotak.n, kotak.e),
             ),
-            mapStyleUrl: NapakConfig.mapStyleUrl,
+            mapStyleUrl: TourvellaConfig.mapStyleUrl,
             minZoom: 4,
             maxZoom: kerincian.zoomMaks.toDouble(),
           ),
@@ -258,6 +296,13 @@ class PetaOfflineService {
           onEvent: (status) {
             switch (status) {
               case ml.InProgress():
+                // iOS mengirim kabar untuk setiap tile tanpa jeda. Yang
+                // diteruskan ke layar cukup empat kali sedetik.
+                final sekarang = DateTime.now();
+                if (sekarang.difference(kabarTerakhir).inMilliseconds < 250) {
+                  break;
+                }
+                kabarTerakhir = sekarang;
                 aliran.add(
                   SedangMengunduh(
                     // Android melaporkan 0–100; dijepit supaya tetap benar
@@ -275,7 +320,7 @@ class PetaOfflineService {
               case ml.Error():
                 if (!selesai.isCompleted) {
                   selesai.completeError(
-                    NapakException(
+                    TourvellaException(
                       'Unduhan terputus. Coba lagi saat sinyal lebih baik — '
                       'yang sudah terunduh tidak hilang.',
                     ),
@@ -294,22 +339,27 @@ class PetaOfflineService {
         // Ukuran yang sebenarnya tersimpan di HP, bukan perkiraan.
         final status = await ml.getOfflineRegionStatus(wilayah.id);
 
+        // SPBU & bengkel ikut disimpan. Kalau langkah ini gagal, petanya
+        // sendiri sudah utuh di HP — jangan laporkan seluruh unduhan gagal.
         aliran.add(const MengunduhLayanan());
-        final jumlah = await _layanan.simpanWilayah(wilayah.id, kotak);
-        final dengan = await ml.updateOfflineRegionMetadata(wilayah.id, {
-          ...wilayah.metadata,
-          'byte': status.completedResourceSize,
-          'layanan': jumlah,
-        });
+        var jumlah = 0;
+        try {
+          jumlah = await _layanan.simpanWilayah(wilayah.id, kotak);
+        } catch (_) {}
+
+        // Catatan: TIDAK memanggil `updateOfflineRegionMetadata`. Plugin
+        // maplibre_gl 0.27 tidak mengimplementasikannya di iOS; memanggilnya
+        // membuat unduhan yang sudah berhasil dilaporkan gagal. Ukuran dan
+        // jumlah layanan dibaca ulang dari status & berkas lokal di `daftar()`.
 
         aliran.add(
           UnduhanSelesai(
             WilayahOffline(
-              id: dengan.id,
+              id: wilayah.id,
               nama: nama,
               kotak: kotak,
               zoomMaks: kerincian.zoomMaks,
-              alamatGaya: NapakConfig.mapStyleUrl,
+              alamatGaya: TourvellaConfig.mapStyleUrl,
               ukuranByte: status.completedResourceSize,
               jumlahLayanan: jumlah,
               diunduh: DateTime.now(),
@@ -317,8 +367,9 @@ class PetaOfflineService {
           ),
         );
       } catch (galat) {
-        aliran.add(UnduhanGagal(galat.toString()));
+        aliran.add(UnduhanGagal(_pesanManusia(galat)));
       } finally {
+        _sedangMengunduh = false;
         await aliran.close();
       }
     }
@@ -327,9 +378,23 @@ class PetaOfflineService {
     return aliran.stream;
   }
 
+  /// Galat plugin dijelaskan dengan bahasa orang, bukan nama kelas Java.
+  static String _pesanManusia(Object galat) {
+    if (galat is TourvellaException) return galat.message;
+    final teks = galat.toString();
+    if (teks.contains('tileCountLimitExceeded')) {
+      return 'Wilayahnya terlalu besar untuk sekali unduh. Pilih kerincian Hemat.';
+    }
+    if (teks.contains('MissingPluginException')) {
+      return 'Fitur ini belum didukung di perangkatmu. Perbarui aplikasinya.';
+    }
+    return 'Unduhan terputus. Coba lagi saat sinyal lebih baik — '
+        'yang sudah terunduh tidak hilang.';
+  }
+
   Future<void> _tungguLengkap(int id, Completer<void> selesai) async {
     while (!selesai.isCompleted) {
-      await Future<void>.delayed(const Duration(seconds: 2));
+      await Future<void>.delayed(const Duration(seconds: 3));
       try {
         final status = await ml.getOfflineRegionStatus(id);
         if (status.isComplete && !selesai.isCompleted) selesai.complete();

@@ -9,11 +9,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' show LatLng;
 
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/network/api_client.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
 import '../../trips/presentation/peta_rute.dart';
@@ -31,7 +31,7 @@ abstract final class LayananSheet {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: NapakColors.base,
+    backgroundColor: TourvellaColors.base,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -82,7 +82,7 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
     if (izin == LocationPermission.denied ||
         izin == LocationPermission.deniedForever) {
       throw Exception(
-        'Napak perlu izin lokasi untuk mencari yang terdekat. '
+        'Tourvella perlu izin lokasi untuk mencari yang terdekat. '
         'Posisimu tidak disimpan.',
       );
     }
@@ -113,7 +113,7 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
             kendaraan: _jenis == JenisLayanan.bengkel ? _kendaraan : null,
           );
       if (mounted) setState(() => _hasil = hasil);
-    } on NapakException catch (e) {
+    } on TourvellaException catch (e) {
       // Server menjawab, tapi menolak: pesannya sudah Bahasa Indonesia yang
       // layak dibaca — jangan ditimpa tebakan "tidak ada sinyal".
       if (mounted) setState(() => _galat = e.message);
@@ -158,7 +158,7 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: NapakColors.divider,
+                      color: TourvellaColors.divider,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -175,7 +175,7 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: NapakColors.warmNeutral,
+                          color: TourvellaColors.warmNeutral,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
@@ -183,7 +183,7 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
                             const Icon(
                               Icons.cloud_off_rounded,
                               size: 14,
-                              color: NapakColors.textSecondary,
+                              color: TourvellaColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
                             Text('Data offline', style: text.labelSmall),
@@ -257,8 +257,8 @@ class _LayananIsiState extends ConsumerState<_LayananIsi> {
                       dari: _posisi!,
                     )
                     .animate(delay: (45 * i.clamp(0, 10)).ms)
-                    .fadeIn(duration: NapakMotion.sedang)
-                    .slideY(begin: 0.12, curve: NapakMotion.mengalir);
+                    .fadeIn(duration: TourvellaMotion.sedang)
+                    .slideY(begin: 0.12, curve: TourvellaMotion.mengalir);
               },
             ),
           ),
@@ -284,7 +284,7 @@ class _PemilihJenis extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: NapakColors.softSky.withValues(alpha: 0.6),
+        color: TourvellaColors.softSky.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
       ),
       child: LayoutBuilder(
@@ -295,8 +295,8 @@ class _PemilihJenis extends StatelessWidget {
             children: [
               // Penanda pilihan meluncur, bukan melompat.
               AnimatedPositioned(
-                duration: NapakMotion.sedang,
-                curve: NapakMotion.memantul,
+                duration: TourvellaMotion.sedang,
+                curve: TourvellaMotion.memantul,
                 left: indeks * lebar,
                 width: lebar,
                 top: 0,
@@ -307,7 +307,9 @@ class _PemilihJenis extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: NapakColors.textPrimary.withValues(alpha: 0.06),
+                        color: TourvellaColors.textPrimary.withValues(
+                          alpha: 0.06,
+                        ),
                         blurRadius: 8,
                       ),
                     ],
@@ -329,8 +331,8 @@ class _PemilihJenis extends StatelessWidget {
                                 _ikon[j],
                                 size: 20,
                                 color: j == pilihan
-                                    ? NapakColors.deepAccent
-                                    : NapakColors.textSecondary,
+                                    ? TourvellaColors.deepAccent
+                                    : TourvellaColors.textSecondary,
                               ),
                               const SizedBox(height: 2),
                               Text(
@@ -338,8 +340,8 @@ class _PemilihJenis extends StatelessWidget {
                                 style: Theme.of(context).textTheme.labelMedium
                                     ?.copyWith(
                                       color: j == pilihan
-                                          ? NapakColors.textPrimary
-                                          : NapakColors.textSecondary,
+                                          ? TourvellaColors.textPrimary
+                                          : TourvellaColors.textSecondary,
                                     ),
                               ),
                             ],
@@ -375,7 +377,7 @@ class _BarisLayanan extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: NapakPressable(
+      child: TourvellaPressable(
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => _PetaTempat(l: l, dari: dari),
@@ -388,7 +390,7 @@ class _BarisLayanan extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: terdekat
-                ? Border.all(color: NapakColors.ember, width: 1.4)
+                ? Border.all(color: TourvellaColors.ember, width: 1.4)
                 : null,
           ),
           child: Row(
@@ -399,9 +401,9 @@ class _BarisLayanan extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: NapakColors.softSky,
+                  color: TourvellaColors.softSky,
                   shape: BoxShape.circle,
-                  border: Border.all(color: NapakColors.divider),
+                  border: Border.all(color: TourvellaColors.divider),
                 ),
                 child: Stack(
                   alignment: Alignment.center,
@@ -413,14 +415,14 @@ class _BarisLayanan extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
-                          color: NapakColors.textSecondary,
+                          color: TourvellaColors.textSecondary,
                         ),
                       ),
                     ),
                     TweenAnimationBuilder<double>(
                       tween: Tween(begin: arah - 120, end: arah),
-                      duration: NapakMotion.lambat,
-                      curve: NapakMotion.memantul,
+                      duration: TourvellaMotion.lambat,
+                      curve: TourvellaMotion.memantul,
                       builder: (context, a, anak) => Transform.rotate(
                         angle: a * math.pi / 180,
                         child: anak,
@@ -429,8 +431,8 @@ class _BarisLayanan extends StatelessWidget {
                         Icons.navigation_rounded,
                         size: 22,
                         color: terdekat
-                            ? NapakColors.ember
-                            : NapakColors.deepAccent,
+                            ? TourvellaColors.ember
+                            : TourvellaColors.deepAccent,
                       ),
                     ),
                   ],
@@ -461,7 +463,7 @@ class _BarisLayanan extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: const LabelKapital(
                           'Paling dekat',
-                          warna: NapakColors.ember,
+                          warna: TourvellaColors.ember,
                           ukuran: 9,
                         ),
                       ),
@@ -470,7 +472,7 @@ class _BarisLayanan extends StatelessWidget {
               ),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: NapakColors.textSecondary,
+                color: TourvellaColors.textSecondary,
               ),
             ],
           ),
@@ -518,7 +520,7 @@ class _PetaTempat extends StatelessWidget {
               20,
               18 + MediaQuery.of(context).padding.bottom,
             ),
-            color: NapakColors.base,
+            color: TourvellaColors.base,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -575,7 +577,7 @@ class _PetaTempat extends StatelessWidget {
                   'Jaraknya garis lurus, bukan lewat jalan. Ikuti papan '
                   'petunjuk dan tanya warga sekitar.',
                   style: text.bodySmall?.copyWith(
-                    color: NapakColors.textSecondary,
+                    color: TourvellaColors.textSecondary,
                   ),
                 ),
               ],
@@ -610,7 +612,7 @@ class _Mencari extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: NapakColors.deepAccent,
+                            color: TourvellaColors.deepAccent,
                             width: 2,
                           ),
                         ),
@@ -620,7 +622,7 @@ class _Mencari extends StatelessWidget {
                       .fadeOut(duration: 1400.ms),
                 const Icon(
                   Icons.my_location_rounded,
-                  color: NapakColors.deepAccent,
+                  color: TourvellaColors.deepAccent,
                 ),
               ],
             ),

@@ -24,16 +24,16 @@ import '../../features/trips/presentation/beranda_page.dart';
 import '../../features/trips/presentation/cerita_page.dart';
 import '../../features/trips/presentation/trip_detail_page.dart';
 import '../providers.dart';
-import '../theme/napak_colors.dart';
-import '../theme/napak_motion.dart';
-import '../widgets/napak_shell.dart';
+import '../theme/tourvella_colors.dart';
+import '../theme/tourvella_motion.dart';
+import '../widgets/tourvella_shell.dart';
 
 /// Rute aplikasi.
 ///
 /// Pengalihan sesi dikerjakan di satu tempat ini saja — supaya tidak ada
 /// halaman yang tanpa sengaja bisa dibuka tanpa login.
 ///
-/// Empat tab utama hidup di dalam [NapakShell] lewat ShellRoute, jadi bilah
+/// Empat tab utama hidup di dalam [TourvellaShell] lewat ShellRoute, jadi bilah
 /// navigasinya tidak ikut dibangun ulang tiap berpindah tab. Halaman yang
 /// lebih dalam (detail perjalanan, perekaman) ditumpuk di atasnya dan menutupi
 /// bilah itu — menandakan kamu sedang masuk ke dalam sesuatu, bukan berpindah
@@ -80,7 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // --- Empat tab utama ---
       ShellRoute(
-        builder: (context, state, child) => NapakShell(child: child),
+        builder: (context, state, child) => TourvellaShell(child: child),
         routes: [
           GoRoute(
             path: '/',
@@ -230,7 +230,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               const Icon(
                 Icons.explore_off_outlined,
                 size: 44,
-                color: NapakColors.primary,
+                color: TourvellaColors.primary,
               ),
               const SizedBox(height: 20),
               Text(

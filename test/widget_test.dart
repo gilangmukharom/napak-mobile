@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/features/trips/data/trip_models.dart';
+import 'package:tourvella/features/trips/data/trip_models.dart';
 
 void main() {
   _modelBaru();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/napak_colors.dart';
-import '../theme/napak_motion.dart';
+import '../theme/tourvella_colors.dart';
+import '../theme/tourvella_motion.dart';
 
 /// Kerangka yang berkilau pelan selagi isinya dimuat.
 ///
@@ -12,8 +12,8 @@ import '../theme/napak_motion.dart';
 ///
 /// Kilaunya sengaja lambat dan tipis — ini latar yang sedang menunggu, bukan
 /// sesuatu yang minta diperhatikan.
-class NapakSkeleton extends StatefulWidget {
-  const NapakSkeleton({
+class TourvellaSkeleton extends StatefulWidget {
+  const TourvellaSkeleton({
     required this.tinggi,
     this.lebar = double.infinity,
     this.radius = 12,
@@ -22,9 +22,12 @@ class NapakSkeleton extends StatefulWidget {
   });
 
   /// Kerangka berbentuk baris teks.
-  const NapakSkeleton.teks({this.lebar = 160, this.gelap = false, super.key})
-    : tinggi = 13,
-      radius = 6;
+  const TourvellaSkeleton.teks({
+    this.lebar = 160,
+    this.gelap = false,
+    super.key,
+  }) : tinggi = 13,
+       radius = 6;
 
   final double tinggi;
   final double lebar;
@@ -35,10 +38,10 @@ class NapakSkeleton extends StatefulWidget {
   final bool gelap;
 
   @override
-  State<NapakSkeleton> createState() => _NapakSkeletonState();
+  State<TourvellaSkeleton> createState() => _TourvellaSkeletonState();
 }
 
-class _NapakSkeletonState extends State<NapakSkeleton>
+class _TourvellaSkeletonState extends State<TourvellaSkeleton>
     with SingleTickerProviderStateMixin {
   late final AnimationController _kendali = AnimationController(
     vsync: this,
@@ -70,14 +73,14 @@ class _NapakSkeletonState extends State<NapakSkeleton>
               end: Alignment(posisi + 0.6, 0),
               colors: widget.gelap
                   ? const [
-                      NapakColors.malamNaik,
-                      NapakColors.kontur,
-                      NapakColors.malamNaik,
+                      TourvellaColors.malamNaik,
+                      TourvellaColors.kontur,
+                      TourvellaColors.malamNaik,
                     ]
                   : const [
-                      NapakColors.softSky,
-                      NapakColors.base,
-                      NapakColors.softSky,
+                      TourvellaColors.softSky,
+                      TourvellaColors.base,
+                      TourvellaColors.softSky,
                     ],
               stops: const [0.0, 0.5, 1.0],
             ),
@@ -103,15 +106,15 @@ class SkeletonKartuTrip extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          NapakSkeleton(tinggi: 160, radius: 0),
+          TourvellaSkeleton(tinggi: 160, radius: 0),
           Padding(
             padding: EdgeInsets.fromLTRB(18, 16, 18, 18),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                NapakSkeleton.teks(lebar: 180),
+                TourvellaSkeleton.teks(lebar: 180),
                 SizedBox(height: 10),
-                NapakSkeleton.teks(lebar: 120),
+                TourvellaSkeleton.teks(lebar: 120),
               ],
             ),
           ),
@@ -136,8 +139,8 @@ class SkeletonDaftarTrip extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
-              duration: NapakMotion.sedang,
-              curve: NapakMotion.mengalir,
+              duration: TourvellaMotion.sedang,
+              curve: TourvellaMotion.mengalir,
               builder: (context, t, anak) =>
                   Opacity(opacity: t * (1 - i * 0.22), child: anak),
               child: const SkeletonKartuTrip(),

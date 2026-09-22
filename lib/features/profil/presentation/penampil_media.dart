@@ -7,8 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 
 /// Satu media untuk ditampilkan layar penuh.
 class MediaTampil {
@@ -54,8 +54,8 @@ class PenampilMedia extends StatefulWidget {
     PageRouteBuilder<void>(
       opaque: false,
       barrierColor: Colors.black,
-      transitionDuration: NapakMotion.sedang,
-      reverseTransitionDuration: NapakMotion.cepat,
+      transitionDuration: TourvellaMotion.sedang,
+      reverseTransitionDuration: TourvellaMotion.cepat,
       pageBuilder: (context, a, b) => PenampilMedia(daftar: daftar, awal: awal),
       transitionsBuilder: (context, a, b, anak) =>
           FadeTransition(opacity: a, child: anak),
@@ -133,7 +133,7 @@ class _PenampilMediaState extends State<PenampilMedia> {
                                     ? anak
                                     : const Center(
                                         child: CircularProgressIndicator(
-                                          color: NapakColors.primary,
+                                          color: TourvellaColors.primary,
                                         ),
                                       ),
                               ),
@@ -147,14 +147,14 @@ class _PenampilMediaState extends State<PenampilMedia> {
             // Bilah atas: tutup dan posisi.
             SafeArea(
               child: AnimatedOpacity(
-                duration: NapakMotion.cepat,
+                duration: TourvellaMotion.cepat,
                 opacity: _tampilkanKeterangan && _geserBawah == 0 ? 1 : 0,
                 child: Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close_rounded),
-                      color: NapakColors.textOnDeep,
+                      color: TourvellaColors.textOnDeep,
                     ),
                     const Spacer(),
                     if (widget.daftar.length > 1)
@@ -163,7 +163,7 @@ class _PenampilMediaState extends State<PenampilMedia> {
                         child: Text(
                           '${_indeks + 1} / ${widget.daftar.length}',
                           style: const TextStyle(
-                            color: NapakColors.textOnDeep,
+                            color: TourvellaColors.textOnDeep,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -179,7 +179,7 @@ class _PenampilMediaState extends State<PenampilMedia> {
               right: 0,
               bottom: 0,
               child: AnimatedOpacity(
-                duration: NapakMotion.cepat,
+                duration: TourvellaMotion.cepat,
                 opacity: _tampilkanKeterangan && _geserBawah == 0 ? 1 : 0,
                 child: _Keterangan(key: ValueKey(sekarang.id), media: sekarang),
               ),
@@ -199,7 +199,7 @@ class _Keterangan extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final putih = NapakColors.textOnDeep;
+    final putih = TourvellaColors.textOnDeep;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -225,7 +225,7 @@ class _Keterangan extends StatelessWidget {
                 const Icon(
                   Icons.place_outlined,
                   size: 15,
-                  color: NapakColors.primary,
+                  color: TourvellaColors.primary,
                 ),
                 const SizedBox(width: 4),
                 Text(
@@ -279,7 +279,7 @@ class _Keterangan extends StatelessWidget {
           ],
         ],
       ),
-    ).animate().fadeIn(duration: NapakMotion.cepat).slideY(begin: 0.1);
+    ).animate().fadeIn(duration: TourvellaMotion.cepat).slideY(begin: 0.1);
   }
 }
 
@@ -355,13 +355,14 @@ class _PemutarVideoState extends State<_PemutarVideo> {
               child: VideoPlayer(c),
             ),
           ),
-        if (!_siap) const CircularProgressIndicator(color: NapakColors.primary),
+        if (!_siap)
+          const CircularProgressIndicator(color: TourvellaColors.primary),
         if (_siap && _jeda)
           const Icon(
             Icons.pause_circle_filled_rounded,
             size: 64,
             color: Colors.white70,
-          ).animate().scaleXY(begin: 0.6, curve: NapakMotion.memantul),
+          ).animate().scaleXY(begin: 0.6, curve: TourvellaMotion.memantul),
         if (_siap && c != null)
           Positioned(
             left: 0,
@@ -371,9 +372,13 @@ class _PemutarVideoState extends State<_PemutarVideo> {
               c,
               allowScrubbing: true,
               colors: VideoProgressColors(
-                playedColor: NapakColors.primary,
-                bufferedColor: NapakColors.textOnDeep.withValues(alpha: 0.3),
-                backgroundColor: NapakColors.textOnDeep.withValues(alpha: 0.1),
+                playedColor: TourvellaColors.primary,
+                bufferedColor: TourvellaColors.textOnDeep.withValues(
+                  alpha: 0.3,
+                ),
+                backgroundColor: TourvellaColors.textOnDeep.withValues(
+                  alpha: 0.1,
+                ),
               ),
             ),
           ),

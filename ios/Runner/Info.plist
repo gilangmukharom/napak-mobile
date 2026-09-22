@@ -7,27 +7,36 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Napak</string>
+		<string>Tourvella</string>
 		<!-- Izin lokasi.
 	     Teksnya muncul apa adanya di dialog iOS, jadi ditulis dengan bahasa
 	     yang sama dengan isi aplikasi: menjelaskan apa gunanya, bukan sekadar
 	     meminta. Orang berhak tahu untuk apa lokasinya dipakai sebelum
 	     menyerahkannya. -->
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Napak merekam jejak perjalananmu selama aplikasi terbuka. Semua trip tersimpan tertutup — kamu sendiri yang memutuskan kapan dibagikan.</string>
+		<string>Tourvella merekam jejak perjalananmu selama aplikasi terbuka. Semua trip tersimpan tertutup — kamu sendiri yang memutuskan kapan dibagikan.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Supaya Napak bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
+		<string>Supaya Tourvella bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
-		<string>Supaya Napak bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
+		<string>Supaya Tourvella bisa terus merekam saat layar mati — touring seharian tidak mungkin sambil menatap layar. Perekaman hanya berjalan setelah kamu menekan Mulai.</string>
 		<!-- Untuk menyimpan video animasi rute ke galeri. -->
 		<key>NSPhotoLibraryAddUsageDescription</key>
 		<string>Untuk menyimpan video perjalananmu ke galeri.</string>
+		<!-- Kamera, mikrofon, dan galeri: foto & video singgahan, foto
+		     profil, dan foto kendaraan di garasi. Tanpa teks ini iOS menutup
+		     paksa aplikasinya begitu kamera dibuka — bukan menolak, menutup. -->
+		<key>NSCameraUsageDescription</key>
+		<string>Untuk memotret singgahan perjalanan, foto profilmu, dan kendaraan di garasimu.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Untuk merekam suara saat kamu membuat video singgahan.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Untuk memilih foto dan video singgahan dari galerimu.</string>
 		<!-- Perekaman harus tetap jalan saat aplikasi di latar belakang. -->
 		<!-- ============================================================
 	     App Transport Security
 
 	     Tidak ada pengecualian di sini, dan memang sebaiknya begitu.
-	     Backend Napak diakses lewat Cloudflare Tunnel yang sudah HTTPS
+	     Backend Tourvella diakses lewat Cloudflare Tunnel yang sudah HTTPS
 	     dengan sertifikat sah, jadi ATS tidak perlu dilonggarkan sama
 	     sekali — termasuk saat mencoba dari HP sungguhan.
 
@@ -46,7 +55,7 @@
 		</dict>
 		<!-- iOS 14+ meminta izin sebelum aplikasi menyapa jaringan lokal. -->
 		<key>NSLocalNetworkUsageDescription</key>
-		<string>Untuk menyambung ke backend Napak yang sedang berjalan di jaringan yang sama saat pengembangan.</string>
+		<string>Untuk menyambung ke backend Tourvella yang sedang berjalan di jaringan yang sama saat pengembangan.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>location</string>
@@ -59,7 +68,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>napak</string>
+		<string>tourvella</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>

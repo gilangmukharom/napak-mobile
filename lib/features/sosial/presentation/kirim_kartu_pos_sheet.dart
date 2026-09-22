@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../data/sosial_repository.dart';
 import 'komponen_sosial.dart';
 
@@ -29,7 +29,7 @@ class KirimKartuPosSheet extends ConsumerStatefulWidget {
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    backgroundColor: NapakColors.base,
+    backgroundColor: TourvellaColors.base,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -90,7 +90,7 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: AnimatedSwitcher(
-        duration: NapakMotion.sedang,
+        duration: TourvellaMotion.sedang,
         child: _terkirim
             ? _Terkirim(fotoUrl: widget.fotoUrl)
             : SingleChildScrollView(
@@ -103,7 +103,7 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: NapakColors.divider,
+                          color: TourvellaColors.divider,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -138,7 +138,7 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
                               },
                               icon: const Icon(Icons.group_add_outlined),
                               label: const Text(
-                                'Tambahkan teman dulu lewat kode Napak',
+                                'Tambahkan teman dulu lewat kode Tourvella',
                               ),
                             )
                           : SizedBox(
@@ -157,8 +157,8 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
                                       setState(() => _penerima = t.id);
                                     },
                                     child: AnimatedScale(
-                                      duration: NapakMotion.cepat,
-                                      curve: NapakMotion.memantul,
+                                      duration: TourvellaMotion.cepat,
+                                      curve: TourvellaMotion.memantul,
                                       scale: dipilih ? 1.08 : 1,
                                       child: SizedBox(
                                         width: 64,
@@ -174,8 +174,9 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
                                               t.nama.split(' ').first,
                                               style: text.labelSmall?.copyWith(
                                                 color: dipilih
-                                                    ? NapakColors.deepAccent
-                                                    : NapakColors.textSecondary,
+                                                    ? TourvellaColors.deepAccent
+                                                    : TourvellaColors
+                                                          .textSecondary,
                                                 fontWeight: dipilih
                                                     ? FontWeight.w700
                                                     : null,
@@ -217,7 +218,7 @@ class _KirimKartuPosSheetState extends ConsumerState<KirimKartuPosSheet> {
                                 height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: NapakColors.textOnDeep,
+                                  color: TourvellaColors.textOnDeep,
                                 ),
                               )
                             : const Icon(Icons.send_rounded, size: 20),
@@ -251,7 +252,7 @@ class _Terkirim extends StatelessWidget {
               const Icon(
                     Icons.local_post_office_rounded,
                     size: 64,
-                    color: NapakColors.deepAccent,
+                    color: TourvellaColors.deepAccent,
                   )
                   .animate()
                   .scaleXY(

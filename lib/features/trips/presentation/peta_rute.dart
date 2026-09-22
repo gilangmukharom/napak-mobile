@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
-import '../../../core/config/napak_config.dart';
-import '../../../core/theme/napak_colors.dart';
+import '../../../core/config/tourvella_config.dart';
+import '../../../core/theme/tourvella_colors.dart';
 import '../data/trip_models.dart';
 
 /// Satu garis rute di peta.
@@ -22,7 +22,7 @@ class JalurRute {
   final String id;
   final List<LatLng> titik;
 
-  /// Hex dari palet rute Napak. Kalau null, dipakai gradasi khas Napak.
+  /// Hex dari palet rute Tourvella. Kalau null, dipakai gradasi khas Tourvella.
   final String? warna;
 
   final String? nama;
@@ -80,11 +80,11 @@ class PetaRuteController {
 }
 
 class _PetaRuteState extends State<PetaRute> {
-  static const _sumberUjung = 'napak-ujung';
-  static const _lapisanUjung = 'napak-ujung-titik';
-  static const _sumberLangsung = 'napak-langsung';
-  static const _lapisanLangsung = 'napak-langsung-titik';
-  static const _lapisanNamaLangsung = 'napak-langsung-nama';
+  static const _sumberUjung = 'tourvella-ujung';
+  static const _lapisanUjung = 'tourvella-ujung-titik';
+  static const _sumberLangsung = 'tourvella-langsung';
+  static const _lapisanLangsung = 'tourvella-langsung-titik';
+  static const _lapisanNamaLangsung = 'tourvella-langsung-nama';
 
   MapLibreMapController? _map;
   late final Map<String, List<LatLng>> _titikPerJalur = {
@@ -119,7 +119,7 @@ class _PetaRuteState extends State<PetaRute> {
         : const LatLng(-6.175392, 106.827153);
 
     return MapLibreMap(
-      styleString: NapakConfig.mapStyleUrl,
+      styleString: TourvellaConfig.mapStyleUrl,
       initialCameraPosition: CameraPosition(
         target: awal,
         zoom: _semuaTitik.isNotEmpty ? 11 : 4.5,
@@ -198,7 +198,7 @@ class _PetaRuteState extends State<PetaRute> {
     String jalurId,
     String? warna,
   ) async {
-    final sumber = 'napak-rute-$jalurId';
+    final sumber = 'tourvella-rute-$jalurId';
 
     await map.addSource(
       sumber,
@@ -211,7 +211,7 @@ class _PetaRuteState extends State<PetaRute> {
 
     await map.addLineLayer(
       sumber,
-      'napak-garis-$jalurId',
+      'tourvella-garis-$jalurId',
       warna == null
           ? const LineLayerProperties(
               lineWidth: 4.5,
@@ -251,7 +251,7 @@ class _PetaRuteState extends State<PetaRute> {
     final map = _map;
     if (map == null || !_siap) return;
 
-    await map.setGeoJsonSource('napak-rute-$jalurId', _garisGeoJson(jalurId));
+    await map.setGeoJsonSource('tourvella-rute-$jalurId', _garisGeoJson(jalurId));
     await map.setGeoJsonSource(_sumberUjung, _ujungGeoJson());
 
     if (ikutiKamera) {
@@ -368,12 +368,16 @@ class PetaKosong extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: NapakColors.softSky,
+      color: TourvellaColors.softSky,
       alignment: Alignment.center,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.map_outlined, size: 40, color: NapakColors.primary),
+          const Icon(
+            Icons.map_outlined,
+            size: 40,
+            color: TourvellaColors.primary,
+          ),
           const SizedBox(height: 14),
           Text(
             'Jejaknya belum tergambar',

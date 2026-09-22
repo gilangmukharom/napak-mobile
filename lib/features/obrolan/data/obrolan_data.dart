@@ -213,7 +213,7 @@ class ObrolanSocket {
       ));
     });
 
-    socket.on('napak:error', (data) {
+    socket.on('tourvella:error', (data) {
       if (data is Map && data['message'] is String) {
         _galat.add(data['message'] as String);
       }

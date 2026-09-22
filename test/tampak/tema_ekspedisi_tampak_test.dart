@@ -2,22 +2,22 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/core/theme/napak_colors.dart';
-import 'package:napak/core/theme/napak_tekstur.dart';
-import 'package:napak/core/theme/napak_theme.dart';
-import 'package:napak/core/widgets/napak_ekspedisi.dart';
+import 'package:tourvella/core/theme/tourvella_colors.dart';
+import 'package:tourvella/core/theme/tourvella_tekstur.dart';
+import 'package:tourvella/core/theme/tourvella_theme.dart';
+import 'package:tourvella/core/widgets/tourvella_ekspedisi.dart';
 
 /// Contoh tampak tema ekspedisi, dipakai untuk melihat hasilnya dengan mata.
 ///
 /// Dijalankan dengan:
 ///
 /// ```
-/// NAPAK_TAMPAK=1 flutter test --update-goldens test/tampak
+/// TOURVELLA_TAMPAK=1 flutter test --update-goldens test/tampak
 /// ```
 ///
 /// lalu `test/tampak/tema_ekspedisi.png` dibuka. Bukan tes regresi piksel —
 /// perbandingan piksel antar mesin gampang gagal karena beda render font,
-/// jadi tanpa `NAPAK_TAMPAK` ia dilewati dan CI tidak pernah menjalankannya.
+/// jadi tanpa `TOURVELLA_TAMPAK` ia dilewati dan CI tidak pernah menjalankannya.
 /// Gunanya cuma satu: memastikan kontur, punggungan gunung, dan butiran
 /// memang tergambar, bukan sekadar lolos analisis statis.
 void main() {
@@ -30,7 +30,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          theme: NapakTheme.gelap(),
+          theme: TourvellaTheme.gelap(),
           home: Scaffold(
             appBar: const BilahEkspedisi(
               judul: 'Jejakmu',
@@ -45,7 +45,7 @@ void main() {
                   children: [
                     const LabelKapital(
                       'Ditempuh',
-                      warna: NapakColors.emberRedup,
+                      warna: TourvellaColors.emberRedup,
                     ),
                     const Odometer(
                       nilai: 1284.6,
@@ -54,11 +54,11 @@ void main() {
                       gaya: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.w800,
-                        color: NapakColors.ember,
+                        color: TourvellaColors.ember,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const PemisahJalur(warna: NapakColors.kontur),
+                    const PemisahJalur(warna: TourvellaColors.kontur),
                     const SizedBox(height: 24),
                     Row(
                       children: const [
@@ -97,6 +97,6 @@ void main() {
         matchesGoldenFile('tema_ekspedisi.png'),
       );
     },
-    skip: !Platform.environment.containsKey('NAPAK_TAMPAK'),
+    skip: !Platform.environment.containsKey('TOURVELLA_TAMPAK'),
   );
 }

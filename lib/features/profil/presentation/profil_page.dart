@@ -5,12 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_pressable.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
+import '../../garasi/data/garasi_data.dart';
+import '../../garasi/presentation/garasi_view.dart';
 import '../../obrolan/data/obrolan_data.dart';
 import '../../sosial/data/sosial_repository.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
@@ -22,7 +24,7 @@ import 'penampil_media.dart';
 ///
 /// Tata letaknya meminjam dari aplikasi galeri foto yang sudah hafal di jari
 /// orang: foto profil, angka, bio, sorotan, lalu kisi tiga kolom. Isinya
-/// tetap Napak: angkanya kilometer dan provinsi, sorotannya adalah Cerita
+/// tetap Tourvella: angkanya kilometer dan provinsi, sorotannya adalah Cerita
 /// Perjalanan, dan kisinya hanya berisi yang pemiliknya sendiri pilih untuk
 /// dipajang.
 class ProfilPage extends ConsumerStatefulWidget {
@@ -42,7 +44,8 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
     ref
       ..invalidate(profilProvider(widget.id))
       ..invalidate(dokumentasiProvider(_idNyata ?? widget.id))
-      ..invalidate(perjalananProfilProvider(_idNyata ?? widget.id));
+      ..invalidate(perjalananProfilProvider(_idNyata ?? widget.id))
+      ..invalidate(garasiProvider(widget.id == 'saya' ? 'saya' : widget.id));
     await ref.read(profilProvider(widget.id).future);
   }
 
@@ -54,7 +57,7 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
     final profil = ref.watch(profilProvider(widget.id));
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       body: profil.when(
         loading: () => const _KerangkaProfil(),
         error: (galat, _) => Center(
@@ -79,9 +82,14 @@ class _ProfilPageState extends ConsumerState<ProfilPage> {
                     onGanti: (i) => setState(() => _tab = i),
                   ),
                 ),
-                _tab == 0
-                    ? _KisiDokumentasi(id: p.id, diriSendiri: p.diriSendiri)
-                    : _DaftarPerjalanan(id: p.id),
+                switch (_tab) {
+                  0 => _KisiDokumentasi(id: p.id, diriSendiri: p.diriSendiri),
+                  1 => _DaftarPerjalanan(id: p.id),
+                  _ => SliverGarasi(
+                    pemilikId: p.id,
+                    diriSendiri: p.diriSendiri,
+                  ),
+                },
                 const SliverToBoxAdapter(child: SizedBox(height: 120)),
               ] else
                 SliverToBoxAdapter(child: _Tertutup(profil: p)),
@@ -103,9 +111,9 @@ class _BilahAtas extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       surfaceTintColor: Colors.transparent,
-      foregroundColor: NapakColors.base,
+      foregroundColor: TourvellaColors.base,
       automaticallyImplyLeading: bisaKembali,
       title: Row(
         mainAxisSize: MainAxisSize.min,
@@ -114,7 +122,7 @@ class _BilahAtas extends StatelessWidget {
             Icon(
               Icons.lock_outline_rounded,
               size: 16,
-              color: NapakColors.base.withValues(alpha: 0.6),
+              color: TourvellaColors.base.withValues(alpha: 0.6),
             ),
           if (profil.diriSendiri) const SizedBox(width: 6),
           Flexible(
@@ -122,7 +130,7 @@ class _BilahAtas extends StatelessWidget {
               profil.nama,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: NapakColors.base,
+                color: TourvellaColors.base,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -170,7 +178,7 @@ class _Kepala extends ConsumerWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: NapakColors.kanvasMalam,
+          colors: TourvellaColors.kanvasMalam,
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
@@ -196,8 +204,8 @@ class _Kepala extends ConsumerWidget {
                       cincin: true,
                     ).animate().scaleXY(
                       begin: 0.8,
-                      duration: NapakMotion.lambat,
-                      curve: NapakMotion.memantul,
+                      duration: TourvellaMotion.lambat,
+                      curve: TourvellaMotion.memantul,
                     ),
                     const SizedBox(width: 18),
                     Expanded(
@@ -232,7 +240,7 @@ class _Kepala extends ConsumerWidget {
                 Text(
                   profil.nama,
                   style: text.titleMedium?.copyWith(
-                    color: NapakColors.base,
+                    color: TourvellaColors.base,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -242,13 +250,13 @@ class _Kepala extends ConsumerWidget {
                     profil.bio!,
                     style: text.bodyMedium?.copyWith(
                       height: 1.4,
-                      color: NapakColors.base.withValues(alpha: 0.72),
+                      color: TourvellaColors.base.withValues(alpha: 0.72),
                     ),
                   ),
                 ],
-                if (profil.kodeNapak != null) ...[
+                if (profil.kodeTourvella != null) ...[
                   const SizedBox(height: 10),
-                  _KepingKode(kode: profil.kodeNapak!),
+                  _KepingKode(kode: profil.kodeTourvella!),
                 ],
                 const SizedBox(height: 18),
                 _TombolAksi(profil: profil),
@@ -278,13 +286,13 @@ class _Angka extends StatelessWidget {
           desimal: desimal,
           gaya: text.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
-            color: NapakColors.ember,
+            color: TourvellaColors.ember,
           ),
         ),
         const SizedBox(height: 2),
         LabelKapital(
           label,
-          warna: NapakColors.base.withValues(alpha: 0.55),
+          warna: TourvellaColors.base.withValues(alpha: 0.55),
           ukuran: 9,
         ),
       ],
@@ -304,25 +312,31 @@ class _KepingKode extends StatelessWidget {
         Clipboard.setData(ClipboardData(text: kode));
         HapticFeedback.lightImpact();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kode Napak-mu tersalin.')),
+          const SnackBar(content: Text('Kode Tourvella-mu tersalin.')),
         );
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: NapakColors.ember.withValues(alpha: 0.14),
+          color: TourvellaColors.ember.withValues(alpha: 0.14),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: NapakColors.ember.withValues(alpha: 0.45)),
+          border: Border.all(
+            color: TourvellaColors.ember.withValues(alpha: 0.45),
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.tag_rounded, size: 14, color: NapakColors.ember),
+            const Icon(
+              Icons.tag_rounded,
+              size: 14,
+              color: TourvellaColors.ember,
+            ),
             const SizedBox(width: 4),
             Text(
               kode,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: NapakColors.ember,
+                color: TourvellaColors.ember,
                 letterSpacing: 2,
                 fontWeight: FontWeight.w800,
               ),
@@ -395,8 +409,8 @@ class _TombolAksiState extends ConsumerState<_TombolAksi> {
           onTap: () => SharePlus.instance.share(
             ShareParams(
               text:
-                  'Tambahkan aku di Napak biar bisa jalan bareng. '
-                  'Kodeku: ${p.kodeNapak}',
+                  'Tambahkan aku di Tourvella biar bisa jalan bareng. '
+                  'Kodeku: ${p.kodeTourvella}',
             ),
           ),
         );
@@ -431,7 +445,7 @@ class _TombolAksiState extends ConsumerState<_TombolAksi> {
         );
       case Hubungan.belum:
         kiri = const _Tombol(
-          label: 'Minta kode Napak-nya untuk berteman',
+          label: 'Minta kode Tourvella-nya untuk berteman',
           onTap: null,
         );
     }
@@ -487,17 +501,23 @@ class _Tombol extends StatelessWidget {
         ? FilledButton(
             onPressed: onTap,
             style: gaya.copyWith(
-              backgroundColor: const WidgetStatePropertyAll(NapakColors.ember),
-              foregroundColor: const WidgetStatePropertyAll(NapakColors.malam),
+              backgroundColor: const WidgetStatePropertyAll(
+                TourvellaColors.ember,
+              ),
+              foregroundColor: const WidgetStatePropertyAll(
+                TourvellaColors.malam,
+              ),
             ),
             child: anak,
           )
         : OutlinedButton(
             onPressed: onTap,
             style: gaya.copyWith(
-              foregroundColor: const WidgetStatePropertyAll(NapakColors.base),
+              foregroundColor: const WidgetStatePropertyAll(
+                TourvellaColors.base,
+              ),
               side: const WidgetStatePropertyAll(
-                BorderSide(color: NapakColors.kontur),
+                BorderSide(color: TourvellaColors.kontur),
               ),
             ),
             child: anak,
@@ -531,7 +551,7 @@ class _Sorotan extends ConsumerWidget {
         separatorBuilder: (context, i) => const SizedBox(width: 14),
         itemBuilder: (context, i) {
           final t = daftar[i];
-          return NapakPressable(
+          return TourvellaPressable(
                 onTap: () => context.push('/trip/${t.id}/cerita'),
                 child: SizedBox(
                   width: 68,
@@ -542,7 +562,7 @@ class _Sorotan extends ConsumerWidget {
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: NapakColors.routeGradient,
+                            colors: TourvellaColors.routeGradient,
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
@@ -550,7 +570,7 @@ class _Sorotan extends ConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: const BoxDecoration(
-                            color: NapakColors.base,
+                            color: TourvellaColors.base,
                             shape: BoxShape.circle,
                           ),
                           child: ClipOval(
@@ -559,10 +579,10 @@ class _Sorotan extends ConsumerWidget {
                               height: 56,
                               child: t.coverUrl == null
                                   ? const ColoredBox(
-                                      color: NapakColors.softSky,
+                                      color: TourvellaColors.softSky,
                                       child: Icon(
                                         Icons.route_rounded,
-                                        color: NapakColors.deepAccent,
+                                        color: TourvellaColors.deepAccent,
                                       ),
                                     )
                                   : Image.network(
@@ -570,7 +590,7 @@ class _Sorotan extends ConsumerWidget {
                                       fit: BoxFit.cover,
                                       errorBuilder: (c, e, s) =>
                                           const ColoredBox(
-                                            color: NapakColors.softSky,
+                                            color: TourvellaColors.softSky,
                                           ),
                                     ),
                             ),
@@ -589,8 +609,8 @@ class _Sorotan extends ConsumerWidget {
                 ),
               )
               .animate(delay: (50 * i).ms)
-              .fadeIn(duration: NapakMotion.sedang)
-              .scaleXY(begin: 0.7, curve: NapakMotion.memantul);
+              .fadeIn(duration: TourvellaMotion.sedang)
+              .scaleXY(begin: 0.7, curve: TourvellaMotion.memantul);
         },
       ),
     );
@@ -611,17 +631,20 @@ class _TabDelegasi extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrink, bool overlaps) {
     return Container(
-      color: NapakColors.base,
+      color: TourvellaColors.base,
       child: LayoutBuilder(
         builder: (context, batas) {
-          final lebar = batas.maxWidth / 2;
+          final lebar = batas.maxWidth / 3;
           return Stack(
             children: [
               Row(
                 children: [
+                  // Foto perjalanan, daftar perjalanan, dan garasi —
+                  // tiga bagian terpisah, seperti tab di aplikasi galeri.
                   for (final (i, ikon) in [
                     Icons.grid_on_rounded,
                     Icons.route_outlined,
+                    Icons.garage_outlined,
                   ].indexed)
                     Expanded(
                       child: InkWell(
@@ -634,8 +657,8 @@ class _TabDelegasi extends SliverPersistentHeaderDelegate {
                           child: Icon(
                             ikon,
                             color: tab == i
-                                ? NapakColors.textPrimary
-                                : NapakColors.textSecondary,
+                                ? TourvellaColors.textPrimary
+                                : TourvellaColors.textSecondary,
                           ),
                         ),
                       ),
@@ -646,19 +669,19 @@ class _TabDelegasi extends SliverPersistentHeaderDelegate {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: Container(height: 1, color: NapakColors.divider),
+                child: Container(height: 1, color: TourvellaColors.divider),
               ),
               // Garis penanda tab meluncur, bukan melompat.
               AnimatedPositioned(
-                duration: NapakMotion.sedang,
-                curve: NapakMotion.mengalir,
+                duration: TourvellaMotion.sedang,
+                curve: TourvellaMotion.mengalir,
                 left: tab * lebar + lebar * 0.2,
                 width: lebar * 0.6,
                 bottom: 0,
                 height: 2,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: NapakColors.textPrimary,
+                    color: TourvellaColors.textPrimary,
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -692,7 +715,7 @@ class _KisiDokumentasi extends ConsumerWidget {
         crossAxisSpacing: 2,
         children: [
           for (var i = 0; i < 9; i++)
-            const NapakSkeleton(tinggi: double.infinity, radius: 0),
+            const TourvellaSkeleton(tinggi: double.infinity, radius: 0),
         ],
       ),
       error: (e, _) => SliverToBoxAdapter(
@@ -733,8 +756,8 @@ class _KisiDokumentasi extends ConsumerWidget {
                     onTap: () => PenampilMedia.buka(context, media, i),
                   )
                   .animate(delay: (30 * (i % 12)).ms)
-                  .fadeIn(duration: NapakMotion.sedang)
-                  .scaleXY(begin: 0.92, curve: NapakMotion.mengalir),
+                  .fadeIn(duration: TourvellaMotion.sedang)
+                  .scaleXY(begin: 0.92, curve: TourvellaMotion.mengalir),
         );
       },
     );
@@ -763,7 +786,7 @@ class _Petak extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: NapakColors.softSky),
+            const ColoredBox(color: TourvellaColors.softSky),
             if (gambar != null)
               Image.network(
                 gambar,
@@ -772,7 +795,7 @@ class _Petak extends StatelessWidget {
                     ? anak
                     : AnimatedOpacity(
                         opacity: frame == null ? 0 : 1,
-                        duration: NapakMotion.sedang,
+                        duration: TourvellaMotion.sedang,
                         child: anak,
                       ),
                 // Poster video yang belum sempat dibuat server tampil sebagai
@@ -780,7 +803,7 @@ class _Petak extends StatelessWidget {
                 errorBuilder: (c, e, s) => const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: NapakColors.routeGradient,
+                      colors: TourvellaColors.routeGradient,
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -794,7 +817,7 @@ class _Petak extends StatelessWidget {
                 child: Icon(
                   Icons.play_circle_fill_rounded,
                   size: 20,
-                  color: NapakColors.textOnDeep,
+                  color: TourvellaColors.textOnDeep,
                   shadows: [Shadow(blurRadius: 8, color: Color(0x66000000))],
                 ),
               ),
@@ -806,7 +829,7 @@ class _Petak extends StatelessWidget {
                 child: Icon(
                   Icons.lock_rounded,
                   size: 14,
-                  color: NapakColors.textOnDeep,
+                  color: TourvellaColors.textOnDeep,
                   shadows: [Shadow(blurRadius: 8, color: Color(0x66000000))],
                 ),
               ),
@@ -856,14 +879,14 @@ class _DaftarPerjalanan extends ConsumerWidget {
                 itemCount: trips.length,
                 itemBuilder: (context, i) {
                   final t = trips[i];
-                  return NapakPressable(
+                  return TourvellaPressable(
                         onTap: () => context.push('/trip/${t.id}'),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(18),
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              const ColoredBox(color: NapakColors.softSky),
+                              const ColoredBox(color: TourvellaColors.softSky),
                               if (t.coverUrl != null)
                                 Image.network(t.coverUrl!, fit: BoxFit.cover),
                               const DecoratedBox(
@@ -891,14 +914,14 @@ class _DaftarPerjalanan extends ConsumerWidget {
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: text.titleSmall?.copyWith(
-                                        color: NapakColors.textOnDeep,
+                                        color: TourvellaColors.textOnDeep,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       '${t.distanceKm.toStringAsFixed(t.distanceKm < 100 ? 1 : 0)} km',
                                       style: text.labelSmall?.copyWith(
-                                        color: NapakColors.textOnDeep
+                                        color: TourvellaColors.textOnDeep
                                             .withValues(alpha: 0.85),
                                       ),
                                     ),
@@ -912,7 +935,7 @@ class _DaftarPerjalanan extends ConsumerWidget {
                                   child: Icon(
                                     Icons.lock_rounded,
                                     size: 16,
-                                    color: NapakColors.textOnDeep,
+                                    color: TourvellaColors.textOnDeep,
                                   ),
                                 ),
                             ],
@@ -920,8 +943,8 @@ class _DaftarPerjalanan extends ConsumerWidget {
                         ),
                       )
                       .animate(delay: (50 * (i % 8)).ms)
-                      .fadeIn(duration: NapakMotion.sedang)
-                      .slideY(begin: 0.1, curve: NapakMotion.mengalir);
+                      .fadeIn(duration: TourvellaMotion.sedang)
+                      .slideY(begin: 0.1, curve: TourvellaMotion.mengalir);
                 },
               ),
             ),
@@ -940,7 +963,7 @@ class _Tertutup extends StatelessWidget {
       padding: const EdgeInsets.only(top: 24),
       child: Column(
         children: [
-          Container(height: 1, color: NapakColors.divider),
+          Container(height: 1, color: TourvellaColors.divider),
           KosongHangat(
             ikon: Icons.lock_outline_rounded,
             judul: 'Jejak ${profil.nama.split(' ').first} tertutup',
@@ -965,15 +988,15 @@ class _KerangkaProfil extends StatelessWidget {
           children: [
             const Row(
               children: [
-                NapakSkeleton(tinggi: 88, lebar: 88, radius: 44),
+                TourvellaSkeleton(tinggi: 88, lebar: 88, radius: 44),
                 SizedBox(width: 18),
-                Expanded(child: NapakSkeleton(tinggi: 44)),
+                Expanded(child: TourvellaSkeleton(tinggi: 44)),
               ],
             ),
             const SizedBox(height: 16),
-            const NapakSkeleton.teks(lebar: 140),
+            const TourvellaSkeleton.teks(lebar: 140),
             const SizedBox(height: 8),
-            const NapakSkeleton.teks(lebar: 240),
+            const TourvellaSkeleton.teks(lebar: 240),
             const SizedBox(height: 24),
             Expanded(
               child: GridView.count(
@@ -983,7 +1006,7 @@ class _KerangkaProfil extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   for (var i = 0; i < 9; i++)
-                    const NapakSkeleton(tinggi: double.infinity, radius: 0),
+                    const TourvellaSkeleton(tinggi: double.infinity, radius: 0),
                 ],
               ),
             ),
@@ -1033,17 +1056,17 @@ class FotoProfil extends StatelessWidget {
         shape: BoxShape.circle,
         gradient: SweepGradient(
           colors: [
-            NapakColors.deepAccent,
-            NapakColors.primary,
-            NapakColors.warmNeutral,
-            NapakColors.deepAccent,
+            TourvellaColors.deepAccent,
+            TourvellaColors.primary,
+            TourvellaColors.warmNeutral,
+            TourvellaColors.deepAccent,
           ],
         ),
       ),
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: const BoxDecoration(
-          color: NapakColors.base,
+          color: TourvellaColors.base,
           shape: BoxShape.circle,
         ),
         child: isi,

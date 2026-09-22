@@ -8,10 +8,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../data/sosial_models.dart';
 import '../data/sosial_repository.dart';
 import 'komponen_sosial.dart';
@@ -27,7 +27,7 @@ class KartuPosPage extends ConsumerWidget {
     final kartu = ref.watch(kartuPosProvider(id));
 
     return Scaffold(
-      backgroundColor: NapakColors.warmNeutral,
+      backgroundColor: TourvellaColors.warmNeutral,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         actions: [
@@ -106,7 +106,7 @@ class KartuPosPage extends ConsumerWidget {
                     const Icon(
                       Icons.touch_app_outlined,
                       size: 16,
-                      color: NapakColors.textSecondary,
+                      color: TourvellaColors.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -218,11 +218,11 @@ class _Bingkai extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: NapakColors.base,
+        color: TourvellaColors.base,
         borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: NapakColors.textPrimary.withValues(alpha: 0.18),
+            color: TourvellaColors.textPrimary.withValues(alpha: 0.18),
             blurRadius: 30,
             offset: const Offset(0, 14),
           ),
@@ -247,7 +247,7 @@ class _SisiDepan extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: NapakColors.softSky),
+            const ColoredBox(color: TourvellaColors.softSky),
             Image.network(
               kartu.fotoUrl,
               fit: BoxFit.cover,
@@ -255,13 +255,13 @@ class _SisiDepan extends StatelessWidget {
                   ? anak
                   : AnimatedOpacity(
                       opacity: frame == null ? 0 : 1,
-                      duration: NapakMotion.sedang,
+                      duration: TourvellaMotion.sedang,
                       child: anak,
                     ),
               errorBuilder: (context, e, s) => const Center(
                 child: Icon(
                   Icons.image_not_supported_outlined,
-                  color: NapakColors.primary,
+                  color: TourvellaColors.primary,
                 ),
               ),
             ),
@@ -284,7 +284,7 @@ class _SisiDepan extends StatelessWidget {
                     style: GoogleFonts.caveat(
                       fontSize: 26,
                       fontWeight: FontWeight.w700,
-                      color: NapakColors.textOnDeep,
+                      color: TourvellaColors.textOnDeep,
                     ),
                   ),
                 ),
@@ -306,7 +306,7 @@ class _SisiBelakang extends StatelessWidget {
     final tulisanTangan = GoogleFonts.caveat(
       fontSize: 22,
       height: 1.25,
-      color: NapakColors.textPrimary,
+      color: TourvellaColors.textPrimary,
     );
 
     return _Bingkai(
@@ -335,7 +335,7 @@ class _SisiBelakang extends StatelessWidget {
             ),
           ),
           // Garis tengah, seperti kartu pos sungguhan.
-          Container(width: 1, color: NapakColors.divider),
+          Container(width: 1, color: TourvellaColors.divider),
           // Kanan: perangko, cap, dan alamat.
           Expanded(
             flex: 2,
@@ -369,7 +369,7 @@ class _SisiBelakang extends StatelessWidget {
                     Container(
                       height: 1,
                       margin: const EdgeInsets.only(top: 18),
-                      color: NapakColors.divider,
+                      color: TourvellaColors.divider,
                     ),
                 ],
               ),
@@ -414,10 +414,10 @@ class _PelukisPerangko extends CustomPainter {
         ..addOval(Rect.fromCircle(center: Offset(size.width, y), radius: jari));
     }
     tepi.fillType = PathFillType.evenOdd;
-    canvas.drawPath(tepi, Paint()..color = NapakColors.warmNeutral);
+    canvas.drawPath(tepi, Paint()..color = TourvellaColors.warmNeutral);
 
     final dalam = Rect.fromLTWH(6, 6, size.width - 12, size.height - 12);
-    canvas.drawRect(dalam, Paint()..color = NapakColors.softSky);
+    canvas.drawRect(dalam, Paint()..color = TourvellaColors.softSky);
 
     // Gunung dan matahari.
     final gunung = Path()
@@ -431,26 +431,33 @@ class _PelukisPerangko extends CustomPainter {
       ..drawCircle(
         Offset(dalam.left + dalam.width * 0.7, dalam.top + dalam.height * 0.22),
         4,
-        Paint()..color = NapakColors.base,
+        Paint()..color = TourvellaColors.base,
       )
-      ..drawPath(gunung, Paint()..color = NapakColors.deepAccent);
+      ..drawPath(gunung, Paint()..color = TourvellaColors.deepAccent);
 
     final tulisan = TextPainter(
       text: const TextSpan(
-        text: 'NAPAK',
+        text: 'TOURVELLA',
         style: TextStyle(
-          fontSize: 6.5,
+          fontSize: 5.2,
           fontWeight: FontWeight.w800,
-          letterSpacing: 1,
-          color: NapakColors.textOnDeep,
+          letterSpacing: 0.5,
+          color: TourvellaColors.textOnDeep,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    tulisan.paint(
-      canvas,
-      Offset(dalam.center.dx - tulisan.width / 2, dalam.bottom - 10),
-    );
+
+    // Sembilan huruf di perangko selebar 38 px: kecilkan kalau fontnya
+    // lebih lebar dari perkiraan, jangan biarkan meluber keluar gerigi.
+    final muat = dalam.width - 4;
+    final skala = tulisan.width > muat ? muat / tulisan.width : 1.0;
+    canvas
+      ..save()
+      ..translate(dalam.center.dx, dalam.bottom - 9)
+      ..scale(skala);
+    tulisan.paint(canvas, Offset(-tulisan.width / 2, 0));
+    canvas.restore();
   }
 
   @override
@@ -466,8 +473,8 @@ class _CapPos extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final warna = NapakColors.deepAccent.withValues(alpha: 0.55);
-    final kota = (tempat ?? 'NAPAK').split(',').first.toUpperCase();
+    final warna = TourvellaColors.deepAccent.withValues(alpha: 0.55);
+    final kota = (tempat ?? 'TOURVELLA').split(',').first.toUpperCase();
 
     return Transform.rotate(
       angle: -0.28,
@@ -530,7 +537,7 @@ class _KotakPosPageState extends ConsumerState<KotakPosPage> {
     );
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: const BilahEkspedisi(
         judul: 'Kotak pos',
         keterangan: 'Kabar dari jalan',
@@ -578,8 +585,11 @@ class _KotakPosPageState extends ConsumerState<KotakPosPage> {
                       itemCount: kartu.length,
                       itemBuilder: (context, i) => _KartuMini(k: kartu[i], i: i)
                           .animate(delay: (60 * i.clamp(0, 12)).ms)
-                          .fadeIn(duration: NapakMotion.sedang)
-                          .scaleXY(begin: 0.85, curve: NapakMotion.memantul),
+                          .fadeIn(duration: TourvellaMotion.sedang)
+                          .scaleXY(
+                            begin: 0.85,
+                            curve: TourvellaMotion.memantul,
+                          ),
                     ),
             ),
           ),
@@ -602,7 +612,7 @@ class _KartuMini extends StatelessWidget {
     // Tiap kartu miring sedikit berbeda, seperti ditempel di papan.
     final miring = ((i * 37) % 7 - 3) * 0.012;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/kartu-pos/${k.id}'),
       child: Transform.rotate(
         angle: miring,
@@ -613,7 +623,7 @@ class _KartuMini extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             boxShadow: [
               BoxShadow(
-                color: NapakColors.textPrimary.withValues(alpha: 0.1),
+                color: TourvellaColors.textPrimary.withValues(alpha: 0.1),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -632,7 +642,7 @@ class _KartuMini extends StatelessWidget {
                         k.fotoUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, e, s) =>
-                            const ColoredBox(color: NapakColors.softSky),
+                            const ColoredBox(color: TourvellaColors.softSky),
                       ),
                     ),
                     if (k.untukSaya && !k.sudahDibaca)
@@ -645,13 +655,13 @@ class _KartuMini extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: NapakColors.deepAccent,
+                            color: TourvellaColors.deepAccent,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: const Text(
                             'Baru',
                             style: TextStyle(
-                              color: NapakColors.textOnDeep,
+                              color: TourvellaColors.textOnDeep,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                             ),

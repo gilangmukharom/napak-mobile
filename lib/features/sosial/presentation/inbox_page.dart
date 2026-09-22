@@ -4,10 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../data/sosial_models.dart';
 import '../data/sosial_repository.dart';
 import 'komponen_sosial.dart';
@@ -53,18 +53,18 @@ class _InboxPageState extends ConsumerState<InboxPage> {
     final adaBelum = inbox.value?.any((k) => !k.sudahDibaca) ?? false;
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: BilahEkspedisi(
         judul: 'Kabar',
         keterangan: adaBelum ? 'Ada yang belum dibaca' : 'Semua terbaca',
         aksi: [
           AnimatedOpacity(
-            duration: NapakMotion.cepat,
+            duration: TourvellaMotion.cepat,
             opacity: adaBelum ? 1 : 0,
             child: TextButton(
               onPressed: adaBelum ? _semuaDibaca : null,
               style: TextButton.styleFrom(
-                foregroundColor: NapakColors.emberRedup,
+                foregroundColor: TourvellaColors.emberRedup,
               ),
               child: const Text('Tandai terbaca'),
             ),
@@ -117,12 +117,14 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                 for (var i = 0; i < daftarUndangan.length; i++)
                   _KartuUndangan(u: daftarUndangan[i])
                       .animate(delay: (70 * i).ms)
-                      .fadeIn(duration: NapakMotion.sedang)
-                      .slideY(begin: 0.2, curve: NapakMotion.mengalir)
+                      .fadeIn(duration: TourvellaMotion.sedang)
+                      .slideY(begin: 0.2, curve: TourvellaMotion.mengalir)
                       .then()
                       .shimmer(
                         duration: 1200.ms,
-                        color: NapakColors.textOnDeep.withValues(alpha: 0.35),
+                        color: TourvellaColors.textOnDeep.withValues(
+                          alpha: 0.35,
+                        ),
                       ),
                 if (daftarUndangan.isNotEmpty) const SizedBox(height: 10),
 
@@ -135,12 +137,12 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                       padding: const EdgeInsets.only(right: 24),
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       decoration: BoxDecoration(
-                        color: NapakColors.softSky,
+                        color: TourvellaColors.softSky,
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: const Icon(
                         Icons.delete_outline_rounded,
-                        color: NapakColors.deepAccent,
+                        color: TourvellaColors.deepAccent,
                       ),
                     ),
                     onDismissed: (_) {
@@ -150,8 +152,8 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                     },
                     child: _BarisKabar(k: daftar[i], onTap: _buka)
                         .animate(delay: (40 * i.clamp(0, 10)).ms)
-                        .fadeIn(duration: NapakMotion.sedang)
-                        .slideX(begin: 0.05, curve: NapakMotion.mengalir),
+                        .fadeIn(duration: TourvellaMotion.sedang)
+                        .slideX(begin: 0.05, curve: TourvellaMotion.mengalir),
                   ),
               ],
             );
@@ -166,28 +168,38 @@ class _InboxPageState extends ConsumerState<InboxPage> {
 (IconData, Color) _gayaKabar(JenisKabar jenis) => switch (jenis) {
   JenisKabar.permintaanTeman => (
     Icons.person_add_alt_1_rounded,
-    NapakColors.deepAccent,
+    TourvellaColors.deepAccent,
   ),
-  JenisKabar.temanDiterima => (Icons.handshake_outlined, NapakColors.affirm),
+  JenisKabar.temanDiterima => (
+    Icons.handshake_outlined,
+    TourvellaColors.affirm,
+  ),
   JenisKabar.undanganTrip => (
     Icons.two_wheeler_rounded,
-    NapakColors.deepAccent,
+    TourvellaColors.deepAccent,
   ),
   JenisKabar.undanganDijawab => (
     Icons.event_available_rounded,
-    NapakColors.affirm,
+    TourvellaColors.affirm,
   ),
-  JenisKabar.videoSiap => (Icons.movie_filter_outlined, NapakColors.deepAccent),
+  JenisKabar.videoSiap => (
+    Icons.movie_filter_outlined,
+    TourvellaColors.deepAccent,
+  ),
   JenisKabar.kartuPos => (
     Icons.local_post_office_outlined,
-    NapakColors.attention,
+    TourvellaColors.attention,
   ),
   JenisKabar.pesanBaru => (
     Icons.chat_bubble_outline_rounded,
-    NapakColors.primary,
+    TourvellaColors.primary,
   ),
-  JenisKabar.kenangan => (Icons.history_rounded, NapakColors.attention),
-  JenisKabar.lain => (Icons.notifications_none_rounded, NapakColors.primary),
+  JenisKabar.kenangan => (Icons.history_rounded, TourvellaColors.attention),
+  JenisKabar.salut => (Icons.front_hand_rounded, TourvellaColors.ember),
+  JenisKabar.lain => (
+    Icons.notifications_none_rounded,
+    TourvellaColors.primary,
+  ),
 };
 
 class _BarisKabar extends StatelessWidget {
@@ -201,11 +213,11 @@ class _BarisKabar extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final (ikon, warna) = _gayaKabar(k.jenis);
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => onTap(k),
       skala: 0.985,
       child: AnimatedContainer(
-        duration: NapakMotion.sedang,
+        duration: TourvellaMotion.sedang,
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
         decoration: BoxDecoration(
@@ -215,7 +227,7 @@ class _BarisKabar extends StatelessWidget {
               ? null
               : [
                   BoxShadow(
-                    color: NapakColors.textPrimary.withValues(alpha: 0.04),
+                    color: TourvellaColors.textPrimary.withValues(alpha: 0.04),
                     blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
@@ -248,7 +260,7 @@ class _BarisKabar extends StatelessWidget {
                   Text(
                     k.isi,
                     style: text.bodyMedium?.copyWith(
-                      color: NapakColors.textSecondary,
+                      color: TourvellaColors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -265,7 +277,7 @@ class _BarisKabar extends StatelessWidget {
                     height: 9,
                     margin: const EdgeInsets.only(top: 6, left: 6),
                     decoration: const BoxDecoration(
-                      color: NapakColors.deepAccent,
+                      color: TourvellaColors.deepAccent,
                       shape: BoxShape.circle,
                     ),
                   )
@@ -331,7 +343,7 @@ class _KartuUndanganState extends ConsumerState<_KartuUndangan> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
-          colors: NapakColors.routeGradient,
+          colors: TourvellaColors.routeGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -343,20 +355,22 @@ class _KartuUndanganState extends ConsumerState<_KartuUndangan> {
             children: [
               const Icon(
                 Icons.two_wheeler_rounded,
-                color: NapakColors.textOnDeep,
+                color: TourvellaColors.textOnDeep,
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 '${widget.u.dari} mengajakmu',
-                style: text.labelLarge?.copyWith(color: NapakColors.textOnDeep),
+                style: text.labelLarge?.copyWith(
+                  color: TourvellaColors.textOnDeep,
+                ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             widget.u.judulTrip,
-            style: text.titleLarge?.copyWith(color: NapakColors.textOnDeep),
+            style: text.titleLarge?.copyWith(color: TourvellaColors.textOnDeep),
           ),
           const SizedBox(height: 14),
           Row(
@@ -365,7 +379,7 @@ class _KartuUndanganState extends ConsumerState<_KartuUndangan> {
               TextButton(
                 onPressed: _sibuk ? null : () => _jawab(false),
                 style: TextButton.styleFrom(
-                  foregroundColor: NapakColors.textOnDeep,
+                  foregroundColor: TourvellaColors.textOnDeep,
                 ),
                 child: const Text('Belum bisa'),
               ),
@@ -373,8 +387,8 @@ class _KartuUndanganState extends ConsumerState<_KartuUndangan> {
               FilledButton(
                 onPressed: _sibuk ? null : () => _jawab(true),
                 style: FilledButton.styleFrom(
-                  backgroundColor: NapakColors.textOnDeep,
-                  foregroundColor: NapakColors.deepAccent,
+                  backgroundColor: TourvellaColors.textOnDeep,
+                  foregroundColor: TourvellaColors.deepAccent,
                 ),
                 child: const Text('Ikut'),
               ),

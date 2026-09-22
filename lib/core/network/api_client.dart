@@ -1,14 +1,14 @@
 import 'package:dio/dio.dart';
 
-import '../config/napak_config.dart';
+import '../config/tourvella_config.dart';
 import '../storage/token_store.dart';
 
 /// Kesalahan yang sudah berbentuk kalimat yang layak dibaca pengguna.
 ///
-/// Backend Napak sudah mengirim pesan dalam Bahasa Indonesia yang hangat, jadi
+/// Backend Tourvella sudah mengirim pesan dalam Bahasa Indonesia yang hangat, jadi
 /// tugas kelas ini hanya mengambilnya — bukan menggantinya dengan "Error 400".
-class NapakException implements Exception {
-  NapakException(this.message, {this.statusCode});
+class TourvellaException implements Exception {
+  TourvellaException(this.message, {this.statusCode});
 
   final String message;
   final int? statusCode;
@@ -17,7 +17,7 @@ class NapakException implements Exception {
   String toString() => message;
 }
 
-/// Klien HTTP ke backend Napak.
+/// Klien HTTP ke backend Tourvella.
 ///
 /// Menyisipkan access token, dan saat token itu kedaluwarsa, menukar refresh
 /// token lalu mengulang permintaannya sekali — supaya pengguna tidak tiba-tiba
@@ -28,7 +28,7 @@ class ApiClient {
           dio ??
           Dio(
             BaseOptions(
-              baseUrl: NapakConfig.apiBaseUrl,
+              baseUrl: TourvellaConfig.apiBaseUrl,
               connectTimeout: const Duration(seconds: 15),
               receiveTimeout: const Duration(seconds: 30),
               contentType: 'application/json',
@@ -138,7 +138,7 @@ class ApiClient {
     try {
       await _dio.download(path, tujuan, onReceiveProgress: kemajuan);
     } on DioException catch (error) {
-      throw NapakException(
+      throw TourvellaException(
         _messageFrom(error),
         statusCode: error.response?.statusCode,
       );
@@ -153,7 +153,7 @@ class ApiClient {
       final response = await request();
       return response.data as T;
     } on DioException catch (error) {
-      throw NapakException(
+      throw TourvellaException(
         _messageFrom(error),
         statusCode: error.response?.statusCode,
       );
@@ -177,7 +177,7 @@ class ApiClient {
       DioExceptionType.receiveTimeout =>
         'Sambungannya lambat. Jejakmu tetap tersimpan di HP, nanti dikirim lagi.',
       DioExceptionType.connectionError =>
-        'Belum ada sambungan. Napak akan menyusulkan jejakmu begitu sinyal kembali.',
+        'Belum ada sambungan. Tourvella akan menyusulkan jejakmu begitu sinyal kembali.',
       _ => 'Ada yang tidak beres. Coba lagi sebentar lagi ya.',
     };
   }

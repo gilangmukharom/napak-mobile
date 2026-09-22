@@ -59,7 +59,7 @@ class PermintaanTeman {
   final DateTime dibuat;
 }
 
-/// Hasil mencari seseorang lewat kode Napak-nya.
+/// Hasil mencari seseorang lewat kode Tourvella-nya.
 class HasilCari {
   const HasilCari({
     required this.id,
@@ -92,6 +92,7 @@ enum JenisKabar {
   kartuPos('kartu_pos'),
   pesanBaru('pesan_baru'),
   kenangan('kenangan'),
+  salut('salut'),
   lain('lain');
 
   const JenisKabar(this.wire);

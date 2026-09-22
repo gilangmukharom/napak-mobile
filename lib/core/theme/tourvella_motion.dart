@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Sistem gerak Napak.
+/// Sistem gerak Tourvella.
 ///
 /// Sama seperti warna: gerak juga punya palet. Kalau tiap layar memilih durasi
 /// dan kurvanya sendiri, aplikasinya terasa gelisah — satu tombol memantul,
 /// tombol sebelahnya meluncur, dan tidak ada yang terasa satu keluarga.
 ///
-/// Semua angka di sini berasal dari satu pertimbangan: gerak di Napak harus
+/// Semua angka di sini berasal dari satu pertimbangan: gerak di Tourvella harus
 /// terasa seperti sesuatu yang *mengalir*, bukan yang *melompat*. Perjalanan
 /// tidak melompat.
-abstract final class NapakMotion {
+abstract final class TourvellaMotion {
   // --- Durasi ---
 
   /// Umpan balik sentuhan. Harus lebih cepat dari yang bisa disadari mata,
@@ -26,8 +26,8 @@ abstract final class NapakMotion {
   /// Perpindahan halaman dan hal-hal yang perlu diikuti mata.
   static const lambat = Duration(milliseconds: 520);
 
-  /// Layar pembuka. Satu-satunya tempat Napak boleh menahan orang sebentar.
-  static const pembuka = Duration(milliseconds: 1600);
+  /// Layar pembuka. Satu-satunya tempat Tourvella boleh menahan orang sebentar.
+  static const pembuka = Duration(milliseconds: 2000);
 
   /// Jeda antar elemen pada daftar yang muncul bertahap.
   static const antreanDaftar = Duration(milliseconds: 55);
@@ -63,17 +63,17 @@ abstract final class NapakMotion {
 class GeserMasuk<T> extends CustomTransitionPage<T> {
   GeserMasuk({required super.child, super.key})
     : super(
-        transitionDuration: NapakMotion.sedang,
-        reverseTransitionDuration: NapakMotion.cepat,
+        transitionDuration: TourvellaMotion.sedang,
+        reverseTransitionDuration: TourvellaMotion.cepat,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final masuk = CurvedAnimation(
             parent: animation,
-            curve: NapakMotion.mengalir,
-            reverseCurve: NapakMotion.pergi,
+            curve: TourvellaMotion.mengalir,
+            reverseCurve: TourvellaMotion.pergi,
           );
           final mundur = CurvedAnimation(
             parent: secondaryAnimation,
-            curve: NapakMotion.mengalir,
+            curve: TourvellaMotion.mengalir,
           );
 
           return SlideTransition(
@@ -100,13 +100,13 @@ class GeserMasuk<T> extends CustomTransitionPage<T> {
 class NaikMasuk<T> extends CustomTransitionPage<T> {
   NaikMasuk({required super.child, super.key})
     : super(
-        transitionDuration: NapakMotion.sedang,
-        reverseTransitionDuration: NapakMotion.cepat,
+        transitionDuration: TourvellaMotion.sedang,
+        reverseTransitionDuration: TourvellaMotion.cepat,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           final masuk = CurvedAnimation(
             parent: animation,
-            curve: NapakMotion.mengalir,
-            reverseCurve: NapakMotion.pergi,
+            curve: TourvellaMotion.mengalir,
+            reverseCurve: TourvellaMotion.pergi,
           );
 
           return SlideTransition(
@@ -127,13 +127,13 @@ class NaikMasuk<T> extends CustomTransitionPage<T> {
 class MemudarSilang<T> extends CustomTransitionPage<T> {
   MemudarSilang({required super.child, super.key})
     : super(
-        transitionDuration: NapakMotion.cepat,
-        reverseTransitionDuration: NapakMotion.cepat,
+        transitionDuration: TourvellaMotion.cepat,
+        reverseTransitionDuration: TourvellaMotion.cepat,
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: CurvedAnimation(
               parent: animation,
-              curve: NapakMotion.masukKeluar,
+              curve: TourvellaMotion.masukKeluar,
             ),
             child: child,
           );

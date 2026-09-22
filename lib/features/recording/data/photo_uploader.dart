@@ -22,7 +22,7 @@ class PhotoUploader {
 
   final ApiClient _api;
 
-  /// Dio terpisah tanpa interceptor Napak.
+  /// Dio terpisah tanpa interceptor Tourvella.
   ///
   /// URL bertanda tangan sudah membawa izinnya sendiri di query string.
   /// Menempelkan header Authorization ke sana justru membuat sebagian
@@ -92,7 +92,7 @@ class PhotoUploader {
         onSendProgress: kemajuan,
       );
     } on DioException catch (error) {
-      throw NapakException(
+      throw TourvellaException(
         '${apakahVideo(berkas) ? 'Videonya' : 'Fotonya'} gagal terkirim. Coba lagi kalau sinyalnya sudah lebih baik.',
         statusCode: error.response?.statusCode,
       );

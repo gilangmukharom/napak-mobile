@@ -6,11 +6,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
 import '../../sosial/data/sosial_models.dart';
 import '../../sosial/data/sosial_repository.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
@@ -34,10 +34,10 @@ class JejakNusantaraPage extends ConsumerWidget {
     final jejak = ref.watch(jejakNusantaraProvider);
 
     return Scaffold(
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: NapakColors.textOnDeep,
+        foregroundColor: TourvellaColors.textOnDeep,
         title: const Text('Jejak Nusantara'),
         actions: [
           if (jejak.value != null)
@@ -50,7 +50,7 @@ class JejakNusantaraPage extends ConsumerWidget {
                     text:
                         'Jejak Nusantara-ku: ${j.provinsiTerjejak} dari '
                         '${j.totalProvinsi} provinsi, ${j.kotaTerjejak} kota. '
-                        'Direkam pakai Napak.',
+                        'Direkam pakai Tourvella.',
                   ),
                 );
               },
@@ -61,7 +61,7 @@ class JejakNusantaraPage extends ConsumerWidget {
       body: LatarEkspedisi(
         child: jejak.when(
           loading: () => const Center(
-            child: CircularProgressIndicator(color: NapakColors.ember),
+            child: CircularProgressIndicator(color: TourvellaColors.ember),
           ),
           error: (galat, _) => KosongHangat(
             ikon: Icons.map_outlined,
@@ -95,7 +95,7 @@ class _Angka extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final gayaBesar = text.displayMedium?.copyWith(
-      color: NapakColors.ember,
+      color: TourvellaColors.ember,
       fontWeight: FontWeight.w800,
     );
 
@@ -112,13 +112,13 @@ class _Angka extends StatelessWidget {
               Text(
                 ' / ${j.totalProvinsi}',
                 style: text.headlineSmall?.copyWith(
-                  color: NapakColors.emberRedup.withValues(alpha: 0.8),
+                  color: TourvellaColors.emberRedup.withValues(alpha: 0.8),
                 ),
               ),
               const SizedBox(width: 10),
               LabelKapital(
                 'Provinsi',
-                warna: NapakColors.base.withValues(alpha: 0.75),
+                warna: TourvellaColors.base.withValues(alpha: 0.75),
                 ukuran: 12,
               ),
             ],
@@ -126,7 +126,7 @@ class _Angka extends StatelessWidget {
           Text(
             '${j.kotaTerjejak} dari ${j.totalKota} kota pernah kamu lewati',
             style: text.bodyMedium?.copyWith(
-              color: NapakColors.textOnDeep.withValues(alpha: 0.7),
+              color: TourvellaColors.textOnDeep.withValues(alpha: 0.7),
             ),
           ).animate().fadeIn(delay: 400.ms),
           const SizedBox(height: 14),
@@ -141,12 +141,12 @@ class _Angka extends StatelessWidget {
                     : j.provinsiTerjejak / j.totalProvinsi,
               ),
               duration: const Duration(milliseconds: 1600),
-              curve: NapakMotion.mengalir,
+              curve: TourvellaMotion.mengalir,
               builder: (context, t, _) => LinearProgressIndicator(
                 value: t,
                 minHeight: 6,
-                backgroundColor: NapakColors.kontur,
-                valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
+                backgroundColor: TourvellaColors.kontur,
+                valueColor: const AlwaysStoppedAnimation(TourvellaColors.ember),
               ),
             ),
           ),
@@ -307,13 +307,13 @@ class _PetaRasiState extends State<_PetaRasi> with TickerProviderStateMixin {
         SizedBox(
           height: 44,
           child: AnimatedSwitcher(
-            duration: NapakMotion.cepat,
+            duration: TourvellaMotion.cepat,
             child: _dipilih == null
                 ? Text(
                     'Ketuk sebuah titik untuk melihat namanya',
                     key: const ValueKey('petunjuk'),
                     style: text.bodySmall?.copyWith(
-                      color: NapakColors.textOnDeep.withValues(alpha: 0.5),
+                      color: TourvellaColors.textOnDeep.withValues(alpha: 0.5),
                     ),
                   )
                 : Container(
@@ -324,8 +324,8 @@ class _PetaRasiState extends State<_PetaRasi> with TickerProviderStateMixin {
                     ),
                     decoration: BoxDecoration(
                       color: _dipilih!.sudah
-                          ? NapakColors.primary
-                          : NapakColors.textOnDeep.withValues(alpha: 0.1),
+                          ? TourvellaColors.primary
+                          : TourvellaColors.textOnDeep.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
@@ -333,11 +333,14 @@ class _PetaRasiState extends State<_PetaRasi> with TickerProviderStateMixin {
                       '${_dipilih!.sudah ? '' : ' — belum'}',
                       style: text.labelLarge?.copyWith(
                         color: _dipilih!.sudah
-                            ? NapakColors.textPrimary
-                            : NapakColors.textOnDeep,
+                            ? TourvellaColors.textPrimary
+                            : TourvellaColors.textOnDeep,
                       ),
                     ),
-                  ).animate().scaleXY(begin: 0.8, curve: NapakMotion.memantul),
+                  ).animate().scaleXY(
+                    begin: 0.8,
+                    curve: TourvellaMotion.memantul,
+                  ),
           ),
         ),
       ],
@@ -367,9 +370,9 @@ class _PelukisRasi extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final redup = Paint()
-      ..color = NapakColors.textOnDeep.withValues(alpha: 0.16);
+      ..color = TourvellaColors.textOnDeep.withValues(alpha: 0.16);
     final garis = Paint()
-      ..color = NapakColors.primary.withValues(alpha: 0.22)
+      ..color = TourvellaColors.primary.withValues(alpha: 0.22)
       ..strokeWidth = 1;
 
     // Garis fajar yang menyapu dari barat ke timur.
@@ -381,8 +384,8 @@ class _PelukisRasi extends CustomPainter {
         Paint()
           ..shader = LinearGradient(
             colors: [
-              NapakColors.primary.withValues(alpha: 0),
-              NapakColors.primary.withValues(alpha: 0.18),
+              TourvellaColors.primary.withValues(alpha: 0),
+              TourvellaColors.primary.withValues(alpha: 0.18),
             ],
           ).createShader(sapuan),
       );
@@ -427,11 +430,13 @@ class _PelukisRasi extends CustomPainter {
           p,
           (7 + denyut * 4) * letupan,
           Paint()
-            ..color = NapakColors.primary.withValues(alpha: 0.12 + denyut * 0.1)
+            ..color = TourvellaColors.primary.withValues(
+              alpha: 0.12 + denyut * 0.1,
+            )
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
         )
-        ..drawCircle(p, 3.2 * letupan, Paint()..color = NapakColors.primary)
-        ..drawCircle(p, 1.4, Paint()..color = NapakColors.textOnDeep);
+        ..drawCircle(p, 3.2 * letupan, Paint()..color = TourvellaColors.primary)
+        ..drawCircle(p, 1.4, Paint()..color = TourvellaColors.textOnDeep);
     }
 
     final pilih = dipilih;
@@ -441,7 +446,7 @@ class _PelukisRasi extends CustomPainter {
         p,
         10,
         Paint()
-          ..color = NapakColors.textOnDeep
+          ..color = TourvellaColors.textOnDeep
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.6,
       );
@@ -464,22 +469,22 @@ class _DaftarProvinsi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final putih = NapakColors.textOnDeep;
+    final putih = TourvellaColors.textOnDeep;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 22),
       decoration: BoxDecoration(
-        color: NapakColors.malamNaik.withValues(alpha: 0.86),
+        color: TourvellaColors.malamNaik.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: NapakColors.kontur),
+        border: Border.all(color: TourvellaColors.kontur),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const LabelKapital(
             'Provinsi yang pernah kamu injak',
-            warna: NapakColors.emberRedup,
+            warna: TourvellaColors.emberRedup,
           ),
           const SizedBox(height: 14),
           for (var i = 0; i < j.sudah.length; i++)
@@ -489,7 +494,7 @@ class _DaftarProvinsi extends StatelessWidget {
             ),
           if (j.belum.isNotEmpty) ...[
             const SizedBox(height: 22),
-            const PemisahJalur(warna: NapakColors.kontur),
+            const PemisahJalur(warna: TourvellaColors.kontur),
             const SizedBox(height: 18),
             LabelKapital('Masih menunggu', warna: putih.withValues(alpha: 0.6)),
             const SizedBox(height: 6),
@@ -509,14 +514,14 @@ class _DaftarProvinsi extends StatelessWidget {
                   Chip(
                         label: Text(j.belum[i]),
                         backgroundColor: Colors.transparent,
-                        side: const BorderSide(color: NapakColors.kontur),
+                        side: const BorderSide(color: TourvellaColors.kontur),
                         labelStyle: text.labelMedium?.copyWith(
                           color: putih.withValues(alpha: 0.55),
                         ),
                       )
                       .animate(delay: (25 * i).ms)
-                      .fadeIn(duration: NapakMotion.cepat)
-                      .scaleXY(begin: 0.8, curve: NapakMotion.memantul),
+                      .fadeIn(duration: TourvellaMotion.cepat)
+                      .scaleXY(begin: 0.8, curve: TourvellaMotion.memantul),
               ],
             ),
           ],
@@ -552,13 +557,13 @@ class _BarisProvinsi extends StatelessWidget {
               Expanded(
                 child: Text(
                   p.nama,
-                  style: text.titleSmall?.copyWith(color: NapakColors.base),
+                  style: text.titleSmall?.copyWith(color: TourvellaColors.base),
                 ),
               ),
               Text(
                 '${p.kota.length}/${p.totalKota}',
                 style: text.labelLarge?.copyWith(
-                  color: NapakColors.emberRedup,
+                  color: TourvellaColors.emberRedup,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
@@ -570,12 +575,12 @@ class _BarisProvinsi extends StatelessWidget {
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: p.porsi),
               duration: Duration(milliseconds: 900 + urutan * 120),
-              curve: NapakMotion.mengalir,
+              curve: TourvellaMotion.mengalir,
               builder: (context, t, _) => LinearProgressIndicator(
                 value: t,
                 minHeight: 8,
-                backgroundColor: NapakColors.kontur,
-                valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
+                backgroundColor: TourvellaColors.kontur,
+                valueColor: const AlwaysStoppedAnimation(TourvellaColors.ember),
               ),
             ),
           ),
@@ -587,7 +592,7 @@ class _BarisProvinsi extends StatelessWidget {
               if (p.pertama != null) 'sejak ${p.pertama!.year}',
             ].join(' · '),
             style: text.bodySmall?.copyWith(
-              color: NapakColors.base.withValues(alpha: 0.5),
+              color: TourvellaColors.base.withValues(alpha: 0.5),
             ),
           ),
         ],

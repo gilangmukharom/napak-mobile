@@ -11,5 +11,5 @@ Future<void> main() async {
   // bukan "Saturday, September 20".
   await initializeDateFormatting('id_ID');
 
-  runApp(const ProviderScope(child: NapakApp()));
+  runApp(const ProviderScope(child: TourvellaApp()));
 }

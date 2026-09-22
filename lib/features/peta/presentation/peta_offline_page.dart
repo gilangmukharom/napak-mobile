@@ -6,10 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/config/tourvella_config.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
 import '../data/peta_offline.dart';
 
@@ -28,7 +29,7 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
   Future<void> _mulai(WilayahSiap w) async {
     final pilihan = await showModalBottomSheet<Kerincian>(
       context: context,
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -112,7 +113,7 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
     };
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: const BilahEkspedisi(
         judul: 'Peta offline',
         keterangan: 'Bekal sebelum sinyal habis',
@@ -121,6 +122,10 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 40),
         children: [
           const _Pembuka(),
+          if (!TourvellaConfig.petaMilikTourvella) ...[
+            const SizedBox(height: 16),
+            const _PeringatanPetaDemo(),
+          ],
           const SizedBox(height: 24),
 
           // --- Yang sudah dibawa ---
@@ -138,7 +143,7 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
                             onHapus: () => _hapus(daftar[i]),
                           )
                           .animate(delay: (50 * i).ms)
-                          .fadeIn(duration: NapakMotion.sedang)
+                          .fadeIn(duration: TourvellaMotion.sedang)
                           .slideX(begin: 0.05),
                     const SizedBox(height: 24),
                   ],
@@ -147,7 +152,7 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
           Text('Unduh wilayah', style: text.titleMedium),
           const SizedBox(height: 4),
           Text(
-            'Unduh selagi ada Wi-Fi. Petanya dari server Napak sendiri — '
+            'Unduh selagi ada Wi-Fi. Petanya dari server Tourvella sendiri — '
             'tidak ada penyedia peta luar yang tahu wilayah mana yang kamu bawa.',
             style: text.bodySmall,
           ),
@@ -160,8 +165,8 @@ class _PetaOfflinePageState extends ConsumerState<PetaOfflinePage> {
                   onUnduh: () => _mulai(wilayahSiap[i]),
                 )
                 .animate(delay: (40 * i).ms)
-                .fadeIn(duration: NapakMotion.sedang)
-                .slideY(begin: 0.08, curve: NapakMotion.mengalir),
+                .fadeIn(duration: TourvellaMotion.sedang)
+                .slideY(begin: 0.08, curve: TourvellaMotion.mengalir),
         ],
       ),
     );
@@ -179,7 +184,7 @@ class _Pembuka extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
-          colors: NapakColors.routeGradient,
+          colors: TourvellaColors.routeGradient,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -193,7 +198,7 @@ class _Pembuka extends StatelessWidget {
                 Text(
                   'Tetap tahu jalan\nwalau sinyal hilang',
                   style: text.titleLarge?.copyWith(
-                    color: NapakColors.textOnDeep,
+                    color: TourvellaColors.textOnDeep,
                     height: 1.25,
                   ),
                 ),
@@ -202,7 +207,7 @@ class _Pembuka extends StatelessWidget {
                   'Jalan sampai gang, nama jalan, SPBU dan bengkel — '
                   'tersimpan di HP.',
                   style: text.bodySmall?.copyWith(
-                    color: NapakColors.textOnDeep.withValues(alpha: 0.85),
+                    color: TourvellaColors.textOnDeep.withValues(alpha: 0.85),
                   ),
                 ),
               ],
@@ -214,14 +219,14 @@ class _Pembuka extends StatelessWidget {
           const Icon(
                 Icons.signal_cellular_connected_no_internet_4_bar_rounded,
                 size: 40,
-                color: NapakColors.textOnDeep,
+                color: TourvellaColors.textOnDeep,
               )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .fade(begin: 1, end: 0.35, duration: 1400.ms)
               .scaleXY(begin: 1, end: 0.9, duration: 1400.ms),
         ],
       ),
-    ).animate().fadeIn().scaleXY(begin: 0.97, curve: NapakMotion.mengalir);
+    ).animate().fadeIn().scaleXY(begin: 0.97, curve: TourvellaMotion.mengalir);
   }
 }
 
@@ -245,7 +250,7 @@ class _KartuWilayah extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: NapakPressable(
+      child: TourvellaPressable(
         onTap: sudahAda || k != null ? null : onUnduh,
         skala: 0.985,
         child: Container(
@@ -265,7 +270,7 @@ class _KartuWilayah extends StatelessWidget {
                     Text(w.nama, style: text.titleSmall),
                     const SizedBox(height: 2),
                     AnimatedSwitcher(
-                      duration: NapakMotion.cepat,
+                      duration: TourvellaMotion.cepat,
                       child: Text(
                         switch (k) {
                           SedangMengunduh(:final selesai, :final total)
@@ -286,13 +291,13 @@ class _KartuWilayah extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                         child: TweenAnimationBuilder<double>(
                           tween: Tween(end: k.porsi),
-                          duration: NapakMotion.sedang,
+                          duration: TourvellaMotion.sedang,
                           builder: (context, t, _) => LinearProgressIndicator(
                             value: t == 0 ? null : t,
                             minHeight: 5,
-                            backgroundColor: NapakColors.softSky,
+                            backgroundColor: TourvellaColors.softSky,
                             valueColor: const AlwaysStoppedAnimation(
-                              NapakColors.ember,
+                              TourvellaColors.ember,
                             ),
                           ),
                         ),
@@ -303,7 +308,7 @@ class _KartuWilayah extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               AnimatedSwitcher(
-                duration: NapakMotion.sedang,
+                duration: TourvellaMotion.sedang,
                 transitionBuilder: (anak, a) =>
                     ScaleTransition(scale: a, child: anak),
                 child: switch (k) {
@@ -311,7 +316,7 @@ class _KartuWilayah extends StatelessWidget {
                     '${(porsi * 100).round()}%',
                     key: const ValueKey('persen'),
                     style: text.labelLarge?.copyWith(
-                      color: NapakColors.deepAccent,
+                      color: TourvellaColors.deepAccent,
                     ),
                   ),
                   MengunduhLayanan() => const SizedBox(
@@ -323,7 +328,7 @@ class _KartuWilayah extends StatelessWidget {
                   UnduhanSelesai() => const Icon(
                     Icons.check_circle_rounded,
                     key: ValueKey('ok'),
-                    color: NapakColors.affirm,
+                    color: TourvellaColors.affirm,
                   ),
                   _ => Icon(
                     sudahAda
@@ -331,8 +336,8 @@ class _KartuWilayah extends StatelessWidget {
                         : Icons.download_for_offline_outlined,
                     key: ValueKey(sudahAda),
                     color: sudahAda
-                        ? NapakColors.affirm
-                        : NapakColors.deepAccent,
+                        ? TourvellaColors.affirm
+                        : TourvellaColors.deepAccent,
                   ),
                 },
               ),
@@ -361,7 +366,7 @@ class _MiniKotak extends StatelessWidget {
       width: 46,
       height: 46,
       decoration: BoxDecoration(
-        color: NapakColors.softSky,
+        color: TourvellaColors.softSky,
         borderRadius: BorderRadius.circular(12),
       ),
       alignment: Alignment.center,
@@ -369,7 +374,7 @@ class _MiniKotak extends StatelessWidget {
         width: math.max(lebar * skala, 8),
         height: math.max(tinggi * skala, 8),
         decoration: BoxDecoration(
-          border: Border.all(color: NapakColors.ember, width: 1.6),
+          border: Border.all(color: TourvellaColors.ember, width: 1.6),
           borderRadius: BorderRadius.circular(3),
         ),
       ),
@@ -394,7 +399,7 @@ class _KartuTersimpan extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(14, 12, 4, 12),
       decoration: BoxDecoration(
-        color: NapakColors.softSky.withValues(alpha: 0.55),
+        color: TourvellaColors.softSky.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
@@ -404,8 +409,8 @@ class _KartuTersimpan extends StatelessWidget {
                 ? Icons.offline_pin_rounded
                 : Icons.sync_problem_rounded,
             color: w.cocokDenganServer
-                ? NapakColors.deepAccent
-                : NapakColors.attention,
+                ? TourvellaColors.deepAccent
+                : TourvellaColors.attention,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -498,7 +503,7 @@ class _PilihKerincianState extends ConsumerState<_PilihKerincian> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: NapakColors.divider,
+                  color: TourvellaColors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -517,19 +522,21 @@ class _PilihKerincianState extends ConsumerState<_PilihKerincian> {
               for (final k in Kerincian.values)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: NapakPressable(
+                  child: TourvellaPressable(
                     onTap: () => setState(() => _pilih = k),
                     skala: 0.98,
                     child: AnimatedContainer(
-                      duration: NapakMotion.cepat,
+                      duration: TourvellaMotion.cepat,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: _pilih == k ? NapakColors.softSky : Colors.white,
+                        color: _pilih == k
+                            ? TourvellaColors.softSky
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: _pilih == k
-                              ? NapakColors.deepAccent
-                              : NapakColors.divider,
+                              ? TourvellaColors.deepAccent
+                              : TourvellaColors.divider,
                           width: _pilih == k ? 1.6 : 1,
                         ),
                       ),
@@ -546,7 +553,7 @@ class _PilihKerincianState extends ConsumerState<_PilihKerincian> {
                           ),
                           const SizedBox(width: 8),
                           AnimatedSwitcher(
-                            duration: NapakMotion.cepat,
+                            duration: TourvellaMotion.cepat,
                             child: _perkiraan[k] == null
                                 ? const SizedBox(
                                     width: 16,
@@ -558,7 +565,7 @@ class _PilihKerincianState extends ConsumerState<_PilihKerincian> {
                                 : Text(
                                     '± ${_perkiraan[k]!.teksUkuran}',
                                     style: text.labelLarge?.copyWith(
-                                      color: NapakColors.deepAccent,
+                                      color: TourvellaColors.deepAccent,
                                     ),
                                   ),
                           ),
@@ -580,6 +587,52 @@ class _PilihKerincianState extends ConsumerState<_PilihKerincian> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Muncul kalau aplikasinya dibangun dengan gaya peta selain milik Tourvella.
+///
+/// Inilah penyebab "petanya cuma pulau-pulau": gaya demo MapLibre memang
+/// hanya berisi bentuk negara. Tanpa peringatan ini, orang mengunduh wilayah
+/// offline, berhasil, lalu tetap melihat peta kosong tanpa tahu kenapa.
+class _PeringatanPetaDemo extends StatelessWidget {
+  const _PeringatanPetaDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: TourvellaColors.attention.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: TourvellaColors.attention.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.map_outlined, color: TourvellaColors.attention),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Aplikasi ini memakai peta demo', style: text.titleSmall),
+                const SizedBox(height: 4),
+                Text(
+                  'Isinya cuma bentuk pulau, tanpa jalan. Bangun ulang '
+                  'aplikasinya dari workflow terbaru — sekarang selalu '
+                  'memakai peta Indonesia milik Tourvella.',
+                  style: text.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

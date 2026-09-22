@@ -7,10 +7,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../../trips/data/trip_models.dart';
 
 /// Lembar pembuatan video animasi rute.
@@ -72,7 +72,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
     if (sudah != null && await sudah.exists()) return sudah;
 
     final folder = await getTemporaryDirectory();
-    final berkas = File('${folder.path}/napak-${job.id}.mp4');
+    final berkas = File('${folder.path}/tourvella-${job.id}.mp4');
     await ref.read(tripRepositoryProvider).unduhVideo(job.id, berkas.path);
 
     _berkasVideo = berkas;
@@ -175,7 +175,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(berkas.path)],
-          text: '${widget.trip.title} — direkam bersama Napak',
+          text: '${widget.trip.title} — direkam bersama Tourvella',
         ),
       );
     } catch (error) {
@@ -262,7 +262,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
             const SizedBox(height: 14),
             Text(
               _kesalahan!,
-              style: text.bodySmall?.copyWith(color: NapakColors.attention),
+              style: text.bodySmall?.copyWith(color: TourvellaColors.attention),
             ),
           ],
 
@@ -276,7 +276,7 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
                       width: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: NapakColors.textOnDeep,
+                        color: TourvellaColors.textOnDeep,
                       ),
                     )
                   : const Icon(Icons.ios_share_rounded, size: 20),
@@ -307,10 +307,10 @@ class _VideoSheetState extends ConsumerState<VideoSheet> {
   }
 
   ButtonStyle _gayaSegmen() => SegmentedButton.styleFrom(
-    backgroundColor: NapakColors.softSky,
-    selectedBackgroundColor: NapakColors.primary,
-    selectedForegroundColor: NapakColors.textPrimary,
-    foregroundColor: NapakColors.textSecondary,
+    backgroundColor: TourvellaColors.softSky,
+    selectedBackgroundColor: TourvellaColors.primary,
+    selectedForegroundColor: TourvellaColors.textPrimary,
+    foregroundColor: TourvellaColors.textSecondary,
   );
 }
 
@@ -327,7 +327,7 @@ class _Kemajuan extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
+          color: TourvellaColors.warmNeutral,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Text(
@@ -343,7 +343,7 @@ class _Kemajuan extends StatelessWidget {
           const Icon(
             Icons.check_circle_outline_rounded,
             size: 18,
-            color: NapakColors.affirm,
+            color: TourvellaColors.affirm,
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -392,8 +392,8 @@ class _Pratinjau extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: NapakMotion.lambat,
-      curve: NapakMotion.mengalir,
+      duration: TourvellaMotion.lambat,
+      curve: TourvellaMotion.mengalir,
       builder: (context, t, anak) => Opacity(
         opacity: t,
         child: Transform.scale(scale: 0.94 + t * 0.06, child: anak),

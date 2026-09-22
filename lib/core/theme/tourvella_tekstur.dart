@@ -3,7 +3,7 @@ import 'dart:ui' show PointMode;
 
 import 'package:flutter/material.dart';
 
-import 'napak_colors.dart';
+import 'tourvella_colors.dart';
 
 /// Tekstur ekspedisi: kontur topografi, butiran kertas, siluet punggungan.
 ///
@@ -20,7 +20,7 @@ import 'napak_colors.dart';
 /// tulisan justru ramai dan mengganggu.
 class KonturTopografi extends StatelessWidget {
   const KonturTopografi({
-    this.warna = NapakColors.kontur,
+    this.warna = TourvellaColors.kontur,
     this.opasitas = 0.5,
     this.jumlahGaris = 9,
     this.geser = 0,
@@ -180,7 +180,7 @@ class _PelukisButiran extends CustomPainter {
 class SiluetGunung extends StatelessWidget {
   const SiluetGunung({
     this.geser = 0,
-    this.warna = const [NapakColors.malamNaik, NapakColors.malam],
+    this.warna = const [TourvellaColors.malamNaik, TourvellaColors.malam],
     this.benih = 3,
     super.key,
   });
@@ -281,7 +281,7 @@ class LatarEkspedisi extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: NapakColors.kanvasMalam,
+              colors: TourvellaColors.kanvasMalam,
             ),
           ),
         ),

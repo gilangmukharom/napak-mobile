@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Mengirim jejak ke backend Napak. -->
+    <!-- Mengirim jejak ke backend Tourvella. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
-    <!-- Merekam perjalanan. Napak meminta lokasi presisi karena bentuk rute
+    <!-- Merekam perjalanan. Tourvella meminta lokasi presisi karena bentuk rute
          yang kasar tidak layak disebut jejak perjalanan. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -15,7 +15,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
 
     <application
-        android:label="Napak"
+        android:label="Tourvella"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_logo.dart';
 
 /// Layar pembuka.
 ///
@@ -15,9 +15,11 @@ import '../../../core/widgets/napak_gerak.dart';
 /// bekerja: membuka Keystore, membaca token, menanyakan sesinya masih sah
 /// atau tidak. Yang ditampilkan bukan kebohongan.
 ///
-/// Yang digambar adalah sepotong jejak yang menggambar dirinya sendiri —
-/// bukan logo. Merek Napak memang bukan lambang, melainkan garis perjalanan,
-/// dan animasi ini mengatakan itu sebelum satu kata pun terbaca.
+/// Yang digambar adalah tanda Tourvella yang menyusun dirinya sendiri: jalan
+/// tumbuh dari bawah layar, horizon membentang, lalu matahari tujuan terbit.
+/// Logonya memang sebuah perjalanan kecil, dan animasi ini mengatakan itu
+/// sebelum satu kata pun terbaca. Warna latarnya sama dengan layar native
+/// sebelum Flutter hidup (`flutter_native_splash`), jadi tidak ada kedipan.
 ///
 /// Durasinya ditahan sampai animasinya tuntas walau sesi sudah ketahuan lebih
 /// dulu. Layar pembuka yang berkedip sepersekian detik lalu hilang terasa
@@ -33,22 +35,23 @@ class _SplashPageState extends ConsumerState<SplashPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _kendali = AnimationController(
     vsync: this,
-    duration: NapakMotion.pembuka,
+    duration: TourvellaMotion.pembuka,
   );
 
-  late final Animation<double> _jejak = CurvedAnimation(
+  /// Logo punya kurvanya sendiri per bagian; di sini cukup linear.
+  late final Animation<double> _logo = CurvedAnimation(
     parent: _kendali,
-    curve: const Interval(0.0, 0.72, curve: Curves.easeInOutCubic),
+    curve: const Interval(0.0, 0.7),
   );
 
   late final Animation<double> _nama = CurvedAnimation(
     parent: _kendali,
-    curve: const Interval(0.38, 0.86, curve: NapakMotion.mengalir),
+    curve: const Interval(0.5, 0.88, curve: TourvellaMotion.mengalir),
   );
 
   late final Animation<double> _kalimat = CurvedAnimation(
     parent: _kendali,
-    curve: const Interval(0.58, 1.0, curve: NapakMotion.mengalir),
+    curve: const Interval(0.66, 1.0, curve: TourvellaMotion.mengalir),
   );
 
   bool _sudahPindah = false;
@@ -93,7 +96,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
     // Langit sebelum berangkat: gelap di atas, bara di kaki langit, dan
     // punggungan gunung yang naik perlahan seperti dilihat dari jok motor.
     return Scaffold(
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -102,7 +105,7 @@ class _SplashPageState extends ConsumerState<SplashPage>
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: NapakColors.langitSubuh,
+                colors: TourvellaColors.langitSubuh,
                 stops: [0, 0.6, 1.25],
               ),
             ),
@@ -116,59 +119,44 @@ class _SplashPageState extends ConsumerState<SplashPage>
               geser: 42 * (1 - Curves.easeOutCubic.transform(_kendali.value)),
               warna: const [
                 Color(0xFF2E3B4E),
-                NapakColors.malamNaik,
-                NapakColors.malam,
+                TourvellaColors.malamNaik,
+                TourvellaColors.malam,
               ],
             ),
           ),
           const ButiranKertas(opasitas: 0.05),
 
           Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 44),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 96,
-                    width: double.infinity,
-                    child: AnimatedBuilder(
-                      animation: _jejak,
-                      builder: (context, _) => JejakMenggambar(
-                        progres: _jejak.value,
-                        // Jejak digambar dengan bara, bukan biru: di atas
-                        // langit malam, birunya hilang ditelan latar.
-                        gradasi: const [
-                          NapakColors.ember,
-                          NapakColors.emberRedup,
-                        ],
-                        tebal: 4,
-                      ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedBuilder(
+                  animation: _logo,
+                  builder: (context, _) =>
+                      LogoTourvella(ukuran: 148, progres: _logo.value),
+                ),
+                const SizedBox(height: 22),
+                _Memudar(
+                  animasi: _nama,
+                  child: Text(
+                    'Tourvella',
+                    style: text.displaySmall?.copyWith(
+                      color: TourvellaColors.base,
+                      letterSpacing: -0.8,
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  _Memudar(
-                    animasi: _nama,
-                    child: Text(
-                      'Napak',
-                      style: text.displaySmall?.copyWith(
-                        color: NapakColors.base,
-                      ),
+                ),
+                const SizedBox(height: 8),
+                _Memudar(
+                  animasi: _kalimat,
+                  child: Text(
+                    'Setiap perjalanan punya cerita.',
+                    style: text.bodyLarge?.copyWith(
+                      color: TourvellaColors.base.withValues(alpha: 0.72),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  _Memudar(
-                    animasi: _kalimat,
-                    child: Text(
-                      'Setiap perjalanan meninggalkan jejak.',
-                      style: text.bodyLarge?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.72),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 
@@ -180,8 +168,8 @@ class _SplashPageState extends ConsumerState<SplashPage>
               child: _Memudar(
                 animasi: _kalimat,
                 child: LabelKapital(
-                  'Napak tilas · Indonesia',
-                  warna: NapakColors.base.withValues(alpha: 0.4),
+                  'Rekam jalanmu · bagikan ceritamu',
+                  warna: TourvellaColors.base.withValues(alpha: 0.4),
                 ),
               ),
             ),

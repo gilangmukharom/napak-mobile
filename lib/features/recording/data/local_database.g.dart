@@ -711,9 +711,10 @@ class PendingPointsCompanion extends UpdateCompanion<PendingPoint> {
   }
 }
 
-abstract class _$NapakLocalDatabase extends GeneratedDatabase {
-  _$NapakLocalDatabase(QueryExecutor e) : super(e);
-  $NapakLocalDatabaseManager get managers => $NapakLocalDatabaseManager(this);
+abstract class _$TourvellaLocalDatabase extends GeneratedDatabase {
+  _$TourvellaLocalDatabase(QueryExecutor e) : super(e);
+  $TourvellaLocalDatabaseManager get managers =>
+      $TourvellaLocalDatabaseManager(this);
   late final $PendingPointsTable pendingPoints = $PendingPointsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -756,7 +757,7 @@ typedef $$PendingPointsTableUpdateCompanionBuilder =
     });
 
 class $$PendingPointsTableFilterComposer
-    extends Composer<_$NapakLocalDatabase, $PendingPointsTable> {
+    extends Composer<_$TourvellaLocalDatabase, $PendingPointsTable> {
   $$PendingPointsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -826,7 +827,7 @@ class $$PendingPointsTableFilterComposer
 }
 
 class $$PendingPointsTableOrderingComposer
-    extends Composer<_$NapakLocalDatabase, $PendingPointsTable> {
+    extends Composer<_$TourvellaLocalDatabase, $PendingPointsTable> {
   $$PendingPointsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -896,7 +897,7 @@ class $$PendingPointsTableOrderingComposer
 }
 
 class $$PendingPointsTableAnnotationComposer
-    extends Composer<_$NapakLocalDatabase, $PendingPointsTable> {
+    extends Composer<_$TourvellaLocalDatabase, $PendingPointsTable> {
   $$PendingPointsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -948,7 +949,7 @@ class $$PendingPointsTableAnnotationComposer
 class $$PendingPointsTableTableManager
     extends
         RootTableManager<
-          _$NapakLocalDatabase,
+          _$TourvellaLocalDatabase,
           $PendingPointsTable,
           PendingPoint,
           $$PendingPointsTableFilterComposer,
@@ -959,7 +960,7 @@ class $$PendingPointsTableTableManager
           (
             PendingPoint,
             BaseReferences<
-              _$NapakLocalDatabase,
+              _$TourvellaLocalDatabase,
               $PendingPointsTable,
               PendingPoint
             >,
@@ -968,7 +969,7 @@ class $$PendingPointsTableTableManager
           PrefetchHooks Function()
         > {
   $$PendingPointsTableTableManager(
-    _$NapakLocalDatabase db,
+    _$TourvellaLocalDatabase db,
     $PendingPointsTable table,
   ) : super(
         TableManagerState(
@@ -1045,7 +1046,7 @@ class $$PendingPointsTableTableManager
                 (e) => (
                   e.readTable<$PendingPointsTable, PendingPoint>(table),
                   BaseReferences<
-                    _$NapakLocalDatabase,
+                    _$TourvellaLocalDatabase,
                     $PendingPointsTable,
                     PendingPoint
                   >(db, table, e),
@@ -1059,7 +1060,7 @@ class $$PendingPointsTableTableManager
 
 typedef $$PendingPointsTableProcessedTableManager =
     ProcessedTableManager<
-      _$NapakLocalDatabase,
+      _$TourvellaLocalDatabase,
       $PendingPointsTable,
       PendingPoint,
       $$PendingPointsTableFilterComposer,
@@ -1069,15 +1070,19 @@ typedef $$PendingPointsTableProcessedTableManager =
       $$PendingPointsTableUpdateCompanionBuilder,
       (
         PendingPoint,
-        BaseReferences<_$NapakLocalDatabase, $PendingPointsTable, PendingPoint>,
+        BaseReferences<
+          _$TourvellaLocalDatabase,
+          $PendingPointsTable,
+          PendingPoint
+        >,
       ),
       PendingPoint,
       PrefetchHooks Function()
     >;
 
-class $NapakLocalDatabaseManager {
-  final _$NapakLocalDatabase _db;
-  $NapakLocalDatabaseManager(this._db);
+class $TourvellaLocalDatabaseManager {
+  final _$TourvellaLocalDatabase _db;
+  $TourvellaLocalDatabaseManager(this._db);
   $$PendingPointsTableTableManager get pendingPoints =>
       $$PendingPointsTableTableManager(_db, _db.pendingPoints);
 }

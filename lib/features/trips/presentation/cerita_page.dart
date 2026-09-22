@@ -8,9 +8,9 @@ import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
 import '../../render/presentation/video_sheet.dart';
 import '../data/trip_models.dart';
 import 'pratinjau_rute.dart';
@@ -31,7 +31,7 @@ final _ceritaProvider = FutureProvider.autoDispose
 /// ketuk kanan untuk lanjut, bilah ruas di atas — tapi **kebalikan
 /// semantiknya**.
 ///
-/// Story menghilang dalam 24 jam. Napak berdiri di atas satu kalimat: "jejak
+/// Story menghilang dalam 24 jam. Tourvella berdiri di atas satu kalimat: "jejak
 /// itu tidak hilang begitu saja." Membangun fitur yang sifat utamanya
 /// menghilang berarti melawan alasan produk ini ada. Jadi yang diambil cuma
 /// caranya bercerita; isinya tetap tersimpan selamanya dan bisa dibuka lagi
@@ -53,7 +53,7 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
   /// Lama tiap ruas sebelum berpindah sendiri.
   ///
   /// Lebih lama daripada story biasa. Yang dilihat di sini kenangan sendiri,
-  /// bukan unggahan orang lain yang dilewati sambil lalu — dan Napak memang
+  /// bukan unggahan orang lain yang dilewati sambil lalu — dan Tourvella memang
   /// bukan aplikasi yang buru-buru.
   static const _durasiRuas = Duration(seconds: 6);
 
@@ -111,10 +111,10 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
       // Kanvasnya gelap, bukan base. Latar terang akan berkedip putih tiap
       // kali foto berganti — dan di layar penuh kedipan itu terbaca seperti
       // aplikasinya tersendat.
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       body: cerita.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: NapakColors.ember),
+          child: CircularProgressIndicator(color: TourvellaColors.ember),
         ),
         error: (error, _) => _Galat(pesan: error.toString()),
         data: (data) {
@@ -151,7 +151,7 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
               children: [
                 Positioned.fill(
                   child: AnimatedSwitcher(
-                    duration: NapakMotion.sedang,
+                    duration: TourvellaMotion.sedang,
                     // Menyilang, bukan bergantian. Foto lama tetap terlihat
                     // sampai yang baru penuh, jadi tidak ada jeda hitam di
                     // antara dua ruas.
@@ -203,7 +203,7 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
                             // ceritanya berhenti karena disuruh, bukan macet.
                             AnimatedOpacity(
                               opacity: _ditahan ? 1 : 0,
-                              duration: NapakMotion.kilat,
+                              duration: TourvellaMotion.kilat,
                               child: const Row(
                                 children: [
                                   SizedBox(width: 8),
@@ -227,7 +227,7 @@ class _CeritaPageState extends ConsumerState<CeritaPage> {
                             IconButton(
                               onPressed: () => context.pop(),
                               icon: const Icon(Icons.close_rounded),
-                              color: NapakColors.textOnDeep,
+                              color: TourvellaColors.textOnDeep,
                             ),
                           ],
                         ),
@@ -317,7 +317,7 @@ class _LatarFoto extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [NapakColors.deepAccent, NapakColors.malam],
+              colors: [TourvellaColors.deepAccent, TourvellaColors.malam],
             ),
           ),
         ),
@@ -343,8 +343,8 @@ class _LatarFoto extends StatelessWidget {
                 if (sinkron) return anakGambar;
                 return AnimatedOpacity(
                   opacity: frame == null ? 0 : 1,
-                  duration: NapakMotion.sedang,
-                  curve: NapakMotion.mengalir,
+                  duration: TourvellaMotion.sedang,
+                  curve: TourvellaMotion.mengalir,
                   child: anakGambar,
                 );
               },
@@ -433,7 +433,7 @@ class _LatarVideoState extends State<_LatarVideo> {
     // begitu siap, jadi tidak ada kedipan hitam.
     return AnimatedOpacity(
       opacity: _siap ? 1 : 0,
-      duration: NapakMotion.lambat,
+      duration: TourvellaMotion.lambat,
       child: _siap
           ? FittedBox(
               fit: BoxFit.cover,
@@ -477,7 +477,9 @@ class _BilahRuas extends StatelessWidget {
                   backgroundColor: Colors.white24,
                   // Ruas yang sudah lewat dan yang sedang berjalan ditandai
                   // bara, seperti sisa jejak yang masih hangat.
-                  valueColor: const AlwaysStoppedAnimation(NapakColors.ember),
+                  valueColor: const AlwaysStoppedAnimation(
+                    TourvellaColors.ember,
+                  ),
                 ),
               ),
             ),
@@ -525,7 +527,7 @@ class _RuasPembuka extends StatelessWidget {
               child: Text(
                 trip.title,
                 style: text.displaySmall?.copyWith(
-                  color: NapakColors.textOnDeep,
+                  color: TourvellaColors.textOnDeep,
                 ),
               ),
             ),
@@ -604,7 +606,7 @@ class _RuasSinggahan extends StatelessWidget {
                       child: Text(
                         titik.transportMode.label,
                         style: text.labelMedium?.copyWith(
-                          color: NapakColors.textOnDeep,
+                          color: TourvellaColors.textOnDeep,
                         ),
                       ),
                     ),
@@ -628,7 +630,7 @@ class _RuasSinggahan extends StatelessWidget {
                     titik.note!,
                     style: text.headlineSmall?.copyWith(
                       height: 1.35,
-                      color: NapakColors.textOnDeep,
+                      color: TourvellaColors.textOnDeep,
                       // Bayangan tipis, untuk foto yang kebetulan terang
                       // justru di bagian bawahnya.
                       shadows: const [
@@ -676,7 +678,7 @@ class _RuasPenutup extends StatelessWidget {
                 child: Text(
                   'Sampai di sini',
                   style: text.displaySmall?.copyWith(
-                    color: NapakColors.textOnDeep,
+                    color: TourvellaColors.textOnDeep,
                   ),
                 ),
               ),
@@ -692,7 +694,7 @@ class _RuasPenutup extends StatelessWidget {
                       nilai: trip.distanceKm,
                       desimal: 1,
                       gaya: text.displaySmall?.copyWith(
-                        color: NapakColors.textOnDeep,
+                        color: TourvellaColors.textOnDeep,
                       ),
                     ),
                     Text(
@@ -721,8 +723,8 @@ class _RuasPenutup extends StatelessWidget {
                   icon: const Icon(Icons.movie_creation_outlined, size: 20),
                   label: const Text('Jadikan video'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: NapakColors.textOnDeep,
-                    foregroundColor: NapakColors.textPrimary,
+                    backgroundColor: TourvellaColors.textOnDeep,
+                    foregroundColor: TourvellaColors.textPrimary,
                   ),
                 ),
               ),
@@ -758,7 +760,7 @@ class _Galat extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(
             context,
-          ).textTheme.bodyMedium?.copyWith(color: NapakColors.textOnDeep),
+          ).textTheme.bodyMedium?.copyWith(color: TourvellaColors.textOnDeep),
         ),
       ),
     );

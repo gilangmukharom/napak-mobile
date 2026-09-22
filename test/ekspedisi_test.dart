@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/core/theme/napak_colors.dart';
-import 'package:napak/core/theme/napak_theme.dart';
-import 'package:napak/core/widgets/napak_ekspedisi.dart';
+import 'package:tourvella/core/theme/tourvella_colors.dart';
+import 'package:tourvella/core/theme/tourvella_theme.dart';
+import 'package:tourvella/core/widgets/tourvella_ekspedisi.dart';
 
 /// Tema Ekspedisi: warna bara, kanvas malam, dan komponen yang memakainya.
 ///
@@ -76,15 +76,15 @@ void main() {
       // pastel, ia berhenti menunjuk apa pun — dan itulah justru keluhan
       // yang melahirkan tema ini.
       final jarak =
-          (NapakColors.ember.r - NapakColors.primary.r).abs() +
-          (NapakColors.ember.b - NapakColors.primary.b).abs();
+          (TourvellaColors.ember.r - TourvellaColors.primary.r).abs() +
+          (TourvellaColors.ember.b - TourvellaColors.primary.b).abs();
       expect(jarak, greaterThan(0.5));
     });
 
     test('kanvas malam jauh lebih gelap daripada latar utama', () {
       expect(
-        NapakColors.malam.computeLuminance(),
-        lessThan(NapakColors.base.computeLuminance() / 10),
+        TourvellaColors.malam.computeLuminance(),
+        lessThan(TourvellaColors.base.computeLuminance() / 10),
       );
     });
 
@@ -94,7 +94,7 @@ void main() {
       late TextStyle gaya;
       await tester.pumpWidget(
         MaterialApp(
-          theme: NapakTheme.gelap(),
+          theme: TourvellaTheme.gelap(),
           home: Builder(
             builder: (context) {
               gaya = Theme.of(context).textTheme.bodyLarge!;

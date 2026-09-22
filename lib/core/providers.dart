@@ -7,7 +7,7 @@ import '../features/trips/data/trip_repository.dart';
 import 'network/api_client.dart';
 import 'storage/token_store.dart';
 
-/// Akar dependensi Napak. Semua yang berumur panjang dirakit di sini supaya
+/// Akar dependensi Tourvella. Semua yang berumur panjang dirakit di sini supaya
 /// mudah diganti saat menulis test.
 // Bawaan flutter_secure_storage 11 sudah Keystore + AES-GCM dengan pembungkus
 // kunci RSA-OAEP. Tidak ada opsi yang perlu dinyalakan sendiri.
@@ -43,9 +43,9 @@ final Provider<TripRepository> tripRepositoryProvider =
       (ref) => TripRepository(ref.watch(apiClientProvider)),
     );
 
-final Provider<NapakLocalDatabase> localDatabaseProvider =
-    Provider<NapakLocalDatabase>((ref) {
-      final db = NapakLocalDatabase();
+final Provider<TourvellaLocalDatabase> localDatabaseProvider =
+    Provider<TourvellaLocalDatabase>((ref) {
+      final db = TourvellaLocalDatabase();
       ref.onDispose(db.close);
       return db;
     });

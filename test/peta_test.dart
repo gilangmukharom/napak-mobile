@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:napak/features/peta/data/layanan_data.dart';
+import 'package:tourvella/features/peta/data/layanan_data.dart';
 
 void main() {
   group('arah', () {

@@ -7,10 +7,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../data/profil_data.dart';
 import 'profil_page.dart';
 
@@ -42,7 +42,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
   Future<void> _gantiFoto() async {
     final sumber = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -65,7 +65,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
               ListTile(
                 leading: const Icon(
                   Icons.delete_outline_rounded,
-                  color: NapakColors.attention,
+                  color: TourvellaColors.attention,
                 ),
                 title: const Text('Hapus foto'),
                 onTap: () => Navigator.pop(context, 'hapus'),
@@ -142,7 +142,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
     }
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: BilahEkspedisi(
         judul: 'Edit profil',
         keterangan: 'Yang dilihat teman',
@@ -150,7 +150,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
           TextButton(
             onPressed: _menyimpan || p == null ? null : _simpan,
             style: TextButton.styleFrom(
-              foregroundColor: NapakColors.emberRedup,
+              foregroundColor: TourvellaColors.emberRedup,
             ),
             child: _menyimpan
                 ? const SizedBox(
@@ -197,7 +197,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
                             height: 116,
                             child: CircularProgressIndicator(
                               strokeWidth: 3,
-                              color: NapakColors.deepAccent,
+                              color: TourvellaColors.deepAccent,
                             ),
                           ),
                         Positioned(
@@ -206,24 +206,27 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
                           child: Container(
                             padding: const EdgeInsets.all(7),
                             decoration: BoxDecoration(
-                              color: NapakColors.deepAccent,
+                              color: TourvellaColors.deepAccent,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: NapakColors.base,
+                                color: TourvellaColors.base,
                                 width: 3,
                               ),
                             ),
                             child: const Icon(
                               Icons.photo_camera_rounded,
                               size: 16,
-                              color: NapakColors.textOnDeep,
+                              color: TourvellaColors.textOnDeep,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ).animate().scaleXY(begin: 0.85, curve: NapakMotion.memantul),
+                ).animate().scaleXY(
+                  begin: 0.85,
+                  curve: TourvellaMotion.memantul,
+                ),
                 const SizedBox(height: 8),
                 Center(
                   child: TextButton(
@@ -257,7 +260,7 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: NapakColors.softSky.withValues(alpha: 0.6),
+                    color: TourvellaColors.softSky.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -266,13 +269,13 @@ class _EditProfilPageState extends ConsumerState<EditProfilPage> {
                       const Icon(
                         Icons.visibility_outlined,
                         size: 18,
-                        color: NapakColors.deepAccent,
+                        color: TourvellaColors.deepAccent,
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Nama, foto, dan bio terlihat oleh siapa pun yang '
-                          'punya kode Napak-mu. Perjalananmu tetap tertutup — '
+                          'punya kode Tourvella-mu. Perjalananmu tetap tertutup — '
                           'teman cuma melihat yang kamu pajang di profil.',
                           style: text.bodySmall?.copyWith(height: 1.45),
                         ),

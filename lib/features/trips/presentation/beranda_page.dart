@@ -5,13 +5,16 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_logo.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
+import '../../linimasa/data/linimasa_data.dart';
+import '../../linimasa/presentation/linimasa_view.dart';
 import '../../obrolan/data/obrolan_data.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../sosial/data/sosial_repository.dart';
@@ -25,90 +28,192 @@ import 'pratinjau_rute.dart';
 /// melainkan kenangan. Bentuk rutenya tampil besar dan lebih dulu; angka
 /// jarak dan tanggal menyusul di bawahnya sebagai keterangan — bukan
 /// sebaliknya.
-class BerandaPage extends ConsumerWidget {
+class BerandaPage extends ConsumerStatefulWidget {
   const BerandaPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BerandaPage> createState() => _BerandaPageState();
+}
+
+class _BerandaPageState extends ConsumerState<BerandaPage> {
+  /// false = jejak sendiri, true = linimasa teman.
+  bool _linimasa = false;
+
+  @override
+  Widget build(BuildContext context) {
     final trips = ref.watch(tripListProvider);
     final nama = ref.watch(savedNameProvider).value;
     final merekam = ref.watch(recordingControllerProvider);
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       body: RefreshIndicator(
-        color: NapakColors.deepAccent,
+        color: TourvellaColors.deepAccent,
         backgroundColor: Colors.white,
-        onRefresh: () async => ref.invalidate(tripListProvider),
+        onRefresh: () async => ref
+          ..invalidate(tripListProvider)
+          ..invalidate(linimasaProvider),
         child: CustomScrollView(
           slivers: [
             _Sapaan(nama: nama, trips: trips.value ?? const []),
-            const SliverToBoxAdapter(child: _AntreanJejak()),
-            const SliverToBoxAdapter(child: _Kenangan()),
-            if (merekam.isRecording)
-              SliverToBoxAdapter(
-                child: _SedangMerekam(judul: merekam.title ?? 'Perjalanan'),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _PengalihDelegasi(
+                linimasa: _linimasa,
+                onGanti: (v) => setState(() => _linimasa = v),
               ),
-
-            trips.when(
-              loading: () => const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
-                  child: SkeletonDaftarTrip(),
+            ),
+            if (_linimasa) const SliverLinimasa(),
+            if (!_linimasa) ...[
+              const SliverToBoxAdapter(child: _AntreanJejak()),
+              const SliverToBoxAdapter(child: _Kenangan()),
+              if (merekam.isRecording)
+                SliverToBoxAdapter(
+                  child: _SedangMerekam(judul: merekam.title ?? 'Perjalanan'),
                 ),
-              ),
-              error: (error, _) => SliverToBoxAdapter(
-                child: _Kosong(
-                  ikon: Icons.cloud_off_rounded,
-                  judul: 'Belum tersambung',
-                  keterangan: error.toString(),
-                  aksi: FilledButton(
-                    onPressed: () => ref.invalidate(tripListProvider),
-                    child: const Text('Coba lagi'),
+
+              trips.when(
+                loading: () => const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 24),
+                    child: SkeletonDaftarTrip(),
                   ),
                 ),
-              ),
-              data: (daftar) {
-                if (daftar.isEmpty) {
-                  return SliverToBoxAdapter(
-                    child: _Kosong(
-                      ikon: Icons.route_outlined,
-                      judul: 'Belum ada jejak di sini',
-                      keterangan:
-                          'Mulai perjalanan pertamamu. Napak merekam '
-                          'diam-diam sementara kamu menikmati jalannya.',
-                      aksi: FilledButton.icon(
-                        onPressed: () => context.push('/rekam/mulai'),
-                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                        label: const Text('Mulai merekam'),
+                error: (error, _) => SliverToBoxAdapter(
+                  child: _Kosong(
+                    ikon: Icons.cloud_off_rounded,
+                    judul: 'Belum tersambung',
+                    keterangan: error.toString(),
+                    aksi: FilledButton(
+                      onPressed: () => ref.invalidate(tripListProvider),
+                      child: const Text('Coba lagi'),
+                    ),
+                  ),
+                ),
+                data: (daftar) {
+                  if (daftar.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: _Kosong(
+                        ikon: Icons.route_outlined,
+                        judul: 'Belum ada jejak di sini',
+                        keterangan:
+                            'Mulai perjalanan pertamamu. Tourvella merekam '
+                            'diam-diam sementara kamu menikmati jalannya.',
+                        aksi: FilledButton.icon(
+                          onPressed: () => context.push('/rekam/mulai'),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                          label: const Text('Mulai merekam'),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList.separated(
+                    itemCount: daftar.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 18),
+                    itemBuilder: (context, i) => Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        i == 0 ? 14 : 0,
+                        20,
+                        i == daftar.length - 1 ? 110 : 0,
+                      ),
+                      child: MunculBertahap(
+                        indeks: i,
+                        child: _KartuTrip(trip: daftar[i]),
                       ),
                     ),
                   );
-                }
-
-                return SliverList.separated(
-                  itemCount: daftar.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 18),
-                  itemBuilder: (context, i) => Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      i == 0 ? 14 : 0,
-                      20,
-                      i == daftar.length - 1 ? 110 : 0,
-                    ),
-                    child: MunculBertahap(
-                      indeks: i,
-                      child: _KartuTrip(trip: daftar[i]),
-                    ),
-                  ),
-                );
-              },
-            ),
+                },
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+}
+
+/// Pengalih "Jejakku | Linimasa", menempel di bawah panorama saat digulir.
+///
+/// Bentuknya dua tab bergaris bara, bukan tombol: keduanya isi yang sama
+/// pentingnya, dan berpindah di antaranya harus semudah menggeser ibu jari.
+class _PengalihDelegasi extends SliverPersistentHeaderDelegate {
+  _PengalihDelegasi({required this.linimasa, required this.onGanti});
+
+  final bool linimasa;
+  final ValueChanged<bool> onGanti;
+
+  @override
+  double get minExtent => 50;
+  @override
+  double get maxExtent => 50;
+
+  @override
+  Widget build(BuildContext context, double shrink, bool overlaps) {
+    return Container(
+      color: TourvellaColors.base,
+      child: LayoutBuilder(
+        builder: (context, batas) {
+          final lebar = batas.maxWidth / 2;
+          return Stack(
+            children: [
+              Row(
+                children: [
+                  for (final (i, label) in ['Jejakku', 'Linimasa'].indexed)
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => onGanti(i == 1),
+                        child: Center(
+                          child: AnimatedDefaultTextStyle(
+                            duration: TourvellaMotion.cepat,
+                            style: TextStyle(
+                              fontSize: 12,
+                              letterSpacing: 2,
+                              fontWeight: (i == 1) == linimasa
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: (i == 1) == linimasa
+                                  ? TourvellaColors.textPrimary
+                                  : TourvellaColors.textSecondary,
+                            ),
+                            child: Text(label.toUpperCase()),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(height: 1, color: TourvellaColors.divider),
+              ),
+              AnimatedPositioned(
+                duration: TourvellaMotion.sedang,
+                curve: TourvellaMotion.mengalir,
+                left: (linimasa ? lebar : 0) + lebar * 0.3,
+                width: lebar * 0.4,
+                bottom: 0,
+                height: 3,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: TourvellaColors.ember,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _PengalihDelegasi lama) =>
+      lama.linimasa != linimasa;
 }
 
 /// Sapaan yang mengecil saat digulir.
@@ -143,19 +248,28 @@ class _SapaanState extends ConsumerState<_Sapaan> {
     return SliverAppBar(
       pinned: true,
       expandedHeight: 232,
-      backgroundColor: NapakColors.malam,
+      backgroundColor: TourvellaColors.malam,
       surfaceTintColor: Colors.transparent,
-      foregroundColor: NapakColors.base,
-      title: Text(
-        'Jejakmu',
-        style: text.titleLarge?.copyWith(color: NapakColors.base),
+      foregroundColor: TourvellaColors.base,
+      // Tanda kecil di samping judul: satu-satunya tempat merek muncul di
+      // beranda, dan cukup begitu — sisanya milik perjalanan orangnya.
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const LogoTourvella(ukuran: 26),
+          const SizedBox(width: 10),
+          Text(
+            'Jejakmu',
+            style: text.titleLarge?.copyWith(color: TourvellaColors.base),
+          ),
+        ],
       ),
       actions: [
         IkonBerlencana(
           ikon: Icons.forum_outlined,
           jumlah: pesan,
           label: 'Obrolan',
-          warna: NapakColors.base,
+          warna: TourvellaColors.base,
           onTap: () async {
             await context.push('/obrolan');
             ref.invalidate(daftarObrolanProvider);
@@ -165,7 +279,7 @@ class _SapaanState extends ConsumerState<_Sapaan> {
           ikon: Icons.notifications_none_rounded,
           jumlah: kabar,
           label: 'Kabar',
-          warna: NapakColors.base,
+          warna: TourvellaColors.base,
           onTap: () async {
             await context.push('/inbox');
             ref.invalidate(jumlahKabarProvider);
@@ -208,7 +322,7 @@ class _PanoramaMalam extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: NapakColors.langitSubuh,
+              colors: TourvellaColors.langitSubuh,
               stops: [0, 0.55, 1.35],
             ),
           ),
@@ -223,10 +337,10 @@ class _PanoramaMalam extends StatelessWidget {
                     height: 74,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: NapakColors.ember.withValues(alpha: 0.85),
+                      color: TourvellaColors.ember.withValues(alpha: 0.85),
                       boxShadow: [
                         BoxShadow(
-                          color: NapakColors.ember.withValues(alpha: 0.45),
+                          color: TourvellaColors.ember.withValues(alpha: 0.45),
                           blurRadius: 60,
                           spreadRadius: 18,
                         ),
@@ -239,7 +353,11 @@ class _PanoramaMalam extends StatelessWidget {
         ),
         const IgnorePointer(child: KonturTopografi(opasitas: 0.18)),
         const SiluetGunung(
-          warna: [Color(0xFF2E3B4E), NapakColors.malamNaik, NapakColors.malam],
+          warna: [
+            Color(0xFF2E3B4E),
+            TourvellaColors.malamNaik,
+            TourvellaColors.malam,
+          ],
         ),
         const ButiranKertas(opasitas: 0.04),
 
@@ -254,12 +372,14 @@ class _PanoramaMalam extends StatelessWidget {
             children: [
               LabelKapital(
                 _salam(),
-                warna: NapakColors.base.withValues(alpha: 0.7),
+                warna: TourvellaColors.base.withValues(alpha: 0.7),
               ),
               const SizedBox(height: 2),
               Text(
                 nama ?? 'Penjejak',
-                style: text.headlineMedium?.copyWith(color: NapakColors.base),
+                style: text.headlineMedium?.copyWith(
+                  color: TourvellaColors.base,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -272,14 +392,14 @@ class _PanoramaMalam extends StatelessWidget {
                     desimal: totalKm < 100 ? 1 : 0,
                     satuan: 'KM DITEMPUH',
                     gaya: text.headlineSmall?.copyWith(
-                      color: NapakColors.ember,
+                      color: TourvellaColors.ember,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const Spacer(),
                   LabelKapital(
                     '$jumlahPerjalanan perjalanan',
-                    warna: NapakColors.base.withValues(alpha: 0.65),
+                    warna: TourvellaColors.base.withValues(alpha: 0.65),
                   ),
                 ],
               ),
@@ -309,8 +429,8 @@ class _AntreanJejak extends ConsumerWidget {
     // Tingginya menyusut sendiri jadi nol saat tidak ada apa-apa, bukan
     // menyisakan ruang kosong yang menunggu.
     return AnimatedSize(
-      duration: NapakMotion.sedang,
-      curve: NapakMotion.mengalir,
+      duration: TourvellaMotion.sedang,
+      curve: TourvellaMotion.mengalir,
       child: jumlah == 0
           ? const SizedBox(width: double.infinity)
           : Padding(
@@ -318,7 +438,7 @@ class _AntreanJejak extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
-                  color: NapakColors.warmNeutral,
+                  color: TourvellaColors.warmNeutral,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -326,14 +446,14 @@ class _AntreanJejak extends ConsumerWidget {
                     const Icon(
                       Icons.cloud_sync_outlined,
                       size: 18,
-                      color: NapakColors.deepAccent,
+                      color: TourvellaColors.deepAccent,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         '$jumlah jejak menunggu sinyal. Sudah aman di HP-mu.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: NapakColors.textPrimary,
+                          color: TourvellaColors.textPrimary,
                         ),
                       ),
                     ),
@@ -356,14 +476,14 @@ class _SedangMerekam extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-      child: NapakPressable(
+      child: TourvellaPressable(
         onTap: () => context.push('/rekam'),
         skala: 0.98,
         child: Container(
           padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [NapakColors.softSky, NapakColors.primary],
+              colors: [TourvellaColors.softSky, TourvellaColors.primary],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
@@ -371,7 +491,10 @@ class _SedangMerekam extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 9),
+              const TitikBerdenyut(
+                warna: TourvellaColors.deepAccent,
+                ukuran: 9,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -390,7 +513,7 @@ class _SedangMerekam extends StatelessWidget {
               const Icon(
                 Icons.arrow_forward_rounded,
                 size: 18,
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
               ),
             ],
           ),
@@ -431,7 +554,7 @@ class _SampulTrip extends StatelessWidget {
         children: [
           // Blok pastel di bawah fotonya. Ini yang terlihat selama fotonya
           // masih diunduh, jadi kartunya tidak pernah berlubang putih.
-          const ColoredBox(color: NapakColors.softSky),
+          const ColoredBox(color: TourvellaColors.softSky),
 
           Image.network(
             trip.coverUrl!,
@@ -440,8 +563,8 @@ class _SampulTrip extends StatelessWidget {
               if (sinkron) return anak;
               return AnimatedOpacity(
                 opacity: frame == null ? 0 : 1,
-                duration: NapakMotion.sedang,
-                curve: NapakMotion.mengalir,
+                duration: TourvellaMotion.sedang,
+                curve: TourvellaMotion.mengalir,
                 child: anak,
               );
             },
@@ -486,7 +609,7 @@ class _KartuTrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/trip/${trip.id}'),
       skala: 0.985,
       child: Container(
@@ -495,7 +618,7 @@ class _KartuTrip extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: NapakColors.textPrimary.withValues(alpha: 0.05),
+              color: TourvellaColors.textPrimary.withValues(alpha: 0.05),
               blurRadius: 18,
               offset: const Offset(0, 6),
             ),
@@ -564,7 +687,7 @@ class _KartuTrip extends StatelessWidget {
                           TripVisibility.public => Icons.public_rounded,
                         },
                         size: 15,
-                        color: NapakColors.textSecondary,
+                        color: TourvellaColors.textSecondary,
                       ),
                     ],
                   ),
@@ -589,13 +712,13 @@ class _Lencana extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: NapakColors.base.withValues(alpha: 0.92),
+        color: TourvellaColors.base.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(ikon, size: 13, color: NapakColors.deepAccent),
+          Icon(ikon, size: 13, color: TourvellaColors.deepAccent),
           const SizedBox(width: 6),
           Text(teks, style: Theme.of(context).textTheme.labelMedium),
         ],
@@ -612,13 +735,13 @@ class _LencanaBerjalan extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(6, 5, 12, 5),
       decoration: BoxDecoration(
-        color: NapakColors.base.withValues(alpha: 0.92),
+        color: TourvellaColors.base.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const TitikBerdenyut(warna: NapakColors.deepAccent, ukuran: 6),
+          const TitikBerdenyut(warna: TourvellaColors.deepAccent, ukuran: 6),
           const SizedBox(width: 2),
           Text('Berjalan', style: Theme.of(context).textTheme.labelMedium),
         ],
@@ -641,7 +764,7 @@ class _Keping extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(ikon, size: 15, color: NapakColors.deepAccent),
+        Icon(ikon, size: 15, color: TourvellaColors.deepAccent),
         const SizedBox(width: 6),
         Text(
           teks,
@@ -677,11 +800,11 @@ class _Kosong extends StatelessWidget {
         children: [
           TweenAnimationBuilder<double>(
             tween: Tween(begin: 0, end: 1),
-            duration: NapakMotion.lambat,
-            curve: NapakMotion.memantul,
+            duration: TourvellaMotion.lambat,
+            curve: TourvellaMotion.memantul,
             builder: (context, t, anak) =>
                 Transform.scale(scale: t, child: anak),
-            child: Icon(ikon, size: 44, color: NapakColors.primary),
+            child: Icon(ikon, size: 44, color: TourvellaColors.primary),
           ),
           const SizedBox(height: 22),
           Text(judul, style: text.titleMedium, textAlign: TextAlign.center),
@@ -696,7 +819,7 @@ class _Kosong extends StatelessWidget {
 
 /// "Tahun lalu hari ini."
 ///
-/// Satu-satunya bagian Napak yang punya alasan dibuka di hari orang tidak
+/// Satu-satunya bagian Tourvella yang punya alasan dibuka di hari orang tidak
 /// bepergian ke mana-mana. Jejak yang tidak hilang itu baru terasa artinya
 /// kalau sesekali datang menghampiri sendiri — bukan cuma menunggu dicari.
 ///
@@ -710,8 +833,8 @@ class _Kenangan extends ConsumerWidget {
     final kenangan = ref.watch(kenanganProvider).value ?? const <Trip>[];
 
     return AnimatedSize(
-      duration: NapakMotion.lambat,
-      curve: NapakMotion.mengalir,
+      duration: TourvellaMotion.lambat,
+      curve: TourvellaMotion.mengalir,
       child: kenangan.isEmpty
           ? const SizedBox(width: double.infinity)
           : Padding(
@@ -746,7 +869,7 @@ class _KartuKenangan extends StatelessWidget {
         ? null
         : DateTime.now().year - trip.startedAt!.year;
 
-    return NapakPressable(
+    return TourvellaPressable(
       // Langsung ke ceritanya, bukan ke halaman detail. Yang ingin dilakukan
       // orang saat kenangan menghampiri adalah membukanya kembali, bukan
       // membaca angkanya.
@@ -754,7 +877,7 @@ class _KartuKenangan extends StatelessWidget {
       skala: 0.98,
       child: Container(
         decoration: BoxDecoration(
-          color: NapakColors.warmNeutral,
+          color: TourvellaColors.warmNeutral,
           borderRadius: BorderRadius.circular(20),
         ),
         clipBehavior: Clip.antiAlias,
@@ -781,7 +904,7 @@ class _KartuKenangan extends StatelessWidget {
                         const Icon(
                           Icons.auto_awesome_outlined,
                           size: 13,
-                          color: NapakColors.deepAccent,
+                          color: TourvellaColors.deepAccent,
                         ),
                         const SizedBox(width: 6),
                         Text(
@@ -791,7 +914,7 @@ class _KartuKenangan extends StatelessWidget {
                               ? 'Setahun lalu hari ini'
                               : '$tahunLalu tahun lalu hari ini',
                           style: text.labelMedium?.copyWith(
-                            color: NapakColors.deepAccent,
+                            color: TourvellaColors.deepAccent,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

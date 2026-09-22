@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../obrolan/data/obrolan_data.dart';
 import '../../profil/presentation/profil_page.dart';
 import '../data/sosial_models.dart';
@@ -18,7 +18,7 @@ import 'komponen_sosial.dart';
 
 /// Teman.
 ///
-/// Dicari lewat kode Napak, bukan nomor HP atau buku kontak. Menyapu buku
+/// Dicari lewat kode Tourvella, bukan nomor HP atau buku kontak. Menyapu buku
 /// kontak memang cara tercepat mengisi daftar teman — dan juga cara tercepat
 /// memberi tahu seluruh isi buku kontak siapa saja yang memakai aplikasi
 /// perekam perjalanan.
@@ -41,7 +41,7 @@ class TemanPage extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: BilahEkspedisi(
         judul: 'Teman',
         keterangan: '${teman.value?.length ?? 0} seperjalanan',
@@ -65,8 +65,11 @@ class TemanPage extends ConsumerWidget {
                       for (var i = 0; i < daftar.length; i++)
                         _BarisPermintaan(p: daftar[i])
                             .animate(delay: (60 * i).ms)
-                            .fadeIn(duration: NapakMotion.sedang)
-                            .slideX(begin: 0.08, curve: NapakMotion.mengalir),
+                            .fadeIn(duration: TourvellaMotion.sedang)
+                            .slideX(
+                              begin: 0.08,
+                              curve: TourvellaMotion.mengalir,
+                            ),
                     ],
               orElse: () => const <Widget>[],
             ),
@@ -93,7 +96,7 @@ class TemanPage extends ConsumerWidget {
                         'Belum ada. Bagikan kodemu, atau masukkan kode temanmu '
                         'di atas.',
                         style: text.bodyMedium?.copyWith(
-                          color: NapakColors.textSecondary,
+                          color: TourvellaColors.textSecondary,
                         ),
                       ),
                     )
@@ -127,7 +130,7 @@ class TemanPage extends ConsumerWidget {
                 const Icon(
                   Icons.shield_outlined,
                   size: 16,
-                  color: NapakColors.textSecondary,
+                  color: TourvellaColors.textSecondary,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -165,12 +168,12 @@ class _Judul extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
               decoration: BoxDecoration(
-                color: NapakColors.ember.withValues(alpha: 0.14),
+                color: TourvellaColors.ember.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: LabelKapital(
                 '$jumlah',
-                warna: NapakColors.ember,
+                warna: TourvellaColors.ember,
                 ukuran: 10,
               ),
             ),
@@ -182,7 +185,7 @@ class _Judul extends StatelessWidget {
   }
 }
 
-/// Kode Napak sendiri, besar, siap dibacakan atau dibagikan.
+/// Kode Tourvella sendiri, besar, siap dibacakan atau dibagikan.
 class _KartuKodeSaya extends ConsumerWidget {
   const _KartuKodeSaya();
 
@@ -201,13 +204,13 @@ class _KartuKodeSaya extends ConsumerWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             gradient: const LinearGradient(
-              colors: NapakColors.routeGradient,
+              colors: TourvellaColors.routeGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: NapakColors.deepAccent.withValues(alpha: 0.25),
+                color: TourvellaColors.deepAccent.withValues(alpha: 0.25),
                 blurRadius: 24,
                 offset: const Offset(0, 10),
               ),
@@ -217,9 +220,9 @@ class _KartuKodeSaya extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'KODE NAPAKMU',
+                'KODE TOURVELLA-MU',
                 style: text.labelSmall?.copyWith(
-                  color: NapakColors.textOnDeep.withValues(alpha: 0.8),
+                  color: TourvellaColors.textOnDeep.withValues(alpha: 0.8),
                   letterSpacing: 2,
                   fontWeight: FontWeight.w700,
                 ),
@@ -232,13 +235,13 @@ class _KartuKodeSaya extends ConsumerWidget {
                       loading: () => Text(
                         '···· ····',
                         style: text.headlineMedium?.copyWith(
-                          color: NapakColors.textOnDeep,
+                          color: TourvellaColors.textOnDeep,
                         ),
                       ),
                       error: (e, _) => Text(
                         'Belum bisa dimuat',
                         style: text.bodyLarge?.copyWith(
-                          color: NapakColors.textOnDeep,
+                          color: TourvellaColors.textOnDeep,
                         ),
                       ),
                       // Hurufnya mendarat satu per satu, seperti papan jadwal
@@ -251,7 +254,7 @@ class _KartuKodeSaya extends ConsumerWidget {
                             Text(
                                   huruf,
                                   style: text.headlineMedium?.copyWith(
-                                    color: NapakColors.textOnDeep,
+                                    color: TourvellaColors.textOnDeep,
                                     fontWeight: FontWeight.w700,
                                     letterSpacing: 3,
                                   ),
@@ -260,7 +263,7 @@ class _KartuKodeSaya extends ConsumerWidget {
                                 .fadeIn(duration: 200.ms)
                                 .slideY(
                                   begin: -0.6,
-                                  curve: NapakMotion.memantul,
+                                  curve: TourvellaMotion.memantul,
                                 ),
                         ],
                       ),
@@ -268,7 +271,7 @@ class _KartuKodeSaya extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: 'Salin',
-                    color: NapakColors.textOnDeep,
+                    color: TourvellaColors.textOnDeep,
                     onPressed: kode.value == null
                         ? null
                         : () {
@@ -282,13 +285,13 @@ class _KartuKodeSaya extends ConsumerWidget {
                   ),
                   IconButton(
                     tooltip: 'Bagikan',
-                    color: NapakColors.textOnDeep,
+                    color: TourvellaColors.textOnDeep,
                     onPressed: kode.value == null
                         ? null
                         : () => SharePlus.instance.share(
                             ShareParams(
                               text:
-                                  'Tambahkan aku di Napak biar bisa jalan bareng. '
+                                  'Tambahkan aku di Tourvella biar bisa jalan bareng. '
                                   'Kodeku: ${_berkelompok(kode.value!)}',
                             ),
                           ),
@@ -301,15 +304,15 @@ class _KartuKodeSaya extends ConsumerWidget {
                 'Bagikan ke orang yang memang kamu kenal. Kode ini cuma '
                 'memperlihatkan namamu, bukan nomormu.',
                 style: text.bodySmall?.copyWith(
-                  color: NapakColors.textOnDeep.withValues(alpha: 0.85),
+                  color: TourvellaColors.textOnDeep.withValues(alpha: 0.85),
                 ),
               ),
             ],
           ),
         )
         .animate()
-        .fadeIn(duration: NapakMotion.sedang)
-        .scaleXY(begin: 0.96, curve: NapakMotion.mengalir);
+        .fadeIn(duration: TourvellaMotion.sedang)
+        .scaleXY(begin: 0.96, curve: TourvellaMotion.mengalir);
   }
 }
 
@@ -395,14 +398,14 @@ class _TambahTemanState extends ConsumerState<_TambahTeman> {
                   LengthLimitingTextInputFormatter(12),
                 ],
                 decoration: const InputDecoration(
-                  hintText: 'Masukkan kode Napak teman',
+                  hintText: 'Masukkan kode Tourvella teman',
                   prefixIcon: Icon(Icons.person_search_outlined),
                 ),
               ),
             ),
             const SizedBox(width: 10),
             AnimatedSwitcher(
-              duration: NapakMotion.cepat,
+              duration: TourvellaMotion.cepat,
               child: _sibuk
                   ? const SizedBox(
                       width: 48,
@@ -422,21 +425,21 @@ class _TambahTemanState extends ConsumerState<_TambahTeman> {
 
         // Hasil pencarian meluncur masuk sebagai kartu kecil.
         AnimatedSize(
-          duration: NapakMotion.sedang,
-          curve: NapakMotion.mengalir,
+          duration: TourvellaMotion.sedang,
+          curve: TourvellaMotion.mengalir,
           child: _hasil == null
               ? const SizedBox(width: double.infinity)
               : Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: _KartuHasil(hasil: _hasil!, onAjak: _ajak)
                       .animate()
-                      .fadeIn(duration: NapakMotion.cepat)
-                      .slideY(begin: -0.15, curve: NapakMotion.memantul),
+                      .fadeIn(duration: TourvellaMotion.cepat)
+                      .slideY(begin: -0.15, curve: TourvellaMotion.memantul),
                 ),
         ),
 
         AnimatedSize(
-          duration: NapakMotion.cepat,
+          duration: TourvellaMotion.cepat,
           child: _pesan == null
               ? const SizedBox(width: double.infinity)
               : Padding(
@@ -444,7 +447,7 @@ class _TambahTemanState extends ConsumerState<_TambahTeman> {
                   child: Text(
                     _pesan!,
                     style: text.bodySmall?.copyWith(
-                      color: NapakColors.deepAccent,
+                      color: TourvellaColors.deepAccent,
                     ),
                   ).animate().fadeIn(),
                 ),
@@ -476,7 +479,7 @@ class _KartuHasil extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: NapakColors.softSky),
+        border: Border.all(color: TourvellaColors.softSky),
       ),
       child: Row(
         children: [
@@ -496,7 +499,7 @@ class _KartuHasil extends StatelessWidget {
               : Text(
                   label,
                   style: text.bodySmall?.copyWith(
-                    color: NapakColors.textSecondary,
+                    color: TourvellaColors.textSecondary,
                   ),
                 ),
         ],
@@ -559,7 +562,7 @@ class _BarisPermintaanState extends ConsumerState<_BarisPermintaan> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: NapakColors.textPrimary.withValues(alpha: 0.04),
+            color: TourvellaColors.textPrimary.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -598,15 +601,15 @@ class _BarisPermintaanState extends ConsumerState<_BarisPermintaan> {
                 ),
                 const Icon(
                   Icons.chevron_right_rounded,
-                  color: NapakColors.textSecondary,
+                  color: TourvellaColors.textSecondary,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
           AnimatedSwitcher(
-            duration: NapakMotion.sedang,
-            switchInCurve: NapakMotion.memantul,
+            duration: TourvellaMotion.sedang,
+            switchInCurve: TourvellaMotion.memantul,
             transitionBuilder: (anak, a) => FadeTransition(
               opacity: a,
               child: ScaleTransition(scale: a, child: anak),
@@ -618,7 +621,10 @@ class _BarisPermintaanState extends ConsumerState<_BarisPermintaan> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.check_circle_rounded, color: NapakColors.affirm),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: TourvellaColors.affirm,
+                    ),
                     SizedBox(width: 8),
                     Text('Sekarang kalian berteman'),
                   ],
@@ -685,7 +691,7 @@ class _BarisTerkirim extends ConsumerWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: text.bodyMedium?.copyWith(
-                color: NapakColors.textSecondary,
+                color: TourvellaColors.textSecondary,
               ),
             ),
           ),
@@ -755,7 +761,7 @@ class _BarisTeman extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => context.push('/orang/${teman.id}'),
       onLongPress: () => _lepas(context, ref),
       skala: 0.985,
@@ -795,7 +801,7 @@ class _BarisTeman extends ConsumerWidget {
               onPressed: () => _obrolan(context, ref),
               icon: const Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
               ),
             ),
           ],

@@ -29,8 +29,8 @@ class JejakLama {
 
 /// Bagaimana perjalanan sekarang dibanding yang dulu.
 @immutable
-class PerbandinganTilas {
-  const PerbandinganTilas({
+class PerbandinganSusur {
+  const PerbandinganSusur({
     required this.posisiDulu,
     required this.selisih,
     required this.jarakDuluM,
@@ -54,7 +54,7 @@ class PerbandinganTilas {
   final String? catatanTerdekat;
 }
 
-/// Menyiapkan perjalanan lama untuk ditapak-tilasi.
+/// Menyiapkan perjalanan lama untuk disusuri ulang.
 ///
 /// Dihitung sekali saat perjalanan dimulai, bukan berulang tiap titik GPS
 /// masuk. Rute mudik enam jam berisi ratusan titik; menghitung ulang jarak
@@ -101,14 +101,14 @@ List<JejakLama> siapkanJejakLama(List<TripPoint> titik) {
 /// lebih mudah, tapi jadi menyesatkan begitu ada yang berhenti lama: berhenti
 /// makan satu jam membuatmu terlihat "tertinggal jauh" padahal jalannya
 /// sama-sama saja.
-PerbandinganTilas bandingkan({
+PerbandinganSusur bandingkan({
   required List<JejakLama> lama,
   required Duration sudahBerjalan,
   required double jarakSekarangM,
   ({double lat, double lng})? posisiSekarang,
 }) {
   if (lama.isEmpty) {
-    return const PerbandinganTilas(
+    return const PerbandinganSusur(
       posisiDulu: null,
       selisih: null,
       jarakDuluM: 0,
@@ -123,7 +123,7 @@ PerbandinganTilas bandingkan({
       ? null
       : _waktuSampaiJarak(lama, jarakSekarangM);
 
-  return PerbandinganTilas(
+  return PerbandinganSusur(
     posisiDulu: duluSaatIni == null
         ? null
         : (lat: duluSaatIni.lat, lng: duluSaatIni.lng),

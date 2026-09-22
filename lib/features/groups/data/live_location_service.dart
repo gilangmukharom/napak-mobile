@@ -95,7 +95,7 @@ class LiveLocationService {
       }
     });
 
-    socket.on('napak:error', (data) {
+    socket.on('tourvella:error', (data) {
       if (data is Map && data['message'] is String) {
         _galat.add(data['message'] as String);
       }
@@ -104,7 +104,7 @@ class LiveLocationService {
     socket.onDisconnect((_) => _tersambung.add(false));
     socket.onConnectError((_) {
       _tersambung.add(false);
-      _galat.add('Belum tersambung ke rombongan. Napak akan mencoba lagi.');
+      _galat.add('Belum tersambung ke rombongan. Tourvella akan mencoba lagi.');
     });
 
     socket.connect();

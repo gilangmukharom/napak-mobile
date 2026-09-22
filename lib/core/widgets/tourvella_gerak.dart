@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../theme/napak_motion.dart';
+import '../theme/tourvella_motion.dart';
 
 /// Angka yang berjalan naik sampai nilainya.
 ///
@@ -53,7 +53,7 @@ class MunculBertahap extends StatelessWidget {
   const MunculBertahap({
     required this.indeks,
     required this.child,
-    this.jarakGeser = NapakMotion.naikMasuk,
+    this.jarakGeser = TourvellaMotion.naikMasuk,
     super.key,
   });
 
@@ -65,16 +65,16 @@ class MunculBertahap extends StatelessWidget {
   Widget build(BuildContext context) {
     // Antreannya dibatasi: elemen kesepuluh ke bawah tidak perlu menunggu
     // setengah detik lebih, karena orang sudah menggulir duluan.
-    final jeda = NapakMotion.antreanDaftar * (indeks.clamp(0, 8));
+    final jeda = TourvellaMotion.antreanDaftar * (indeks.clamp(0, 8));
 
     return TweenAnimationBuilder<double>(
       key: ValueKey(indeks),
       tween: Tween(begin: 0, end: 1),
-      duration: NapakMotion.lambat + jeda,
+      duration: TourvellaMotion.lambat + jeda,
       curve: Interval(
-        jeda.inMilliseconds / (NapakMotion.lambat + jeda).inMilliseconds,
+        jeda.inMilliseconds / (TourvellaMotion.lambat + jeda).inMilliseconds,
         1,
-        curve: NapakMotion.mengalir,
+        curve: TourvellaMotion.mengalir,
       ),
       builder: (context, t, anak) => Opacity(
         opacity: t,
@@ -152,7 +152,7 @@ class _TitikBerdenyutState extends State<TitikBerdenyut>
 /// Garis rute yang menggambar dirinya sendiri.
 ///
 /// Dipakai di layar pembuka dan di keadaan kosong. Bentuknya sepotong jejak,
-/// bukan logo — merek Napak memang bukan lambang, melainkan garis perjalanan.
+/// bukan logo — merek Tourvella memang bukan lambang, melainkan garis perjalanan.
 class JejakMenggambar extends StatelessWidget {
   const JejakMenggambar({
     required this.progres,

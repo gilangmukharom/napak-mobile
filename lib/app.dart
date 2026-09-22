@@ -3,17 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
-import 'core/theme/napak_theme.dart';
+import 'core/theme/tourvella_theme.dart';
 import 'features/recording/application/sync_service.dart';
 
-class NapakApp extends ConsumerStatefulWidget {
-  const NapakApp({super.key});
+class TourvellaApp extends ConsumerStatefulWidget {
+  const TourvellaApp({super.key});
 
   @override
-  ConsumerState<NapakApp> createState() => _NapakAppState();
+  ConsumerState<TourvellaApp> createState() => _TourvellaAppState();
 }
 
-class _NapakAppState extends ConsumerState<NapakApp>
+class _TourvellaAppState extends ConsumerState<TourvellaApp>
     with WidgetsBindingObserver {
   @override
   void initState() {
@@ -45,9 +45,9 @@ class _NapakAppState extends ConsumerState<NapakApp>
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Napak',
+      title: 'Tourvella',
       debugShowCheckedModeBanner: false,
-      theme: NapakTheme.build(),
+      theme: TourvellaTheme.build(),
       routerConfig: ref.watch(routerProvider),
     );
   }

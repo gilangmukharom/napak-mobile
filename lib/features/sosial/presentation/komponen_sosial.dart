@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_skeleton.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_skeleton.dart';
 
 /// Lingkaran berisi inisial, untuk yang belum memasang foto profil.
 ///
@@ -29,10 +29,13 @@ class LingkaranNama extends StatelessWidget {
   // bukan hijau baru — menambah warna di luar palet demi variasi avatar
   // adalah cara paling cepat membuat aplikasinya terasa norak.
   static final _pasangan = [
-    (NapakColors.softSky, NapakColors.deepAccent),
-    (NapakColors.warmNeutral, NapakColors.textPrimary),
-    (NapakColors.primary, NapakColors.textPrimary),
-    (NapakColors.affirm.withValues(alpha: 0.35), NapakColors.textPrimary),
+    (TourvellaColors.softSky, TourvellaColors.deepAccent),
+    (TourvellaColors.warmNeutral, TourvellaColors.textPrimary),
+    (TourvellaColors.primary, TourvellaColors.textPrimary),
+    (
+      TourvellaColors.affirm.withValues(alpha: 0.35),
+      TourvellaColors.textPrimary,
+    ),
   ];
 
   String get _inisial {
@@ -49,14 +52,14 @@ class LingkaranNama extends StatelessWidget {
             _pasangan.length];
 
     return AnimatedContainer(
-      duration: NapakMotion.cepat,
+      duration: TourvellaMotion.cepat,
       width: ukuran,
       height: ukuran,
       padding: EdgeInsets.all(cincin ? 2.5 : 0),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: cincin ? NapakColors.deepAccent : Colors.transparent,
+          color: cincin ? TourvellaColors.deepAccent : Colors.transparent,
           width: 2,
         ),
       ),
@@ -90,8 +93,8 @@ class LencanaAngka extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: NapakMotion.cepat,
-      switchInCurve: NapakMotion.memantul,
+      duration: TourvellaMotion.cepat,
+      switchInCurve: TourvellaMotion.memantul,
       transitionBuilder: (anak, animasi) =>
           ScaleTransition(scale: animasi, child: anak),
       child: angka <= 0
@@ -102,14 +105,14 @@ class LencanaAngka extends StatelessWidget {
               height: 20,
               padding: const EdgeInsets.symmetric(horizontal: 6),
               decoration: BoxDecoration(
-                color: NapakColors.deepAccent,
+                color: TourvellaColors.deepAccent,
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
               child: Text(
                 angka > 99 ? '99+' : '$angka',
                 style: const TextStyle(
-                  color: NapakColors.textOnDeep,
+                  color: TourvellaColors.textOnDeep,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                 ),
@@ -146,7 +149,7 @@ class IkonBerlencana extends StatelessWidget {
       icon: Stack(
         clipBehavior: Clip.none,
         children: [
-          Icon(ikon, color: warna ?? NapakColors.textPrimary),
+          Icon(ikon, color: warna ?? TourvellaColors.textPrimary),
           Positioned(
             right: -8,
             top: -6,
@@ -185,8 +188,8 @@ class KosongHangat extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
         child: TweenAnimationBuilder<double>(
           tween: Tween(begin: 0, end: 1),
-          duration: NapakMotion.lambat,
-          curve: NapakMotion.mengalir,
+          duration: TourvellaMotion.lambat,
+          curve: TourvellaMotion.mengalir,
           builder: (context, t, anak) => Opacity(
             opacity: t,
             child: Transform.translate(
@@ -201,10 +204,10 @@ class KosongHangat extends StatelessWidget {
                 width: 76,
                 height: 76,
                 decoration: const BoxDecoration(
-                  color: NapakColors.softSky,
+                  color: TourvellaColors.softSky,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(ikon, size: 34, color: NapakColors.deepAccent),
+                child: Icon(ikon, size: 34, color: TourvellaColors.deepAccent),
               ),
               const SizedBox(height: 20),
               Text(judul, style: text.titleMedium, textAlign: TextAlign.center),
@@ -212,7 +215,7 @@ class KosongHangat extends StatelessWidget {
               Text(
                 isi,
                 style: text.bodyMedium?.copyWith(
-                  color: NapakColors.textSecondary,
+                  color: TourvellaColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -240,15 +243,15 @@ class KerangkaDaftarOrang extends StatelessWidget {
       separatorBuilder: (context, i) => const SizedBox(height: 18),
       itemBuilder: (context, i) => const Row(
         children: [
-          NapakSkeleton(tinggi: 44, lebar: 44, radius: 22),
+          TourvellaSkeleton(tinggi: 44, lebar: 44, radius: 22),
           SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                NapakSkeleton.teks(lebar: 140),
+                TourvellaSkeleton.teks(lebar: 140),
                 SizedBox(height: 8),
-                NapakSkeleton.teks(lebar: 220),
+                TourvellaSkeleton.teks(lebar: 220),
               ],
             ),
           ),

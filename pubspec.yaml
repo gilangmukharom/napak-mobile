@@ -1,5 +1,5 @@
-name: napak
-description: "Napak - setiap perjalanan meninggalkan jejak"
+name: tourvella
+description: "Tourvella - setiap perjalanan punya cerita"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -75,14 +75,17 @@ dev_dependencies:
 # Sengaja warna polos tanpa logo. Yang menggantikannya beberapa ratus
 # milidetik kemudian adalah SplashPage, dan warnanya sama persis — jadi
 # peralihannya tidak terlihat sama sekali. Menaruh logo di sini justru
-# membuat logonya berkedip lalu diganti animasi, dan kedipan itu yang
-# paling terasa murah.
+# membuat logonya berkedip lalu diganti animasi Tourvella yang menggambar
+# dirinya sendiri, dan kedipan itu yang paling terasa murah.
+#
+# Warnanya `malam` (#17202B), bukan base: layar pembuka Tourvella gelap.
+# Sempat tertinggal terang, dan hasilnya kilatan putih tiap aplikasi dibuka.
 #
 # Regenerate dengan: dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#F5F9FC"
+  color: "#17202B"
   android_12:
-    color: "#F5F9FC"
+    color: "#17202B"
 
 flutter:
 

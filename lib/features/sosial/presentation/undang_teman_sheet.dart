@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
 import '../data/sosial_repository.dart';
 import 'komponen_sosial.dart';
 
@@ -19,7 +19,7 @@ class UndangTemanSheet extends ConsumerStatefulWidget {
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
-        backgroundColor: NapakColors.base,
+        backgroundColor: TourvellaColors.base,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
@@ -75,7 +75,7 @@ class _UndangTemanSheetState extends ConsumerState<UndangTemanSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: NapakColors.divider,
+                  color: TourvellaColors.divider,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -97,7 +97,7 @@ class _UndangTemanSheetState extends ConsumerState<UndangTemanSheet> {
                     ? const KosongHangat(
                         ikon: Icons.group_add_outlined,
                         judul: 'Belum ada teman',
-                        isi: 'Tambahkan teman lewat kode Napak dulu.',
+                        isi: 'Tambahkan teman lewat kode Tourvella dulu.',
                       )
                     : ListView.builder(
                         shrinkWrap: true,
@@ -125,7 +125,7 @@ class _UndangTemanSheetState extends ConsumerState<UndangTemanSheet> {
                                     ListTileControlAffinity.trailing,
                               )
                               .animate(delay: (45 * i).ms)
-                              .fadeIn(duration: NapakMotion.cepat)
+                              .fadeIn(duration: TourvellaMotion.cepat)
                               .slideX(begin: 0.06);
                         },
                       ),
@@ -137,7 +137,7 @@ class _UndangTemanSheetState extends ConsumerState<UndangTemanSheet> {
               child: FilledButton(
                 onPressed: _dipilih.isEmpty || _mengirim ? null : _undang,
                 child: AnimatedSwitcher(
-                  duration: NapakMotion.cepat,
+                  duration: TourvellaMotion.cepat,
                   child: Text(
                     _dipilih.isEmpty
                         ? 'Pilih teman'

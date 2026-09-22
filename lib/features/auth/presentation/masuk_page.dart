@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/theme/napak_theme.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/theme/tourvella_theme.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/widgets/tourvella_logo.dart';
 
-/// Pintu masuk Napak.
+/// Pintu masuk Tourvella.
 ///
 /// Hanya meminta nomor HP. Tidak ada kata sandi untuk dilupakan, tidak ada
 /// email untuk diverifikasi, tidak ada tombol "masuk dengan" milik perusahaan
@@ -63,9 +65,9 @@ class _MasukPageState extends ConsumerState<MasukPage> {
     // Pintu masuk dibuat segelap layar pembukanya: orang yang baru menutup
     // splash tidak seharusnya disambut kilatan putih.
     return Theme(
-      data: NapakTheme.gelap(),
+      data: TourvellaTheme.gelap(),
       child: Scaffold(
-        backgroundColor: NapakColors.malam,
+        backgroundColor: TourvellaColors.malam,
         body: Stack(
           fit: StackFit.expand,
           children: [
@@ -74,7 +76,7 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: NapakColors.langitSubuh,
+                  colors: TourvellaColors.langitSubuh,
                   stops: [0, 0.5, 1.4],
                 ),
               ),
@@ -87,8 +89,8 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                 child: SiluetGunung(
                   warna: [
                     Color(0xFF2E3B4E),
-                    NapakColors.malamNaik,
-                    NapakColors.malam,
+                    TourvellaColors.malamNaik,
+                    TourvellaColors.malam,
                   ],
                 ),
               ),
@@ -103,20 +105,23 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                   children: [
                     const _JejakOrnamen(),
                     const SizedBox(height: 32),
-                    LabelKapital('Buka perjalanan', warna: NapakColors.ember),
+                    LabelKapital(
+                      'Buka perjalanan',
+                      warna: TourvellaColors.ember,
+                    ),
                     const SizedBox(height: 6),
                     Text(
-                      'Napak',
+                      'Tourvella',
                       style: text.displaySmall?.copyWith(
-                        color: NapakColors.base,
+                        color: TourvellaColors.base,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Setiap perjalanan meninggalkan jejak.\n'
-                      'Napak menyimpannya untukmu.',
+                      'Setiap perjalanan punya cerita.\n'
+                      'Rekam jalanmu, bagikan ceritamu.',
                       style: text.bodyLarge?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.7),
+                        color: TourvellaColors.base.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 36),
@@ -131,25 +136,27 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                         LengthLimitingTextInputFormatter(20),
                       ],
                       style: text.bodyLarge?.copyWith(
-                        color: NapakColors.base,
+                        color: TourvellaColors.base,
                         fontFeatures: const [FontFeature.tabularFigures()],
                         letterSpacing: 1.1,
                       ),
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: NapakColors.malamNaik.withValues(alpha: 0.8),
+                        fillColor: TourvellaColors.malamNaik.withValues(
+                          alpha: 0.8,
+                        ),
                         hintText: '0812 3456 7890',
                         errorText: _kesalahan,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: NapakColors.kontur,
+                            color: TourvellaColors.kontur,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide: const BorderSide(
-                            color: NapakColors.ember,
+                            color: TourvellaColors.ember,
                             width: 1.6,
                           ),
                         ),
@@ -157,7 +164,7 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                           padding: EdgeInsets.only(left: 16, right: 8),
                           child: Icon(
                             Icons.phone_iphone_rounded,
-                            color: NapakColors.ember,
+                            color: TourvellaColors.ember,
                             size: 20,
                           ),
                         ),
@@ -171,7 +178,7 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                     Text(
                       'Kami kirim kode enam angka lewat SMS.',
                       style: text.bodySmall?.copyWith(
-                        color: NapakColors.base.withValues(alpha: 0.5),
+                        color: TourvellaColors.base.withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(height: 26),
@@ -185,7 +192,7 @@ class _MasukPageState extends ConsumerState<MasukPage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: NapakColors.malam,
+                                  color: TourvellaColors.malam,
                                 ),
                               )
                             : const Text('Kirim kode'),
@@ -205,6 +212,8 @@ class _MasukPageState extends ConsumerState<MasukPage> {
 }
 
 /// Garis jejak yang melengkung — sepotong rute, bukan sekadar hiasan.
+/// Tanda Tourvella yang menyusun dirinya sekali saat layar dibuka —
+/// kelanjutan dari layar pembuka, bukan hiasan baru.
 class _JejakOrnamen extends StatefulWidget {
   const _JejakOrnamen();
 
@@ -216,7 +225,7 @@ class _JejakOrnamenState extends State<_JejakOrnamen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _kendali = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1800),
+    duration: TourvellaMotion.pembuka,
   )..forward();
 
   @override
@@ -227,80 +236,12 @@ class _JejakOrnamenState extends State<_JejakOrnamen>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 72,
-      width: double.infinity,
-      child: AnimatedBuilder(
-        animation: _kendali,
-        builder: (context, _) => CustomPaint(
-          painter: _JejakPainter(
-            progres: Curves.easeInOutCubic.transform(_kendali.value),
-          ),
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: _kendali,
+      builder: (context, _) =>
+          LogoTourvella(ukuran: 76, progres: _kendali.value),
     );
   }
-}
-
-class _JejakPainter extends CustomPainter {
-  _JejakPainter({required this.progres});
-
-  /// Seberapa jauh jejaknya sudah tergambar, 0..1.
-  final double progres;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progres <= 0) return;
-
-    final penuh = Path()
-      ..moveTo(0, size.height * 0.75)
-      ..cubicTo(
-        size.width * 0.22,
-        size.height * 0.1,
-        size.width * 0.42,
-        size.height * 1.0,
-        size.width * 0.66,
-        size.height * 0.4,
-      )
-      ..cubicTo(
-        size.width * 0.78,
-        size.height * 0.1,
-        size.width * 0.88,
-        size.height * 0.2,
-        size.width,
-        size.height * 0.28,
-      );
-
-    // Sepotong jalur, dipotong sesuai progres — rutenya menggambar dirinya
-    // sendiri, seperti garis rute di peta Napak.
-    final ukur = penuh.computeMetrics().first;
-    final panjang = ukur.length * progres;
-    final path = ukur.extractPath(0, panjang);
-    final ujung = ukur.getTangentForOffset(panjang)?.position;
-
-    // Bara, bukan biru: di atas langit malam birunya tenggelam.
-    final paint = Paint()
-      ..shader = const LinearGradient(
-        colors: [NapakColors.ember, NapakColors.emberRedup],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawPath(path, paint);
-    if (ujung != null) {
-      canvas
-        ..drawCircle(
-          ujung,
-          12,
-          Paint()..color = NapakColors.ember.withValues(alpha: 0.18),
-        )
-        ..drawCircle(ujung, 5, Paint()..color = NapakColors.ember);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _JejakPainter lama) => lama.progres != progres;
 }
 
 class _JanjiPrivasi extends StatelessWidget {
@@ -313,9 +254,9 @@ class _JanjiPrivasi extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: NapakColors.malamNaik.withValues(alpha: 0.72),
+        color: TourvellaColors.malamNaik.withValues(alpha: 0.72),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: NapakColors.kontur),
+        border: Border.all(color: TourvellaColors.kontur),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +264,7 @@ class _JanjiPrivasi extends StatelessWidget {
           const Icon(
             Icons.lock_outline_rounded,
             size: 20,
-            color: NapakColors.emberRedup,
+            color: TourvellaColors.emberRedup,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -331,7 +272,7 @@ class _JanjiPrivasi extends StatelessWidget {
               'Semua perjalananmu tersimpan tertutup. '
               'Kamu sendiri yang memutuskan kapan sebuah jejak dibagikan.',
               style: text.bodySmall?.copyWith(
-                color: NapakColors.base.withValues(alpha: 0.72),
+                color: TourvellaColors.base.withValues(alpha: 0.72),
                 height: 1.5,
               ),
             ),

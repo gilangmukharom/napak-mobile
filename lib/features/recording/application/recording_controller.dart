@@ -7,11 +7,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../../core/config/napak_config.dart';
+import '../../../core/config/tourvella_config.dart';
 import '../../../core/providers.dart';
 import '../../trips/data/trip_models.dart';
 import '../data/photo_uploader.dart';
-import 'napak_tilas.dart';
+import 'susur_ulang.dart';
 import 'sync_service.dart';
 
 @immutable
@@ -24,7 +24,7 @@ class RecordingState {
     this.jejak = const [],
     this.jarakM = 0,
     this.jejakLama = const [],
-    this.menapakTilas,
+    this.susurUlang,
     this.mengunggahFoto = false,
     this.starting = false,
     this.izinDitolak = false,
@@ -52,16 +52,16 @@ class RecordingState {
 
   /// Jarak yang sudah ditempuh sesi ini, meter.
   ///
-  /// Dihitung di HP, bukan ditanyakan ke server. Perbandingan napak tilas
+  /// Dihitung di HP, bukan ditanyakan ke server. Perbandingan susur ulang
   /// harus tetap jalan di jalur yang sinyalnya putus — justru di sanalah
   /// perjalanan panjang terjadi.
   final double jarakM;
 
-  /// Perjalanan lama yang sedang ditapak-tilasi, sudah disiapkan.
+  /// Perjalanan lama yang sedang disusuri ulang, sudah disiapkan.
   final List<JejakLama> jejakLama;
 
   /// Judul dan tanggal perjalanan lama itu.
-  final RingkasTrip? menapakTilas;
+  final RingkasTrip? susurUlang;
 
   /// Sedang mengirim foto singgahan. Unggahannya bisa lama di sinyal buruk,
   /// jadi layarnya perlu bisa mengatakan itu.
@@ -81,7 +81,7 @@ class RecordingState {
     List<({double lat, double lng})>? jejak,
     double? jarakM,
     List<JejakLama>? jejakLama,
-    RingkasTrip? menapakTilas,
+    RingkasTrip? susurUlang,
     bool? mengunggahFoto,
     bool? starting,
     bool? izinDitolak,
@@ -97,7 +97,7 @@ class RecordingState {
       jejak: clearTrip ? const [] : (jejak ?? this.jejak),
       jarakM: clearTrip ? 0 : (jarakM ?? this.jarakM),
       jejakLama: clearTrip ? const [] : (jejakLama ?? this.jejakLama),
-      menapakTilas: clearTrip ? null : (menapakTilas ?? this.menapakTilas),
+      susurUlang: clearTrip ? null : (susurUlang ?? this.susurUlang),
       mengunggahFoto: mengunggahFoto ?? this.mengunggahFoto,
       starting: starting ?? this.starting,
       izinDitolak: izinDitolak ?? this.izinDitolak,
@@ -140,7 +140,8 @@ class RecordingController extends Notifier<RecordingState> {
   Future<void> start({
     required String title,
     TripMode mode = TripMode.solo,
-    Trip? tapakTilas,
+    Trip? yangDisusuri,
+    String? kendaraanId,
   }) async {
     if (state.isRecording || state.starting) return;
     state = state.copyWith(starting: true, clearMessage: true);
@@ -150,7 +151,7 @@ class RecordingController extends Notifier<RecordingState> {
         starting: false,
         izinDitolak: true,
         message:
-            'Napak butuh izin lokasi untuk bisa merekam jejakmu. '
+            'Tourvella butuh izin lokasi untuk bisa merekam jejakmu. '
             'Tanpa itu, tidak ada yang bisa disimpan.',
       );
       return;
@@ -161,15 +162,16 @@ class RecordingController extends Notifier<RecordingState> {
       final trip = await repo.create(
         title: title,
         mode: mode,
-        retraceOf: tapakTilas?.id,
+        retraceOf: yangDisusuri?.id,
+        kendaraanId: kendaraanId,
       );
 
       // Jejak lama diambil dan dihitung sekali di sini, bukan berulang tiap
       // titik GPS masuk.
       var lama = const <JejakLama>[];
-      if (tapakTilas != null) {
+      if (yangDisusuri != null) {
         try {
-          lama = siapkanJejakLama(await repo.points(tapakTilas.id));
+          lama = siapkanJejakLama(await repo.points(yangDisusuri.id));
         } catch (_) {
           // Gagal mengambil rute lama tidak boleh menggagalkan perekaman.
           // Perjalanannya tetap jalan, cuma tanpa perbandingan.
@@ -182,12 +184,12 @@ class RecordingController extends Notifier<RecordingState> {
         recordedCount: 0,
         starting: false,
         jejakLama: lama,
-        menapakTilas: tapakTilas == null
+        susurUlang: yangDisusuri == null
             ? null
             : RingkasTrip(
-                id: tapakTilas.id,
-                title: tapakTilas.title,
-                startedAt: tapakTilas.startedAt,
+                id: yangDisusuri.id,
+                title: yangDisusuri.title,
+                startedAt: yangDisusuri.startedAt,
               ),
       );
       _listenToPosition(trip.id);
@@ -277,7 +279,7 @@ class RecordingController extends Notifier<RecordingState> {
           (position) => _record(tripId, position),
           onError: (Object error) {
             state = state.copyWith(
-              message: 'Sinyal lokasi sedang sulit. Napak tetap menunggu.',
+              message: 'Sinyal lokasi sedang sulit. Tourvella tetap menunggu.',
             );
           },
         );
@@ -288,7 +290,7 @@ class RecordingController extends Notifier<RecordingState> {
   LocationSettings _locationSettings() {
     return LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: NapakConfig.minimumDistanceMeters,
+      distanceFilter: TourvellaConfig.minimumDistanceMeters,
     );
   }
 
@@ -360,7 +362,7 @@ class RecordingController extends Notifier<RecordingState> {
 
   /// Tebakan kasar moda perjalanan dari kecepatan.
   ///
-  /// Sengaja kasar. Napak lebih baik mengaku "belum jelas" daripada memberi
+  /// Sengaja kasar. Tourvella lebih baik mengaku "belum jelas" daripada memberi
   /// label yang salah pada perjalanan seseorang.
   TransportMode _guessTransportMode(double speedMps) {
     if (speedMps < 0) return TransportMode.tidakDiketahui;
@@ -372,7 +374,7 @@ class RecordingController extends Notifier<RecordingState> {
 
   void _startPeriodicSync() {
     _syncTimer = Timer.periodic(
-      NapakConfig.trackingInterval,
+      TourvellaConfig.trackingInterval,
       (_) => ref.read(syncServiceProvider).flush(),
     );
   }

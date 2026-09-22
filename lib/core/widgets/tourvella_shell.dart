@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../theme/napak_colors.dart';
-import '../theme/napak_motion.dart';
-import '../theme/napak_tekstur.dart';
+import '../theme/tourvella_colors.dart';
+import '../theme/tourvella_motion.dart';
+import '../theme/tourvella_tekstur.dart';
 import '../../features/recording/application/recording_controller.dart';
 
-import 'napak_pressable.dart';
+import 'tourvella_pressable.dart';
 
 /// Rangka utama aplikasi: isi halaman di atas, navigasi di bawah.
 ///
@@ -19,8 +19,8 @@ import 'napak_pressable.dart';
 /// Yang diambil hanya mekanikanya. Bilahnya sendiri gelap seperti panel
 /// instrumen: layar di atasnya boleh terang, tapi kemudi aplikasi ini duduk
 /// di atas kanvas malam dengan satu titik bara sebagai penanda aktif.
-class NapakShell extends ConsumerWidget {
-  const NapakShell({required this.child, super.key});
+class TourvellaShell extends ConsumerWidget {
+  const TourvellaShell({required this.child, super.key});
 
   final Widget child;
 
@@ -41,7 +41,7 @@ class NapakShell extends ConsumerWidget {
       jalur: '/recap',
       ikon: Icons.auto_awesome_outlined,
       aktif: Icons.auto_awesome,
-      label: 'Tilas',
+      label: 'Recap',
     ),
     (
       jalur: '/profil',
@@ -96,12 +96,12 @@ class _BilahBawah extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: NapakColors.malam,
+        color: TourvellaColors.malam,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: const Border(top: BorderSide(color: NapakColors.kontur)),
+        border: const Border(top: BorderSide(color: TourvellaColors.kontur)),
         boxShadow: [
           BoxShadow(
-            color: NapakColors.malam.withValues(alpha: 0.28),
+            color: TourvellaColors.malam.withValues(alpha: 0.28),
             blurRadius: 24,
             offset: const Offset(0, -6),
           ),
@@ -146,11 +146,11 @@ class _TombolTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final warna = terpilih
-        ? NapakColors.ember
-        : NapakColors.base.withValues(alpha: 0.55);
+        ? TourvellaColors.ember
+        : TourvellaColors.base.withValues(alpha: 0.55);
 
     return Expanded(
-      child: NapakPressable(
+      child: TourvellaPressable(
         skala: 0.9,
         onTap: () => context.go(tab.jalur),
         child: Column(
@@ -160,8 +160,8 @@ class _TombolTab extends StatelessWidget {
             // dua isyarat sekaligus, jadi tetap terbaca tanpa bergantung warna.
             AnimatedSlide(
               offset: Offset(0, terpilih ? -0.08 : 0),
-              duration: NapakMotion.cepat,
-              curve: NapakMotion.memantul,
+              duration: TourvellaMotion.cepat,
+              curve: TourvellaMotion.memantul,
               child: Icon(
                 terpilih ? tab.aktif : tab.ikon,
                 size: 23,
@@ -170,7 +170,7 @@ class _TombolTab extends StatelessWidget {
             ),
             const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
-              duration: NapakMotion.cepat,
+              duration: TourvellaMotion.cepat,
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
                 color: warna,
                 fontWeight: terpilih ? FontWeight.w800 : FontWeight.w500,
@@ -183,12 +183,12 @@ class _TombolTab extends StatelessWidget {
             // Titik bara di bawah tab aktif: penanda posisi di peta, bukan
             // bilah tebal yang menekan tata letaknya.
             AnimatedContainer(
-              duration: NapakMotion.sedang,
-              curve: NapakMotion.memantul,
+              duration: TourvellaMotion.sedang,
+              curve: TourvellaMotion.memantul,
               height: 3,
               width: terpilih ? 14 : 0,
               decoration: BoxDecoration(
-                color: NapakColors.ember,
+                color: TourvellaColors.ember,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -212,12 +212,12 @@ class _TombolRekam extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Center(
-        child: NapakPressable(
+        child: TourvellaPressable(
           skala: 0.88,
           onTap: () => context.push(merekam ? '/rekam' : '/rekam/mulai'),
           child: AnimatedContainer(
-            duration: NapakMotion.sedang,
-            curve: NapakMotion.memantul,
+            duration: TourvellaMotion.sedang,
+            curve: TourvellaMotion.memantul,
             height: 46,
             width: 46,
             decoration: BoxDecoration(
@@ -225,13 +225,13 @@ class _TombolRekam extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: merekam
-                    ? const [NapakColors.emberRedup, NapakColors.ember]
-                    : const [NapakColors.ember, Color(0xFFB96F38)],
+                    ? const [TourvellaColors.emberRedup, TourvellaColors.ember]
+                    : const [TourvellaColors.ember, Color(0xFFB96F38)],
               ),
               borderRadius: BorderRadius.circular(merekam ? 23 : 16),
               boxShadow: [
                 BoxShadow(
-                  color: NapakColors.ember.withValues(
+                  color: TourvellaColors.ember.withValues(
                     alpha: merekam ? 0.55 : 0.32,
                   ),
                   blurRadius: merekam ? 22 : 14,
@@ -244,7 +244,7 @@ class _TombolRekam extends StatelessWidget {
                 ? const _DenyutRekam()
                 : const Icon(
                     Icons.add_rounded,
-                    color: NapakColors.malam,
+                    color: TourvellaColors.malam,
                     size: 26,
                   ),
           ),
@@ -282,13 +282,13 @@ class _DenyutRekamState extends State<_DenyutRekam>
           Tween(
             begin: 0.72,
             end: 1.0,
-          ).chain(CurveTween(curve: NapakMotion.masukKeluar)),
+          ).chain(CurveTween(curve: TourvellaMotion.masukKeluar)),
         ),
         child: Container(
           height: 16,
           width: 16,
           decoration: const BoxDecoration(
-            color: NapakColors.malam,
+            color: TourvellaColors.malam,
             shape: BoxShape.circle,
           ),
         ),

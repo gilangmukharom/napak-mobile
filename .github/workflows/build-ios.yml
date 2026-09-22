@@ -18,13 +18,6 @@ on:
           — alamatnya berganti tiap tunnel dijalankan ulang.
         required: true
         default: https://contoh.trycloudflare.com/api
-      map_style_url:
-        description: >-
-          Gaya peta. Kosongkan untuk memakai gaya pastel Napak dari backend.
-          Isi dengan https://demotiles.maplibre.org/style.json kalau backend
-          belum punya sumber tile.
-        required: false
-        default: ''
 
 jobs:
   ipa:
@@ -57,7 +50,10 @@ jobs:
           for kunci in \
             NSLocationWhenInUseUsageDescription \
             NSLocationAlwaysAndWhenInUseUsageDescription \
-            NSPhotoLibraryAddUsageDescription
+            NSPhotoLibraryAddUsageDescription \
+            NSPhotoLibraryUsageDescription \
+            NSCameraUsageDescription \
+            NSMicrophoneUsageDescription
           do
             if ! /usr/libexec/PlistBuddy -c "Print :$kunci" "$plist" >/dev/null 2>&1; then
               echo "::error file=$plist::$kunci belum diisi — iOS akan menutup paksa aplikasinya saat izin itu diminta."
@@ -79,13 +75,12 @@ jobs:
       - name: Bangun iOS tanpa tanda tangan
         env:
           API_URL: ${{ inputs.api_url }}
-          MAP_STYLE: ${{ inputs.map_style_url }}
+        # Tidak ada lagi pilihan gaya peta di sini. Dulu ada, dengan saran
+        # memakai gaya demo MapLibre — dan IPA yang dibangun begitu hanya
+        # menampilkan bentuk pulau, termasuk peta offline-nya. Backend kini
+        # selalu menyajikan peta Indonesia sendiri di /api/map/style.
         run: |
-          argumen=(--release --no-codesign --dart-define=NAPAK_API_URL="$API_URL")
-          if [ -n "$MAP_STYLE" ]; then
-            argumen+=(--dart-define=NAPAK_MAP_STYLE="$MAP_STYLE")
-          fi
-          flutter build ios "${argumen[@]}"
+          flutter build ios --release --no-codesign --dart-define=TOURVELLA_API_URL="$API_URL"
 
       # IPA itu sebenarnya cuma zip berisi folder Payload. Tanpa tanda tangan,
       # Sideloadly yang akan membongkar, menandatangani, lalu memasangnya.
@@ -94,30 +89,30 @@ jobs:
           cd build/ios/iphoneos
           mkdir -p Payload
           mv Runner.app Payload/
-          zip -qry Napak-unsigned.ipa Payload
-          echo "UKURAN=$(du -h Napak-unsigned.ipa | cut -f1)" >> "$GITHUB_ENV"
+          zip -qry Tourvella-unsigned.ipa Payload
+          echo "UKURAN=$(du -h Tourvella-unsigned.ipa | cut -f1)" >> "$GITHUB_ENV"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: Napak-unsigned-ipa
-          path: build/ios/iphoneos/Napak-unsigned.ipa
+          name: Tourvella-unsigned-ipa
+          path: build/ios/iphoneos/Tourvella-unsigned.ipa
           retention-days: 14
           if-no-files-found: error
 
       - name: Ringkasan
         run: |
           {
-            echo "## Napak — IPA siap diunduh"
+            echo "## Tourvella — IPA siap diunduh"
             echo ""
             echo "| | |"
             echo "|---|---|"
-            echo "| Berkas | \`Napak-unsigned.ipa\` (${UKURAN}) |"
+            echo "| Berkas | \`Tourvella-unsigned.ipa\` (${UKURAN}) |"
             echo "| Backend | \`${{ inputs.api_url }}\` |"
             echo "| Tanda tangan | belum — ditandatangani saat dipasang |"
             echo ""
             echo "### Memasangnya"
             echo ""
-            echo "1. Unduh artefak \`Napak-unsigned-ipa\` di bawah."
+            echo "1. Unduh artefak \`Tourvella-unsigned-ipa\` di bawah."
             echo "2. Buka Sideloadly (atau AltStore) di Windows, sambungkan iPhone."
             echo "3. Jatuhkan IPA-nya ke sana, masuk dengan Apple ID."
             echo "4. Di iPhone: Pengaturan ▸ Umum ▸ VPN & Manajemen Perangkat ▸ percayai sertifikatnya."

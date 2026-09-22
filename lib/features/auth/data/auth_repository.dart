@@ -78,7 +78,7 @@ class AuthRepository {
           body: {'refreshToken': refresh},
           skipAuth: true,
         );
-      } on NapakException {
+      } on TourvellaException {
         // Servernya tidak terjangkau; token lokal tetap harus dibuang.
       }
     }

@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/theme/napak_theme.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/theme/napak_motion.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/theme/tourvella_theme.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../garasi/data/garasi_data.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/theme/tourvella_motion.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../trips/data/trip_models.dart';
 import '../application/recording_controller.dart';
 
@@ -29,7 +30,7 @@ class MulaiRekamPage extends ConsumerStatefulWidget {
 class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
   final _judul = TextEditingController();
   TripMode _mode = TripMode.solo;
-  Trip? _tapakTilas;
+  Trip? _yangDisusuri;
   bool _memulai = false;
 
   @override
@@ -37,6 +38,9 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
     _judul.dispose();
     super.dispose();
   }
+
+  /// Kendaraan dari garasi yang dibawa kali ini. Boleh kosong.
+  String? _kendaraanId;
 
   Future<void> _mulai() async {
     setState(() => _memulai = true);
@@ -47,7 +51,12 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
 
     await ref
         .read(recordingControllerProvider.notifier)
-        .start(title: judul, mode: _mode, tapakTilas: _tapakTilas);
+        .start(
+          title: judul,
+          mode: _mode,
+          yangDisusuri: _yangDisusuri,
+          kendaraanId: _kendaraanId,
+        );
 
     if (!mounted) return;
     final state = ref.read(recordingControllerProvider);
@@ -72,9 +81,9 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
     // layar rekam yang juga gelap. Halaman terang di tengahnya akan terasa
     // seperti keluar sebentar lalu masuk lagi.
     return Theme(
-      data: NapakTheme.gelap(),
+      data: TourvellaTheme.gelap(),
       child: Scaffold(
-        backgroundColor: NapakColors.malam,
+        backgroundColor: TourvellaColors.malam,
         body: Stack(
           fit: StackFit.expand,
           children: [
@@ -83,7 +92,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: NapakColors.kanvasMalam,
+                  colors: TourvellaColors.kanvasMalam,
                 ),
               ),
             ),
@@ -95,7 +104,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
               child: FractionallySizedBox(
                 heightFactor: 0.3,
                 child: SiluetGunung(
-                  warna: [NapakColors.malamNaik, NapakColors.malam],
+                  warna: [TourvellaColors.malamNaik, TourvellaColors.malam],
                 ),
               ),
             ),
@@ -111,12 +120,12 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                         IconButton(
                           onPressed: () => context.pop(),
                           icon: const Icon(Icons.close_rounded),
-                          color: NapakColors.base.withValues(alpha: 0.7),
+                          color: TourvellaColors.base.withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 4),
                         const LabelKapital(
                           'Perjalanan baru',
-                          warna: NapakColors.emberRedup,
+                          warna: TourvellaColors.emberRedup,
                         ),
                       ],
                     ),
@@ -135,7 +144,7 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                           child: Text(
                             'Mau ke mana?',
                             style: text.displaySmall?.copyWith(
-                              color: NapakColors.base,
+                              color: TourvellaColors.base,
                             ),
                           ),
                         ),
@@ -143,10 +152,12 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                         MunculBertahap(
                           indeks: 2,
                           child: Text(
-                            'Napak akan merekam diam-diam sampai kamu bilang selesai. '
+                            'Tourvella akan merekam diam-diam sampai kamu bilang selesai. '
                             'Layar boleh dimatikan.',
                             style: text.bodyLarge?.copyWith(
-                              color: NapakColors.base.withValues(alpha: 0.65),
+                              color: TourvellaColors.base.withValues(
+                                alpha: 0.65,
+                              ),
                             ),
                           ),
                         ),
@@ -158,24 +169,24 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                             autofocus: true,
                             textCapitalization: TextCapitalization.sentences,
                             style: text.titleLarge?.copyWith(
-                              color: NapakColors.base,
+                              color: TourvellaColors.base,
                             ),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: NapakColors.malamNaik.withValues(
+                              fillColor: TourvellaColors.malamNaik.withValues(
                                 alpha: 0.8,
                               ),
                               hintText: 'Mudik ke Solo',
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                                 borderSide: const BorderSide(
-                                  color: NapakColors.kontur,
+                                  color: TourvellaColors.kontur,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(14),
                                 borderSide: const BorderSide(
-                                  color: NapakColors.ember,
+                                  color: TourvellaColors.ember,
                                   width: 1.6,
                                 ),
                               ),
@@ -189,7 +200,9 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                           child: Text(
                             'Boleh dikosongkan — nanti dinamai dengan tanggal hari ini.',
                             style: text.bodySmall?.copyWith(
-                              color: NapakColors.base.withValues(alpha: 0.45),
+                              color: TourvellaColors.base.withValues(
+                                alpha: 0.45,
+                              ),
                             ),
                           ),
                         ),
@@ -225,9 +238,16 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                         const SizedBox(height: 28),
                         MunculBertahap(
                           indeks: 6,
-                          child: _PilihTapakTilas(
-                            terpilih: _tapakTilas,
-                            onPilih: (t) => setState(() => _tapakTilas = t),
+                          child: _PilihKendaraan(
+                            terpilih: _kendaraanId,
+                            onPilih: (id) => setState(() => _kendaraanId = id),
+                          ),
+                        ),
+                        MunculBertahap(
+                          indeks: 6,
+                          child: _PilihSusurUlang(
+                            terpilih: _yangDisusuri,
+                            onPilih: (t) => setState(() => _yangDisusuri = t),
                           ),
                         ),
                       ],
@@ -240,8 +260,8 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                       child: FilledButton.icon(
                         onPressed: _memulai ? null : _mulai,
                         style: FilledButton.styleFrom(
-                          backgroundColor: NapakColors.ember,
-                          foregroundColor: NapakColors.malam,
+                          backgroundColor: TourvellaColors.ember,
+                          foregroundColor: TourvellaColors.malam,
                           minimumSize: const Size(double.infinity, 54),
                         ),
                         icon: _memulai
@@ -250,16 +270,16 @@ class _MulaiRekamPageState extends ConsumerState<MulaiRekamPage> {
                                 width: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: NapakColors.malam,
+                                  color: TourvellaColors.malam,
                                 ),
                               )
                             : const Icon(Icons.play_arrow_rounded),
                         label: Text(
                           _memulai
                               ? 'Menyiapkan...'
-                              : _tapakTilas == null
+                              : _yangDisusuri == null
                               ? 'Mulai merekam'
-                              : 'Mulai napak tilas',
+                              : 'Mulai susur ulang',
                         ),
                       ),
                     ),
@@ -300,7 +320,7 @@ class _GarisPembukaState extends State<_GarisPembuka>
       animation: _kendali,
       builder: (context, _) => JejakMenggambar(
         progres: Curves.easeInOutCubic.transform(_kendali.value),
-        gradasi: const [NapakColors.ember, NapakColors.emberRedup],
+        gradasi: const [TourvellaColors.ember, TourvellaColors.emberRedup],
         tebal: 3,
       ),
     );
@@ -326,20 +346,20 @@ class _PilihanMode extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: onTap,
       skala: 0.96,
       child: AnimatedContainer(
-        duration: NapakMotion.cepat,
-        curve: NapakMotion.mengalir,
+        duration: TourvellaMotion.cepat,
+        curve: TourvellaMotion.mengalir,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           color: terpilih
-              ? NapakColors.ember.withValues(alpha: 0.14)
-              : NapakColors.malamNaik.withValues(alpha: 0.7),
+              ? TourvellaColors.ember.withValues(alpha: 0.14)
+              : TourvellaColors.malamNaik.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: terpilih ? NapakColors.ember : NapakColors.kontur,
+            color: terpilih ? TourvellaColors.ember : TourvellaColors.kontur,
             width: terpilih ? 1.6 : 1,
           ),
         ),
@@ -350,21 +370,21 @@ class _PilihanMode extends StatelessWidget {
               ikon,
               size: 22,
               color: terpilih
-                  ? NapakColors.ember
-                  : NapakColors.base.withValues(alpha: 0.55),
+                  ? TourvellaColors.ember
+                  : TourvellaColors.base.withValues(alpha: 0.55),
             ),
             const SizedBox(height: 12),
             Text(
               judul,
               style: text.titleMedium?.copyWith(
-                color: NapakColors.base,
+                color: TourvellaColors.base,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 3),
             LabelKapital(
               keterangan,
-              warna: NapakColors.base.withValues(alpha: 0.5),
+              warna: TourvellaColors.base.withValues(alpha: 0.5),
               ukuran: 9,
             ),
           ],
@@ -374,13 +394,13 @@ class _PilihanMode extends StatelessWidget {
   }
 }
 
-/// Pilihan menapak tilas perjalanan lama.
+/// Pilihan menyusuri ulang perjalanan lama.
 ///
-/// Inilah yang membuat nama aplikasi ini berarti sesuatu. "Napak tilas"
-/// adalah menyusuri kembali jejak perjalanan — dan sampai fitur ini ada,
-/// aplikasinya cuma meminjam namanya.
-class _PilihTapakTilas extends ConsumerWidget {
-  const _PilihTapakTilas({required this.terpilih, required this.onPilih});
+/// "Susur ulang" adalah menyusuri kembali jejak perjalanan lama. Dulu
+/// bernama "napak tilas"; diganti bersama nama lama aplikasinya supaya
+/// tidak ada yang terbaca sebagai sisa merek Napak.
+class _PilihSusurUlang extends ConsumerWidget {
+  const _PilihSusurUlang({required this.terpilih, required this.onPilih});
 
   final Trip? terpilih;
   final ValueChanged<Trip?> onPilih;
@@ -390,7 +410,7 @@ class _PilihTapakTilas extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final semua = ref.watch(tripListProvider).value ?? const <Trip>[];
 
-    // Yang bisa ditapak-tilasi cuma perjalanan yang sudah selesai dan punya
+    // Yang bisa disusuri ulang cuma perjalanan yang sudah selesai dan punya
     // cukup jejak untuk dibandingkan.
     final bisa = semua
         .where((t) => !t.isRecording && t.pointCount >= 10)
@@ -399,34 +419,34 @@ class _PilihTapakTilas extends ConsumerWidget {
     if (bisa.isEmpty) return const SizedBox.shrink();
 
     if (terpilih != null) {
-      return NapakPressable(
+      return TourvellaPressable(
         onTap: () => onPilih(null),
         skala: 0.98,
         child: Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: NapakColors.ember.withValues(alpha: 0.14),
+            color: TourvellaColors.ember.withValues(alpha: 0.14),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: NapakColors.ember, width: 1.6),
+            border: Border.all(color: TourvellaColors.ember, width: 1.6),
           ),
           child: Row(
             children: [
               const Icon(
                 Icons.history_rounded,
                 size: 20,
-                color: NapakColors.ember,
+                color: TourvellaColors.ember,
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const LabelKapital('Menapak tilas', ukuran: 9),
+                    const LabelKapital('Menyusuri ulang', ukuran: 9),
                     const SizedBox(height: 3),
                     Text(
                       terpilih!.title,
                       style: text.titleMedium?.copyWith(
-                        color: NapakColors.base,
+                        color: TourvellaColors.base,
                         fontWeight: FontWeight.w800,
                       ),
                       maxLines: 1,
@@ -438,7 +458,7 @@ class _PilihTapakTilas extends ConsumerWidget {
               Icon(
                 Icons.close_rounded,
                 size: 18,
-                color: NapakColors.base.withValues(alpha: 0.6),
+                color: TourvellaColors.base.withValues(alpha: 0.6),
               ),
             ],
           ),
@@ -446,22 +466,22 @@ class _PilihTapakTilas extends ConsumerWidget {
       );
     }
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () => _pilih(context, bisa),
       skala: 0.98,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: NapakColors.malamNaik.withValues(alpha: 0.7),
+          color: TourvellaColors.malamNaik.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: NapakColors.kontur),
+          border: Border.all(color: TourvellaColors.kontur),
         ),
         child: Row(
           children: [
             const Icon(
               Icons.history_rounded,
               size: 20,
-              color: NapakColors.emberRedup,
+              color: TourvellaColors.emberRedup,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -469,9 +489,9 @@ class _PilihTapakTilas extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Napak tilas perjalanan lama',
+                    'Susuri ulang perjalanan lama',
                     style: text.titleMedium?.copyWith(
-                      color: NapakColors.base,
+                      color: TourvellaColors.base,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -479,7 +499,7 @@ class _PilihTapakTilas extends ConsumerWidget {
                   Text(
                     'Ulangi rute yang pernah kamu tempuh, lihat bedanya.',
                     style: text.bodySmall?.copyWith(
-                      color: NapakColors.base.withValues(alpha: 0.55),
+                      color: TourvellaColors.base.withValues(alpha: 0.55),
                     ),
                   ),
                 ],
@@ -488,7 +508,7 @@ class _PilihTapakTilas extends ConsumerWidget {
             const Icon(
               Icons.chevron_right_rounded,
               size: 20,
-              color: NapakColors.emberRedup,
+              color: TourvellaColors.emberRedup,
             ),
           ],
         ),
@@ -516,12 +536,12 @@ class _PilihTapakTilas extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Mau menapak tilas yang mana?',
+                      'Mau menyusuri ulang yang mana?',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Napak akan menunjukkan rute lamamu di peta dan '
+                      'Tourvella akan menunjukkan rute lamamu di peta dan '
                       'membandingkan perjalanan hari ini dengan hari itu.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
@@ -533,15 +553,15 @@ class _PilihTapakTilas extends ConsumerWidget {
             final t = bisa[i - 1];
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: NapakPressable(
+              child: TourvellaPressable(
                 onTap: () => Navigator.of(sheetContext).pop(t),
                 skala: 0.98,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: NapakColors.malamNaik.withValues(alpha: 0.7),
+                    color: TourvellaColors.malamNaik.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: NapakColors.kontur),
+                    border: Border.all(color: TourvellaColors.kontur),
                   ),
                   child: Row(
                     children: [
@@ -567,7 +587,7 @@ class _PilihTapakTilas extends ConsumerWidget {
                       const Icon(
                         Icons.history_rounded,
                         size: 18,
-                        color: NapakColors.emberRedup,
+                        color: TourvellaColors.emberRedup,
                       ),
                     ],
                   ),
@@ -580,5 +600,87 @@ class _PilihTapakTilas extends ConsumerWidget {
     );
 
     if (hasil != null) onPilih(hasil);
+  }
+}
+
+/// Kendaraan yang menemani perjalanan kali ini, dari garasi.
+///
+/// Tidak tampil sama sekali kalau garasinya kosong — layar ini sudah cukup
+/// berisi, dan orang yang belum punya garasi tidak perlu diingatkan.
+class _PilihKendaraan extends ConsumerWidget {
+  const _PilihKendaraan({required this.terpilih, required this.onPilih});
+
+  final String? terpilih;
+  final ValueChanged<String?> onPilih;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final garasi = ref.watch(garasiProvider('saya')).value ?? const [];
+    if (garasi.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const LabelKapital('Berangkat dengan'),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: garasi.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final k = garasi[i];
+                final pilih = k.id == terpilih;
+                return TourvellaPressable(
+                  skala: 0.94,
+                  onTap: () => onPilih(pilih ? null : k.id),
+                  child: AnimatedContainer(
+                    duration: TourvellaMotion.cepat,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: pilih
+                          ? TourvellaColors.ember.withValues(alpha: 0.16)
+                          : TourvellaColors.malamNaik.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: pilih
+                            ? TourvellaColors.ember
+                            : TourvellaColors.kontur,
+                        width: pilih ? 1.6 : 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          k.jenis.ikon,
+                          size: 18,
+                          color: pilih
+                              ? TourvellaColors.ember
+                              : TourvellaColors.base.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          k.nama,
+                          style: TextStyle(
+                            color: TourvellaColors.base,
+                            fontWeight: pilih
+                                ? FontWeight.w800
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -52,7 +52,7 @@ class Profil {
     required this.terbuka,
     this.bio,
     this.fotoUrl,
-    this.kodeNapak,
+    this.kodeTourvella,
     this.permintaanId,
     this.statistik,
   });
@@ -62,7 +62,7 @@ class Profil {
     nama: j['nama'] as String,
     bio: j['bio'] as String?,
     fotoUrl: j['fotoUrl'] as String?,
-    kodeNapak: j['kodeNapak'] as String?,
+    kodeTourvella: j['kodeTourvella'] as String?,
     hubungan: Hubungan.dari(j['hubungan'] as String?),
     permintaanId: j['permintaanId'] as String?,
     terbuka: j['terbuka'] as bool? ?? false,
@@ -75,7 +75,7 @@ class Profil {
   final String nama;
   final String? bio;
   final String? fotoUrl;
-  final String? kodeNapak;
+  final String? kodeTourvella;
   final Hubungan hubungan;
   final String? permintaanId;
   final bool terbuka;
@@ -209,7 +209,9 @@ class ProfilRepository {
         ),
       );
     } on DioException {
-      throw NapakException('Fotonya gagal terkirim. Coba lagi sebentar lagi.');
+      throw TourvellaException(
+        'Fotonya gagal terkirim. Coba lagi sebentar lagi.',
+      );
     }
 
     return Profil.fromJson(

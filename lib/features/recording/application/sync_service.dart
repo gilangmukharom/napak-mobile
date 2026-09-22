@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/config/napak_config.dart';
+import '../../../core/config/tourvella_config.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/providers.dart';
 import '../../trips/data/trip_repository.dart';
@@ -16,7 +16,7 @@ import '../data/local_database.dart';
 class SyncService {
   SyncService(this._db, this._trips);
 
-  final NapakLocalDatabase _db;
+  final TourvellaLocalDatabase _db;
   final TripRepository _trips;
 
   bool _running = false;
@@ -64,7 +64,7 @@ class SyncService {
     var totalSynced = 0;
     try {
       while (true) {
-        final batch = await _db.nextBatch(limit: NapakConfig.syncBatchSize);
+        final batch = await _db.nextBatch(limit: TourvellaConfig.syncBatchSize);
         if (batch.isEmpty) break;
 
         // Dikelompokkan per perjalanan karena endpointnya memang per perjalanan.
@@ -85,7 +85,7 @@ class SyncService {
             await _db.clearSynced(ids);
             totalSynced += ids.length;
             progressed = true;
-          } on NapakException catch (error) {
+          } on TourvellaException catch (error) {
             if (error.statusCode == 404) {
               // Perjalanannya sudah tidak ada — mungkin dihapus dari perangkat
               // lain. Jejak yang menuju ke sana tidak ada gunanya lagi.

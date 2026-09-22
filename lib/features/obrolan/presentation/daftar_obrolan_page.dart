@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/widgets/napak_ekspedisi.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/widgets/napak_gerak.dart';
-import '../../../core/widgets/napak_pressable.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
+import '../../../core/widgets/tourvella_pressable.dart';
 import '../../sosial/presentation/komponen_sosial.dart';
 import '../data/obrolan_data.dart';
 
@@ -17,7 +17,7 @@ class DaftarObrolanPage extends ConsumerWidget {
     final daftar = ref.watch(daftarObrolanProvider);
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       appBar: BilahEkspedisi(
         judul: 'Obrolan',
         keterangan: '${daftar.value?.length ?? 0} percakapan',
@@ -25,7 +25,7 @@ class DaftarObrolanPage extends ConsumerWidget {
           IconButton(
             tooltip: 'Mulai obrolan dengan teman',
             onPressed: () => context.push('/teman'),
-            color: NapakColors.base,
+            color: TourvellaColors.base,
             icon: const Icon(Icons.edit_square),
           ),
         ],
@@ -52,7 +52,7 @@ class DaftarObrolanPage extends ConsumerWidget {
                     judul: 'Belum ada obrolan',
                     isi:
                         'Obrolan cuma bisa dengan teman. Tambahkan teman lewat '
-                        'kode Napak, lalu sapa mereka dari sana.',
+                        'kode Tourvella, lalu sapa mereka dari sana.',
                     aksi: FilledButton.icon(
                       onPressed: () => context.push('/teman'),
                       icon: const Icon(Icons.group_add_outlined, size: 20),
@@ -91,7 +91,7 @@ class _BarisPercakapan extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final belum = p.belumDibaca > 0;
 
-    return NapakPressable(
+    return TourvellaPressable(
       onTap: () async {
         await context.push(
           '/obrolan/${p.id}',
@@ -114,14 +114,14 @@ class _BarisPercakapan extends ConsumerWidget {
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: NapakColors.routeGradient,
+                          colors: TourvellaColors.routeGradient,
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                       ),
                       child: const Icon(
                         Icons.two_wheeler_rounded,
-                        color: NapakColors.textOnDeep,
+                        color: TourvellaColors.textOnDeep,
                       ),
                     )
                   : LingkaranNama(nama: p.judul, ukuran: 52),
@@ -148,8 +148,8 @@ class _BarisPercakapan extends ConsumerWidget {
                           waktuSantai(p.waktuTerakhir!),
                           style: text.bodySmall?.copyWith(
                             color: belum
-                                ? NapakColors.deepAccent
-                                : NapakColors.textSecondary,
+                                ? TourvellaColors.deepAccent
+                                : TourvellaColors.textSecondary,
                           ),
                         ),
                     ],
@@ -164,8 +164,8 @@ class _BarisPercakapan extends ConsumerWidget {
                               : '${p.terakhirOlehSaya ? 'Kamu: ' : ''}${p.pesanTerakhir}',
                           style: text.bodyMedium?.copyWith(
                             color: belum
-                                ? NapakColors.textPrimary
-                                : NapakColors.textSecondary,
+                                ? TourvellaColors.textPrimary
+                                : TourvellaColors.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -199,7 +199,7 @@ class _CatatanSimpan extends StatelessWidget {
           const Icon(
             Icons.lock_outline_rounded,
             size: 16,
-            color: NapakColors.textSecondary,
+            color: TourvellaColors.textSecondary,
           ),
           const SizedBox(width: 8),
           Expanded(

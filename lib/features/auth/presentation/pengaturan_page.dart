@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/napak_tekstur.dart';
-import '../../../core/widgets/napak_ekspedisi.dart';
+import '../../../core/theme/tourvella_tekstur.dart';
+import '../../../core/widgets/tourvella_ekspedisi.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/napak_colors.dart';
-import '../../../core/widgets/napak_gerak.dart';
+import '../../../core/theme/tourvella_colors.dart';
+import '../../../core/widgets/tourvella_gerak.dart';
 import '../../recording/application/recording_controller.dart';
 import '../../trips/data/trip_models.dart';
 
 /// Tab "Kamu" — profil, janji privasi, dan pintu keluar.
 ///
 /// Janji privasi ditaruh di sini, bukan disembunyikan di dokumen terpisah
-/// yang tidak pernah dibuka siapa pun. Kalau Napak memang menjadikan privasi
+/// yang tidak pernah dibuka siapa pun. Kalau Tourvella memang menjadikan privasi
 /// sebagai fondasi, orangnya berhak membaca janji itu di tempat yang wajar
 /// dilihat — bukan di halaman syarat dan ketentuan.
 class PengaturanPage extends ConsumerWidget {
@@ -28,7 +28,7 @@ class PengaturanPage extends ConsumerWidget {
     final totalKm = trips.fold<double>(0, (jml, t) => jml + t.distanceKm);
 
     return Scaffold(
-      backgroundColor: NapakColors.base,
+      backgroundColor: TourvellaColors.base,
       // Sekarang dibuka dari menu di profil, jadi punya jalan kembali.
       appBar: const BilahEkspedisi(
         judul: 'Pengaturan & privasi',
@@ -43,12 +43,12 @@ class PengaturanPage extends ConsumerWidget {
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: NapakColors.kanvasMalam,
+                  colors: TourvellaColors.kanvasMalam,
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: NapakColors.kontur),
+                border: Border.all(color: TourvellaColors.kontur),
               ),
               clipBehavior: Clip.antiAlias,
               child: Stack(
@@ -72,14 +72,16 @@ class PengaturanPage extends ConsumerWidget {
                             width: 54,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: NapakColors.ember.withValues(alpha: 0.18),
+                              color: TourvellaColors.ember.withValues(
+                                alpha: 0.18,
+                              ),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: NapakColors.ember),
+                              border: Border.all(color: TourvellaColors.ember),
                             ),
                             child: Text(
                               (nama ?? 'P').characters.first.toUpperCase(),
                               style: text.headlineSmall?.copyWith(
-                                color: NapakColors.ember,
+                                color: TourvellaColors.ember,
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
@@ -92,7 +94,7 @@ class PengaturanPage extends ConsumerWidget {
                                 Text(
                                   nama ?? 'Penjejak',
                                   style: text.titleLarge?.copyWith(
-                                    color: NapakColors.base,
+                                    color: TourvellaColors.base,
                                     fontWeight: FontWeight.w800,
                                   ),
                                   maxLines: 1,
@@ -100,8 +102,8 @@ class PengaturanPage extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 3),
                                 const LabelKapital(
-                                  'Akun Napak',
-                                  warna: NapakColors.emberRedup,
+                                  'Akun Tourvella',
+                                  warna: TourvellaColors.emberRedup,
                                   ukuran: 9,
                                 ),
                               ],
@@ -141,7 +143,7 @@ class PengaturanPage extends ConsumerWidget {
             indeks: 1,
             child: const LabelKapital(
               'Jejakmu, kendalimu',
-              warna: NapakColors.deepAccent,
+              warna: TourvellaColors.deepAccent,
               ukuran: 12,
             ),
           ),
@@ -203,7 +205,7 @@ class PengaturanPage extends ConsumerWidget {
             child: TextButton(
               onPressed: () => _hapusAkun(context, ref),
               style: TextButton.styleFrom(
-                foregroundColor: NapakColors.attention,
+                foregroundColor: TourvellaColors.attention,
                 minimumSize: const Size.fromHeight(52),
               ),
               child: const Text('Hapus akun dan semua jejak'),
@@ -228,7 +230,7 @@ class PengaturanPage extends ConsumerWidget {
       final lanjut = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          backgroundColor: NapakColors.base,
+          backgroundColor: TourvellaColors.base,
           title: const Text('Masih ada jejak yang belum terkirim'),
           content: Text(
             '$pending jejak masih menunggu sinyal. Kalau keluar sekarang, '
@@ -266,7 +268,7 @@ class PengaturanPage extends ConsumerWidget {
     final yakin = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: NapakColors.base,
+        backgroundColor: TourvellaColors.base,
         title: const Text('Hapus akun?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -299,7 +301,7 @@ class PengaturanPage extends ConsumerWidget {
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: NapakColors.attention,
+              backgroundColor: TourvellaColors.attention,
             ),
             child: const Text('Hapus selamanya'),
           ),
@@ -359,7 +361,7 @@ class _AngkaRingkas extends StatelessWidget {
               desimal: desimal,
               satuan: satuan.isEmpty ? null : satuan.toUpperCase(),
               gaya: text.headlineSmall?.copyWith(
-                color: NapakColors.ember,
+                color: TourvellaColors.ember,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -368,7 +370,7 @@ class _AngkaRingkas extends StatelessWidget {
         const SizedBox(height: 3),
         LabelKapital(
           label,
-          warna: NapakColors.base.withValues(alpha: 0.55),
+          warna: TourvellaColors.base.withValues(alpha: 0.55),
           ukuran: 9,
         ),
       ],
@@ -400,10 +402,10 @@ class _ButirPrivasi extends StatelessWidget {
             height: 36,
             width: 36,
             decoration: BoxDecoration(
-              color: NapakColors.softSky,
+              color: TourvellaColors.softSky,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(ikon, size: 18, color: NapakColors.deepAccent),
+            child: Icon(ikon, size: 18, color: TourvellaColors.deepAccent),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -489,10 +491,10 @@ class _Pintu extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: const BoxDecoration(
-                  color: NapakColors.softSky,
+                  color: TourvellaColors.softSky,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(ikon, color: NapakColors.deepAccent),
+                child: Icon(ikon, color: TourvellaColors.deepAccent),
               ),
               const SizedBox(height: 8),
               Text(label, style: Theme.of(context).textTheme.labelLarge),
